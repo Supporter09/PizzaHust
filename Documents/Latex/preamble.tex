@@ -1,0 +1,29 @@
+\documentclass[12pt]{article}
+
+\usepackage[a4paper,left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{parskip}
+\usepackage{hyperref}
+\usepackage{ragged2e}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{calc}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    pdftitle={PizzaHut Section 3 Analysis}
+}
+
+\newlength{\labelcol}
+\newlength{\contentcol}
+\setlength{\labelcol}{3.6cm}
+\setlength{\contentcol}{\textwidth - \labelcol - 4\tabcolsep - 3\arrayrulewidth - 2pt}
+\setlength{\arrayrulewidth}{0.8pt}
+
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+
+\newcommand{\systemname}{PizzaH\'ut}

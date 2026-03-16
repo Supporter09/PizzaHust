@@ -1,0 +1,11 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Analysis}{2}{section.1}%
+\contentsline {subsection}{\numberline {1.1}General Use Case Overview}{2}{subsection.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.1}General Use Case Diagram}{2}{subsubsection.1.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.2}Use Case Relationships}{2}{subsubsection.1.1.2}%
+\contentsline {subsection}{\numberline {1.2}Use Case Details}{3}{subsection.1.2}%
+\contentsline {subsubsection}{\numberline {1.2.1}Guest and Customer Use Case Details}{3}{subsubsection.1.2.1}%
+\contentsline {subsubsection}{\numberline {1.2.2}Admin / Store Owner Use Case Details}{10}{subsubsection.1.2.2}%
+\contentsline {subsubsection}{\numberline {1.2.3}Kitchen Staff Use Case Details}{14}{subsubsection.1.2.3}%
+\contentsline {subsubsection}{\numberline {1.2.4}Third-Party Delivery Service Use Case Details}{15}{subsubsection.1.2.4}%
+\contentsline {subsubsection}{\numberline {1.2.5}AI Recommendation Service Use Case Details}{17}{subsubsection.1.2.5}%
