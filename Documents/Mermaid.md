@@ -3,7 +3,6 @@ flowchart LR
     Customer["Customer"]
     Admin["Admin / Store Owner"]
     Kitchen["Kitchen Staff"]
-    AIActor["AI Recommendation Service"]
     DeliveryAPI["Third-Party Delivery Service"]
 
     Customer -.->|inherits| Guest
@@ -29,11 +28,10 @@ flowchart LR
             U7_1["U7.1 Synchronize Delivery Status"]
             U8["U8 Register"]
             U9["U9 Log In"]
-            U10["U10 Get AI Menu Recommendation"]
-            U11["U11 View Order History"]
-            U12["U12 Manage Profile"]
-            U13["U13 View Loyalty Points"]
-            U14["U14 Redeem Points for Discount"]
+            U10["U10 View Order History"]
+            U11["U11 Manage Profile"]
+            U12["U12 View Loyalty Points"]
+            U13["U13 Redeem Points for Discount"]
         end
 
         subgraph ADM["Administration"]
@@ -49,16 +47,16 @@ flowchart LR
 
         subgraph KIT["Kitchen Operations"]
             direction TB
-            K1["K1 View Incoming Orders"]
-            K2["K2 Update Preparation Status"]
-            K3["K3 Mark Order Ready for Dispatch"]
+            K1["K1 View Kitchen Order Queue"]
+            K2["K2 Process Prioritized Order"]
+            K3["K3 Update Preparation Status"]
+            K4["K4 Mark Order Ready for Dispatch"]
         end
 
         subgraph INT["External Services Integration"]
             direction TB
             T1["T1 Request Delivery Service"]
             T2["T2 Synchronize Delivery Status"]
-            AI1["AI1 Generate Personalized Menu Recommendation"]
         end
     end
 
@@ -70,13 +68,12 @@ flowchart LR
     Guest --- U6
     Guest --- U7
     Guest --- U8
-    Guest --- U10
 
     Customer --- U9
+    Customer --- U10
     Customer --- U11
     Customer --- U12
     Customer --- U13
-    Customer --- U14
 
     Admin --- A1
     Admin --- A2
@@ -89,8 +86,8 @@ flowchart LR
     Kitchen --- K1
     Kitchen --- K2
     Kitchen --- K3
+    Kitchen --- K4
 
-    AIActor --- AI1
     DeliveryAPI --- T1
     DeliveryAPI --- T2
 
@@ -101,9 +98,7 @@ flowchart LR
     U6 -->|include| U6_1
     U6 -->|include| U6_2
     U6 -->|include| U6_3
-    U14 -.->|extend| U6
-
-    U10 -->|include| AI1
+    U13 -.->|extend| U6
     U7 -->|include| U7_1
     U7_1 -->|include| T2
-    K3 -->|include| T1
+    K4 -->|include| T1

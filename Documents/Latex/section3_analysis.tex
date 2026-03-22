@@ -2,32 +2,27 @@
 
 \subsection{General Use Case Overview}
 
-This section presents the use case analysis for the \systemname\ Online Ordering System. The scope is limited to a web-based MVP that can be delivered within 3.5 months while still satisfying the mandatory requirements described in the project topic. The MVP supports online ordering, pizza customization, combo promotions, menu browsing, cash on delivery, loyalty points for registered customers, order preparation, basic order tracking, third-party delivery integration, and basic reporting for the store owner.
+This section presents the use case analysis for the \systemname\ Online Ordering System. The scope is limited to a web-based MVP that can be delivered within 3.5 months while still satisfying the mandatory business requirements of the project topic. The refined MVP supports menu browsing, pizza customization, combo promotions, cash on delivery, guest order-code tracking, customer account features, loyalty points, kitchen order queue handling, third-party delivery integration, and basic reporting for the store owner.
 
 \subsubsection{General Use Case Diagram}
 
 \begin{figure}[H]
     \centering
-    \fbox{
-        \parbox{0.9\linewidth}{
-            \centering
-            General use case diagram placeholder for \systemname.\\
-            The final diagram can be drawn in Figma and inserted here after the actor and use case list is validated.
-        }
-    }
-    \caption{\systemname\ General Use Case Diagram Placeholder}
-    \label{fig:pizzahut-general-use-case}
+    \includegraphics[width=1\linewidth]{../PizzaHust.png}
+    \caption{\systemname\ General Use Case Diagram}
+    \label{fig:pizzahust-general-use-case}
 \end{figure}
 
-The system includes five primary actors and one external supporting actor:
+The figure above provides the high-level use case overview for \systemname. The detailed descriptions below follow the final MVP boundary used in this report. In particular, AI recommendation is treated as a future enhancement rather than an MVP use case, and the kitchen workflow is refined into a \textbf{Kitchen Order Queue} that helps staff process the most urgent orders first.
+
+The final MVP includes four primary internal actors and one external supporting actor:
 
 \begin{description}
-    \item[Guest:] A visitor who can browse menus, customize products, place a cash-on-delivery order, track an order, and request AI-based menu suggestions without creating an account.
-    \item[Customer:] A registered user who is a specialization of Guest. Therefore, the customer inherits all guest capabilities and additionally can log in, manage profile information, view order history, earn loyalty points, and redeem points during checkout.
-    \item[Admin / Store Owner:] The business operator who manages pizzas, toppings, side dishes, categories, combo campaigns, order supervision, customer support, and sales reports.
-    \item[Kitchen Staff:] Internal staff members who receive confirmed orders, prepare them, update preparation progress, and mark orders as ready for delivery.
-    \item[AI Recommendation Service:] An external or internal AI module that generates simple menu and combo suggestions based on the customer's preferences, budget, and group size.
-    \item[Third-Party Delivery Service:] An external delivery platform integrated through API to receive delivery requests and return delivery status updates to the system.
+    \item[Guest:] A visitor who can browse menus, customize pizzas, place a cash-on-delivery order, and track an order by using a generated order code.
+    \item[Customer:] A registered user who inherits all guest capabilities and can additionally log in, manage profile information, view order history, earn loyalty points, and redeem points during checkout.
+    \item[Admin / Store Owner:] The business operator who manages pizzas, toppings, side dishes, categories, combo campaigns, customer records, order supervision, and sales reports.
+    \item[Kitchen Staff:] Internal staff members who work from a prioritized kitchen queue, process the next recommended order, update preparation progress, and mark completed orders as ready for dispatch.
+    \item[Third-Party Delivery Service:] An external delivery platform integrated through API to receive delivery requests and return delivery status updates.
 \end{description}
 
 \subsubsection{Use Case Relationships}
@@ -39,9 +34,9 @@ The main relationships among use cases are summarized below:
     \item \textbf{Customize Pizza} includes selecting pizza size and crust type, and it optionally extends to adding extra toppings.
     \item \textbf{Place COD Order} includes providing delivery information, calculating the fixed delivery fee, and confirming cash on delivery.
     \item \textbf{Redeem Points for Discount} extends \textbf{Place COD Order} and is available only to authenticated customers with sufficient loyalty points.
-    \item \textbf{Get AI Menu Recommendation} includes the service use case \textbf{Generate Personalized Menu Recommendation}.
-    \item \textbf{Mark Order Ready for Dispatch} includes \textbf{Request Delivery Service} when the order is packed and ready for handoff.
     \item \textbf{Track Order} includes \textbf{Synchronize Delivery Status} when the order has already been sent to the third-party delivery service.
+    \item \textbf{Mark Order Ready for Dispatch} includes \textbf{Request Delivery Service} when the order is packed and ready for handoff.
+    \item \textbf{Process Prioritized Order} depends on the prioritized kitchen queue that ranks waiting orders by urgency, promised time, and readiness constraints.
 \end{itemize}
 
 \subsection{Use Case Details}
@@ -66,7 +61,7 @@ Main Event Flow &
         2 & System & Load available menu categories and featured items \\ \hline
         3 & User & Select a category or apply simple filters \\ \hline
         4 & System & Display matching products with prices and short descriptions \\ \hline
-        5 & User & Review the menu list and continue browsing \\ \hline
+        5 & User & Continue browsing or open item details \\ \hline
     \end{tabularx} \\ \hline
 Postconditions & The user can view the products currently offered by the store \\ \hline
 \end{tabular}
@@ -89,8 +84,8 @@ Main Event Flow &
         1 & User & Select an item from the menu list \\ \hline
         2 & System & Load detailed product information \\ \hline
         3 & System & Display description, image, ingredients, and availability \\ \hline
-        4 & System & Show pizza sizes, prices, crust options, and available toppings if the item is a pizza \\ \hline
-        5 & User & Review the information before adding the item to the cart \\ \hline
+        4 & System & Show pizza sizes, crust options, and toppings if the item is a pizza \\ \hline
+        5 & User & Review the details before adding the item to the cart \\ \hline
     \end{tabularx} \\ \hline
 Postconditions & The user understands the selected item's details and purchase options \\ \hline
 \end{tabular}
@@ -115,7 +110,7 @@ Main Event Flow &
         3 & User & Select size S, M, or L \\ \hline
         4 & User & Select crust type \\ \hline
         5 & User & Optionally choose extra toppings \\ \hline
-        6 & System & Recalculate the item price based on size and toppings \\ \hline
+        6 & System & Recalculate the item price based on selected options \\ \hline
         7 & User & Confirm the customized pizza configuration \\ \hline
     \end{tabularx} \\ \hline
 Postconditions & A valid customized pizza is ready to be added to the cart \\ \hline
@@ -129,20 +124,20 @@ Postconditions & A valid customized pizza is ready to be added to the cart \\ \h
 Use Case Code & U4 \\ \hline
 Use Case Name & View Combo Promotions \\ \hline
 Actor & Guest, Customer \\ \hline
-Usage & View active combo boxes and promotional bundles available for lunch, dinner, or specific customer groups \\ \hline
-Activation Event & The user opens the promotion or combo section \\ \hline
+Usage & View active combo bundles and promotional offers scheduled for different time windows \\ \hline
+Activation Event & The user opens the combo or promotions page \\ \hline
 Preconditions & At least one combo campaign must be active \\ \hline
 Main Event Flow &
     \begin{tabularx}{\linewidth}{| l | l | Y |}
         \hline
         \textbf{Index} & \textbf{Done by} & \textbf{Action} \\ \hline
-        1 & User & Open the combo or promotions page \\ \hline
+        1 & User & Open the combo or promotions section \\ \hline
         2 & System & Retrieve active combo campaigns based on the current time \\ \hline
-        3 & System & Display combo contents, target group size, original price, discounted price, and validity period \\ \hline
-        4 & User & Review the promotional options \\ \hline
-        5 & User & Select a combo or return to menu browsing \\ \hline
+        3 & System & Display combo contents, target group size, price, and validity period \\ \hline
+        4 & User & Review available promotional options \\ \hline
+        5 & User & Add a combo to the cart or continue browsing \\ \hline
     \end{tabularx} \\ \hline
-Postconditions & The user can evaluate whether a combo campaign fits the current order \\ \hline
+Postconditions & The user can evaluate available combo campaigns before ordering \\ \hline
 \end{tabular}
 \end{table}
 
@@ -191,7 +186,7 @@ Main Event Flow &
         5 & Customer & Optionally redeem loyalty points if authenticated \\ \hline
         6 & User & Confirm cash on delivery \\ \hline
         7 & System & Create the order and store all order lines \\ \hline
-        8 & System & Send the order to the kitchen queue and store the delivery request as pending dispatch \\ \hline
+        8 & System & Generate an order code and place the order in the kitchen queue \\ \hline
     \end{tabularx} \\ \hline
 Postconditions & A new order is created with an initial processing status \\ \hline
 \end{tabular}
@@ -214,7 +209,8 @@ Main Event Flow &
         1 & User & Enter the order code or open an order from account history \\ \hline
         2 & System & Retrieve the current order record \\ \hline
         3 & System & Display status timeline such as Received, Preparing, Ready for Dispatch, Delivering, Delivered, or Delivery Failed \\ \hline
-        4 & User & Review the latest order progress \\ \hline
+        4 & System & Synchronize delivery status if an external delivery reference exists \\ \hline
+        5 & User & Review the latest order progress \\ \hline
     \end{tabularx} \\ \hline
 Postconditions & The user knows the current status of the order \\ \hline
 \end{tabular}
@@ -269,35 +265,11 @@ Postconditions & The customer is logged in and can access account-only features 
 \end{tabular}
 \end{table}
 
-\textbf{U10: Get AI Menu Recommendation}
+\textbf{U10: View Order History}
 \begin{table}[H]
 \begin{tabular}{| >{\bfseries\RaggedRight}p{\labelcol} | p{\contentcol} |}
 \hline
 Use Case Code & U10 \\ \hline
-Use Case Name & Get AI Menu Recommendation \\ \hline
-Actor & Guest, Customer \\ \hline
-Usage & Ask the system for simple menu or combo suggestions based on preferences \\ \hline
-Activation Event & The user opens the AI recommendation widget \\ \hline
-Preconditions & Active menu and combo data must exist \\ \hline
-Main Event Flow &
-    \begin{tabularx}{\linewidth}{| l | l | Y |}
-        \hline
-        \textbf{Index} & \textbf{Done by} & \textbf{Action} \\ \hline
-        1 & User & Enter preferences such as group size, budget, vegetarian need, or child-friendly preference \\ \hline
-        2 & System & Send the request together with active menu data to the AI recommendation service \\ \hline
-        3 & AI Recommendation Service & Generate suitable pizza, side dish, or combo suggestions \\ \hline
-        4 & System & Display the recommendation with short reasoning and quick add-to-cart actions \\ \hline
-        5 & User & Review the suggestion and optionally add items to the cart \\ \hline
-    \end{tabularx} \\ \hline
-Postconditions & The user receives a simple recommendation that supports the ordering decision \\ \hline
-\end{tabular}
-\end{table}
-
-\textbf{U11: View Order History}
-\begin{table}[H]
-\begin{tabular}{| >{\bfseries\RaggedRight}p{\labelcol} | p{\contentcol} |}
-\hline
-Use Case Code & U11 \\ \hline
 Use Case Name & View Order History \\ \hline
 Actor & Customer \\ \hline
 Usage & Review previous orders placed with the authenticated account \\ \hline
@@ -310,17 +282,17 @@ Main Event Flow &
         1 & Customer & Open the order history page \\ \hline
         2 & System & Retrieve past orders associated with the account \\ \hline
         3 & System & Display order codes, dates, totals, and statuses \\ \hline
-        4 & Customer & Select an order to view details or reorder manually \\ \hline
+        4 & Customer & Select an order to view details \\ \hline
     \end{tabularx} \\ \hline
 Postconditions & The customer can review previous purchase activities \\ \hline
 \end{tabular}
 \end{table}
 
-\textbf{U12: Manage Profile}
+\textbf{U11: Manage Profile}
 \begin{table}[H]
 \begin{tabular}{| >{\bfseries\RaggedRight}p{\labelcol} | p{\contentcol} |}
 \hline
-Use Case Code & U12 \\ \hline
+Use Case Code & U11 \\ \hline
 Use Case Name & Manage Profile \\ \hline
 Actor & Customer \\ \hline
 Usage & Update personal information for future orders \\ \hline
@@ -340,11 +312,11 @@ Postconditions & The customer profile is updated for future account usage \\ \hl
 \end{tabular}
 \end{table}
 
-\textbf{U13: View Loyalty Points}
+\textbf{U12: View Loyalty Points}
 \begin{table}[H]
 \begin{tabular}{| >{\bfseries\RaggedRight}p{\labelcol} | p{\contentcol} |}
 \hline
-Use Case Code & U13 \\ \hline
+Use Case Code & U12 \\ \hline
 Use Case Name & View Loyalty Points \\ \hline
 Actor & Customer \\ \hline
 Usage & View the current loyalty point balance and recent point transactions \\ \hline
@@ -356,18 +328,18 @@ Main Event Flow &
         \textbf{Index} & \textbf{Done by} & \textbf{Action} \\ \hline
         1 & Customer & Open the loyalty page \\ \hline
         2 & System & Retrieve the current point balance and recent point movements \\ \hline
-        3 & System & Display the balance, earning explanation, and available redemption rules \\ \hline
+        3 & System & Display the balance and current redemption rules \\ \hline
         4 & Customer & Review loyalty information \\ \hline
     \end{tabularx} \\ \hline
 Postconditions & The customer understands the current loyalty point status \\ \hline
 \end{tabular}
 \end{table}
 
-\textbf{U14: Redeem Points for Discount}
+\textbf{U13: Redeem Points for Discount}
 \begin{table}[H]
 \begin{tabular}{| >{\bfseries\RaggedRight}p{\labelcol} | p{\contentcol} |}
 \hline
-Use Case Code & U14 \\ \hline
+Use Case Code & U13 \\ \hline
 Use Case Name & Redeem Points for Discount \\ \hline
 Actor & Customer \\ \hline
 Usage & Use loyalty points to reduce the final order value during checkout \\ \hline
@@ -486,14 +458,14 @@ Postconditions & Active combo promotions are available for customer browsing and
 \end{tabular}
 \end{table}
 
-\textbf{A5: Monitor Orders and Delivery Integration}
+\textbf{A5: Monitor Orders and Delivery Exceptions}
 \begin{table}[H]
 \begin{tabular}{| >{\bfseries\RaggedRight}p{\labelcol} | p{\contentcol} |}
 \hline
 Use Case Code & A5 \\ \hline
-Use Case Name & Monitor Orders and Delivery Integration \\ \hline
+Use Case Name & Monitor Orders and Delivery Exceptions \\ \hline
 Actor & Admin / Store Owner \\ \hline
-Usage & Monitor the overall order pipeline and handle order or third-party delivery exceptions \\ \hline
+Usage & Monitor the order pipeline and handle delivery or order exceptions that need manual supervision \\ \hline
 Activation Event & The admin opens the order dashboard \\ \hline
 Preconditions & The admin must be authenticated with management privileges \\ \hline
 Main Event Flow &
@@ -501,9 +473,9 @@ Main Event Flow &
         \hline
         \textbf{Index} & \textbf{Done by} & \textbf{Action} \\ \hline
         1 & Admin & Open the order monitoring dashboard \\ \hline
-        2 & System & Display orders by status and priority \\ \hline
+        2 & System & Display orders by status, delivery state, and exception flag \\ \hline
         3 & Admin & Review an order that needs manual support or delivery follow-up \\ \hline
-        4 & System & Show kitchen progress, third-party delivery reference, and latest delivery state if available \\ \hline
+        4 & System & Show kitchen progress, delivery reference, and latest delivery state \\ \hline
         5 & Admin & Retry or supervise the delivery request when an exception occurs \\ \hline
         6 & System & Record the intervention and refresh tracking data \\ \hline
     \end{tabularx} \\ \hline
@@ -542,7 +514,7 @@ Postconditions & Customer account records remain manageable from the administrat
 Use Case Code & A7 \\ \hline
 Use Case Name & View Sales and Order Reports \\ \hline
 Actor & Admin / Store Owner \\ \hline
-Usage & Review basic business reports for sales, order volume, top items, and delivery integration performance \\ \hline
+Usage & Review basic business reports for sales, order volume, top items, and delivery performance \\ \hline
 Activation Event & The admin opens the reporting dashboard \\ \hline
 Preconditions & Order data must exist in the system \\ \hline
 Main Event Flow &
@@ -552,7 +524,7 @@ Main Event Flow &
         1 & Admin & Open the reporting dashboard \\ \hline
         2 & System & Request a date range or report type \\ \hline
         3 & Admin & Select the reporting criteria \\ \hline
-        4 & System & Aggregate revenue, order counts, best-selling items, and delivery metrics received from the integrated delivery service \\ \hline
+        4 & System & Aggregate revenue, order counts, best-selling items, and delivery metrics \\ \hline
         5 & System & Display the report in charts and summary tables \\ \hline
     \end{tabularx} \\ \hline
 Postconditions & The admin can assess business performance using basic operational reports \\ \hline
@@ -561,38 +533,61 @@ Postconditions & The admin can assess business performance using basic operation
 
 \subsubsection{Kitchen Staff Use Case Details}
 
-\textbf{K1: View Incoming Orders}
+\textbf{K1: View Kitchen Order Queue}
 \begin{table}[H]
 \begin{tabular}{| >{\bfseries\RaggedRight}p{\labelcol} | p{\contentcol} |}
 \hline
 Use Case Code & K1 \\ \hline
-Use Case Name & View Incoming Orders \\ \hline
+Use Case Name & View Kitchen Order Queue \\ \hline
 Actor & Kitchen Staff \\ \hline
-Usage & View newly created orders that must be prepared by the kitchen \\ \hline
+Usage & View the prioritized queue of waiting and active orders in the kitchen \\ \hline
 Activation Event & Kitchen staff opens the kitchen dashboard \\ \hline
-Preconditions & At least one order must be in the kitchen queue \\ \hline
+Preconditions & At least one order must exist in the kitchen workflow \\ \hline
 Main Event Flow &
     \begin{tabularx}{\linewidth}{| l | l | Y |}
         \hline
         \textbf{Index} & \textbf{Done by} & \textbf{Action} \\ \hline
         1 & Kitchen Staff & Open the kitchen dashboard \\ \hline
-        2 & System & Display new and active kitchen orders \\ \hline
-        3 & Kitchen Staff & Select an order to inspect details \\ \hline
-        4 & System & Show item list, pizza customizations, and customer notes \\ \hline
+        2 & System & Calculate queue priority from order time, promised time, and current status \\ \hline
+        3 & System & Display waiting and active kitchen orders in recommended processing order \\ \hline
+        4 & Kitchen Staff & Review the next suggested order and inspect details \\ \hline
     \end{tabularx} \\ \hline
-Postconditions & Kitchen staff knows which orders must be prepared next \\ \hline
+Postconditions & Kitchen staff knows which orders should be handled first \\ \hline
 \end{tabular}
 \end{table}
 
-\textbf{K2: Update Preparation Status}
+\textbf{K2: Process Prioritized Order}
 \begin{table}[H]
 \begin{tabular}{| >{\bfseries\RaggedRight}p{\labelcol} | p{\contentcol} |}
 \hline
 Use Case Code & K2 \\ \hline
+Use Case Name & Process Prioritized Order \\ \hline
+Actor & Kitchen Staff \\ \hline
+Usage & Accept and start working on the next recommended order from the queue \\ \hline
+Activation Event & Kitchen staff chooses the next suggested order \\ \hline
+Preconditions & A prioritized order must be available in the kitchen queue \\ \hline
+Main Event Flow &
+    \begin{tabularx}{\linewidth}{| l | l | Y |}
+        \hline
+        \textbf{Index} & \textbf{Done by} & \textbf{Action} \\ \hline
+        1 & Kitchen Staff & Select the next prioritized order \\ \hline
+        2 & System & Display item list, pizza customizations, and customer notes \\ \hline
+        3 & Kitchen Staff & Confirm that the order has started preparation \\ \hline
+        4 & System & Mark the order as actively processed in the kitchen \\ \hline
+    \end{tabularx} \\ \hline
+Postconditions & The selected order becomes the current kitchen work item \\ \hline
+\end{tabular}
+\end{table}
+
+\textbf{K3: Update Preparation Status}
+\begin{table}[H]
+\begin{tabular}{| >{\bfseries\RaggedRight}p{\labelcol} | p{\contentcol} |}
+\hline
+Use Case Code & K3 \\ \hline
 Use Case Name & Update Preparation Status \\ \hline
 Actor & Kitchen Staff \\ \hline
 Usage & Update the current preparation stage of an order \\ \hline
-Activation Event & Kitchen staff starts or progresses work on an order \\ \hline
+Activation Event & Kitchen staff starts or progresses work on an active order \\ \hline
 Preconditions & The target order must exist in the kitchen workflow \\ \hline
 Main Event Flow &
     \begin{tabularx}{\linewidth}{| l | l | Y |}
@@ -607,11 +602,11 @@ Postconditions & The current preparation state of the order is visible to relate
 \end{tabular}
 \end{table}
 
-\textbf{K3: Mark Order Ready for Dispatch}
+\textbf{K4: Mark Order Ready for Dispatch}
 \begin{table}[H]
 \begin{tabular}{| >{\bfseries\RaggedRight}p{\labelcol} | p{\contentcol} |}
 \hline
-Use Case Code & K3 \\ \hline
+Use Case Code & K4 \\ \hline
 Use Case Name & Mark Order Ready for Dispatch \\ \hline
 Actor & Kitchen Staff \\ \hline
 Usage & Confirm that a prepared order is packed and ready to be handed over to the integrated delivery service \\ \hline
@@ -627,7 +622,7 @@ Main Event Flow &
         4 & System & Trigger a delivery request to the third-party delivery service \\ \hline
         5 & System & Store the delivery reference and update the tracking timeline \\ \hline
     \end{tabularx} \\ \hline
-Postconditions & The order is handed off from kitchen workflow to the external delivery integration workflow \\ \hline
+Postconditions & The order is handed off from kitchen workflow to the external delivery workflow \\ \hline
 \end{tabular}
 \end{table}
 
@@ -678,31 +673,5 @@ Main Event Flow &
         5 & System & Expose the latest delivery progress to customers on the tracking page \\ \hline
     \end{tabularx} \\ \hline
 Postconditions & The local system stays consistent with the latest delivery information from the external platform \\ \hline
-\end{tabular}
-\end{table}
-
-\subsubsection{AI Recommendation Service Use Case Details}
-
-\textbf{AI1: Generate Personalized Menu Recommendation}
-\begin{table}[H]
-\begin{tabular}{| >{\bfseries\RaggedRight}p{\labelcol} | p{\contentcol} |}
-\hline
-Use Case Code & AI1 \\ \hline
-Use Case Name & Generate Personalized Menu Recommendation \\ \hline
-Actor & AI Recommendation Service \\ \hline
-Usage & Produce simple and relevant menu suggestions using user preferences and active menu data \\ \hline
-Activation Event & The system receives a recommendation request from the user interface \\ \hline
-Preconditions & User preference input and active product data must be available \\ \hline
-Main Event Flow &
-    \begin{tabularx}{\linewidth}{| l | l | Y |}
-        \hline
-        \textbf{Index} & \textbf{Done by} & \textbf{Action} \\ \hline
-        1 & System & Send customer preferences and active menu data to the AI service \\ \hline
-        2 & AI Recommendation Service & Analyze budget, group size, and dietary hints \\ \hline
-        3 & AI Recommendation Service & Select suitable pizzas, side dishes, or combo boxes \\ \hline
-        4 & System & Validate that recommended items are still active and correctly priced \\ \hline
-        5 & System & Return the recommendation to the user interface \\ \hline
-    \end{tabularx} \\ \hline
-Postconditions & The application receives a usable recommendation result for presentation to the user \\ \hline
 \end{tabular}
 \end{table}

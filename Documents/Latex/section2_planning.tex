@@ -1,0 +1,160 @@
+\section{Planning}
+
+\subsection{Initial System Request}
+
+\subsubsection{Business Need}
+
+PizzaHUST addresses a common problem in small food businesses: ordering and store operations are still handled manually through phone calls, in-person requests, and ad hoc coordination between the front desk, kitchen, and delivery process. This causes delays, inconsistent order tracking, limited visibility into promotions and menu performance, and unnecessary effort for the store owner. The proposed system digitizes the full web ordering flow while also supporting menu management, kitchen coordination, delivery handoff, and basic operational reporting.
+
+\subsubsection{Business Requirements}
+
+Key functional and non-functional requirements of the proposed system include: \\
+Functional Requirements:
+\begin{itemize}
+    \item Allow guests and registered customers to browse menus and view item details online.
+    \item Support pizza customization by size, crust type, and optional toppings.
+    \item Support side dishes, combo campaigns, and category-based menu browsing.
+    \item Provide cart management and checkout with cash on delivery only.
+    \item Allow guests to track orders using an order code.
+    \item Allow registered customers to log in, manage profile data, view order history, and use loyalty points.
+    \item Provide an admin area for managing pizzas, toppings, side dishes, categories, combo campaigns, customers, orders, and reports.
+    \item Provide a kitchen order queue that helps kitchen staff process urgent orders first and update preparation progress.
+    \item Integrate with a third-party delivery service for delivery booking and delivery status synchronization.
+    \item Provide basic sales and order reports for the store owner.
+\end{itemize}
+
+Non-functional Requirements:
+\begin{itemize}
+    \item The web interface must be responsive and usable on both desktop and mobile browsers.
+    \item The system architecture must remain simple enough for a student team to deliver within the available academic timeline.
+    \item The database must support customizable pizza orders, combo structures, loyalty points, and order tracking without forcing major redesign later.
+    \item The codebase and interfaces must be clear enough to allow backend, frontend, and database work to proceed in parallel after the design phase.
+\end{itemize}
+
+\subsubsection{Business Value}
+
+PizzaHUST provides clear business and academic value:
+\begin{itemize}
+    \item \textbf{Improved Customer Convenience:} Customers can browse, customize, order, and track pizza deliveries online instead of relying on manual ordering channels.
+    \item \textbf{Operational Efficiency:} The store owner can manage products, combo campaigns, and order flow through a centralized system.
+    \item \textbf{Better Kitchen Coordination:} The kitchen order queue reduces ambiguity in deciding which order should be processed next.
+    \item \textbf{Visibility and Reporting:} Basic reporting helps the shop monitor revenue, order counts, and item performance.
+    \item \textbf{Strong Course Fit:} The system provides a realistic software engineering case with user-facing flows, back-office operations, data modeling, and external API integration.
+\end{itemize}
+
+\subsubsection{Special Issues or Constraints}
+
+Several constraints shape the first version of the project:
+\begin{itemize}
+    \item \textbf{Platform Constraint:} Version 1 is limited to a web application.
+    \item \textbf{Payment Constraint:} The system supports cash on delivery only; no online payment gateway is included in the MVP.
+    \item \textbf{Delivery Constraint:} Delivery is handled through a third-party delivery service rather than an internal shipper portal.
+    \item \textbf{Scope Constraint:} AI-based menu recommendation is excluded from the MVP and treated as a future enhancement.
+    \item \textbf{Time Constraint:} The team must prioritize design and integration risk early because the remaining implementation roadmap is limited to 10 weeks after the planning and general use case stage.
+\end{itemize}
+
+\subsection{Feasibility Analysis}
+
+\subsubsection{Technical Feasibility}
+
+\paragraph{Current Technology Availability:} The system can be implemented using a conventional web stack that is already well supported by documentation and tooling. Next.js and Tailwind CSS provide a practical frontend solution for responsive screens, while FastAPI can handle API endpoints and business logic efficiently. MySQL is suitable for order, catalog, combo, loyalty, and reporting data. Docker-based deployment is sufficient for both development and demo environments.
+
+\paragraph{Developer Expertise:}
+\begin{itemize}
+    \item \textbf{Familiarity with the application:} The team already understands the general online ordering scenario and has refined the MVP use cases, especially around guest checkout, customer account features, admin management, and kitchen order queue handling.
+    \item \textbf{Familiarity with the technology:} The team has some prior experience with web development technologies. Additional effort is still required to align the frontend, backend, and data contracts, but the technical learning curve is manageable for the chosen stack.
+\end{itemize}
+
+\paragraph{Infrastructure Needs:}
+\begin{itemize}
+    \item \textbf{Servers:} A lightweight VPS or cloud environment is sufficient for demo deployment because the expected traffic is small in the academic phase.
+    \item \textbf{External Integration:} The main external dependency is the third-party delivery API. A mock integration path should be prepared to reduce schedule risk if the real API is unstable or unavailable.
+    \item \textbf{Data Handling:} Standard authentication, role separation, and secure storage of user and order data are required, but no unusually complex infrastructure is needed for the MVP.
+\end{itemize}
+
+\paragraph{Project Size:} The system is medium in academic scope. It includes a public ordering flow, customer account features, admin management, kitchen operations, delivery integration, and reporting. This is feasible for a 5-person student team if the design is stabilized early and the implementation stays within MVP boundaries.
+
+\paragraph{Compatibility:} Because the first release is web-only, compatibility focuses on modern desktop and mobile browsers. This is achievable with the selected frontend stack and avoids the additional overhead of native mobile development.
+
+\subsubsection{Operational Feasibility}
+
+\paragraph{Ease of Use:} The customer-facing side is straightforward: users browse the menu, configure pizzas, manage the cart, and complete checkout. Guests can still place orders and track them using an order code, while registered customers gain order history and loyalty features. On the internal side, the admin and kitchen views are separated by role, reducing confusion and helping staff focus on their daily tasks.
+
+\paragraph{Maintenance:} Maintenance is manageable because the architecture remains a modular monolith rather than a distributed system. Admin catalog changes, combo schedules, and reporting queries can be updated incrementally. The largest operational maintenance risk is the delivery integration, which is why a mock-first approach is recommended during development.
+
+\paragraph{Workforce Requirements:} The workload is feasible for the current team because responsibilities can be divided into architecture and integration, backend order logic, UI/UX and frontend flow, database design, and acceptance-flow review. The clarified role of Nguyen Xuan Chi Thanh as Product/UX Support further strengthens the design stream instead of leaving UI work to one member alone.
+
+\subsubsection{Economic Feasibility}
+
+\paragraph{Development Cost:} For an academic project, the direct cost is mainly a notional estimate of implementation effort rather than a commercial budget. A reasonable estimate for the development value of this MVP is \textbf{75,000,000 to 90,000,000 VND}, reflecting UI/UX design, database design, implementation, testing, integration, and deployment preparation.
+
+\paragraph{Infrastructure Cost:}
+\begin{itemize}
+    \item \textbf{Development and Demo Phase:} Approximately 0 to 1,000,000 VND per month.
+    \item \textbf{Stable MVP Deployment:} Approximately 1,000,000 to 5,000,000 VND per month depending on hosting and usage.
+\end{itemize}
+
+\paragraph{Expected Benefits:} The system reduces manual effort, improves customer convenience, centralizes menu and order management, and provides basic operational visibility. For the course, it also delivers strong analysis, design, implementation, and integration value within a realistic business scenario.
+
+\subsubsection{Schedule Feasibility}
+
+The project remains feasible if the team avoids scope creep and keeps the implementation aligned with the refined MVP. The riskiest areas are checkout logic, kitchen order queue prioritization, delivery integration, and data modeling for customization and loyalty points. To control these risks, the next two weeks are dedicated to complete UI/UX coverage, ERD design, architecture decisions, and flow specifications before heavy implementation begins.
+
+\subsection{Initial Project Plan}
+
+The team will follow an \textbf{Agile methodology} because the project still needs flexibility after the design stage. Agile is suitable here because it allows the team to lock the MVP boundary, review progress weekly, refine screen and flow details quickly, and introduce implementation changes without breaking the entire schedule.
+
+\paragraph{Key reasons for choosing Agile methodology:}
+\begin{itemize}
+    \item \textbf{Flexibility:} The team expects some weekly requirement adjustments after design reviews.
+    \item \textbf{Incremental Delivery:} Database, backend, and frontend work can be introduced in parallel after the design and ERD foundation is complete.
+    \item \textbf{Risk Reduction:} High-risk modules such as checkout, kitchen queue logic, and delivery integration can be reviewed early.
+    \item \textbf{User-Centered Design:} The team can validate screen flow and experience progressively instead of treating UI as a late-stage artifact.
+\end{itemize}
+
+\subsubsection{Team Roles}
+
+\begin{itemize}
+    \item \textbf{Mai Van Nhat Minh -- Technical Lead:} Owns architecture decisions, module boundaries, and integration review.
+    \item \textbf{Ta Quoc Hung -- Backend Lead:} Owns order flow, kitchen order queue logic, delivery integration, and core business rules.
+    \item \textbf{Nguyen Xuan Chi Thanh -- Product/UX Support:} Shares UI/UX work with the frontend lead, checks use-case coverage, and supports acceptance-flow consistency.
+    \item \textbf{Ngo Manh Hieu -- Database and Reporting Lead:} Owns ERD, schema design, migration direction, and reporting queries.
+    \item \textbf{Tran Hoang -- Frontend and UI Lead:} Owns the UI/UX direction, component inventory, responsive design, and frontend implementation strategy.
+\end{itemize}
+
+\subsubsection{Roadmap and Staffing Plan}
+
+\paragraph{Week 1 (23/03/2026 -- 29/03/2026):} The team focuses on full UI/UX coverage for all MVP screens and finalizes ERD v1.
+\begin{itemize}
+    \item \textbf{Minh:} Review screen flow and lock high-level module boundaries.
+    \item \textbf{Hung:} Define order states, kitchen queue logic, and delivery handoff rules.
+    \item \textbf{Thanh:} Co-design customer-facing UI/UX with Hoang and review use-case coverage.
+    \item \textbf{Hieu:} Produce ERD v1 and the first data dictionary.
+    \item \textbf{Hoang:} Lead the complete UI/UX design set and prototype preparation.
+\end{itemize}
+
+\paragraph{Week 2 (30/03/2026 -- 05/04/2026):} The team refines the design outputs and prepares technical execution artifacts.
+\begin{itemize}
+    \item \textbf{Minh:} Finalize architecture, API conventions, and auth-role direction.
+    \item \textbf{Hung:} Write flow specifications for checkout, kitchen queue, and delivery synchronization.
+    \item \textbf{Thanh:} Refine screen naming, flow wording, and UX consistency with Hoang.
+    \item \textbf{Hieu:} Upgrade ERD to v2 and map screens to database fields.
+    \item \textbf{Hoang:} Finalize mockups, component inventory, and frontend design handoff.
+\end{itemize}
+
+\paragraph{Weeks 3--4:} Build the project foundation, including auth, role setup, base schema, seed data, frontend shell, and menu/catalog groundwork.
+
+\paragraph{Weeks 5--6:} Implement the core ordering experience, including cart, COD checkout, guest tracking, customer account flow, loyalty points, and kitchen order queue behavior.
+
+\paragraph{Weeks 7--8:} Implement admin management, combo/category handling, delivery integration, basic reporting, and responsive refinements.
+
+\paragraph{Weeks 9--10:} Focus on integration testing, bug fixing, UAT, demo preparation, and release stabilization.
+
+\subsubsection{CASE Tools}
+
+\begin{itemize}
+    \item \textbf{UML Diagram Creation:} Draw.io or Figma for use case diagrams, screen flows, and supporting visual models.
+    \item \textbf{Database Design:} MySQL Workbench for ERD modeling and schema visualization.
+    \item \textbf{Project Management:} Jira, Trello, or Notion for sprint tracking and weekly task management.
+    \item \textbf{API Verification:} Postman or Bruno for API inspection and integration checks.
+\end{itemize}

@@ -1,378 +1,244 @@
-# PizzaHust 8-Week Project Plan
+# Kế hoạch PizzaHust Sau Giai Đoạn Feasibility và Use Case
 
-## 1. Purpose
+## 1. Mục tiêu của kế hoạch
 
-This document adapts the planning spirit of `PTKHT_Project/section2_planning.tex` to the current PizzaHust project. It is written for a 5-member team building a web MVP in 8 weeks, with the practical delivery path:
+Tài liệu này cập nhật lại kế hoạch triển khai PizzaHust sau khi nhóm đã hoàn thành phần feasibility và general use case diagram. Kế hoạch mới bám theo MVP đã refine, ưu tiên hoàn thiện `UI/UX + ERD + flow đặc tả` trong 2 tuần tới, sau đó chuyển dần sang thiết kế kỹ thuật, code, kiểm thử và demo theo hướng Agile.
 
-`Use case analysis -> screen design -> database design -> implementation -> testing -> final demo`
+Điểm thay đổi quan trọng:
 
-The plan is intentionally biased toward realistic academic delivery. It keeps the scope aligned with the approved PizzaHust MVP instead of expanding into enterprise-level operations.
+- Không tính lại feasibility và general use case diagram vào tuần làm việc tiếp theo
+- Không phân công riêng task viết report trong weekly plan
+- `Nguyễn Xuân Chí Thành` được xem là resource chính thức cho mảng `UI/UX` cùng `Trần Hoàng`
+- MVP chính không bao gồm `AI recommendation`
+- Kitchen flow được chuẩn hóa theo logic `Kitchen Order Queue`
 
-## 2. Initial System Request
+## 2. Phạm vi MVP đã khóa
 
-### 2.1 Business Need
+### 2.1 Các chức năng nằm trong MVP
 
-PizzaHust needs a web application that allows customers to order pizzas and related menu items online. The first version must support product browsing, pizza customization, combo promotions, cash on delivery, basic order processing, kitchen workflow, third-party delivery integration, and basic sales reporting.
+- Duyệt menu và xem chi tiết món
+- Tùy chỉnh pizza theo size, crust type và topping
+- Quản lý giỏ hàng
+- Checkout và thanh toán bằng tiền mặt khi nhận hàng
+- Guest checkout và theo dõi đơn bằng mã đơn
+- Customer login/register, lịch sử đơn hàng, loyalty points, đổi điểm khi checkout
+- Admin quản lý pizza, topping, món ăn kèm, category, combo campaign, đơn hàng, khách hàng
+- Kitchen order queue, xử lý đơn ưu tiên, cập nhật trạng thái chuẩn bị, bàn giao giao vận
+- Tích hợp dịch vụ giao hàng bên thứ ba
+- Báo cáo cơ bản về đơn hàng và doanh thu
 
-### 2.2 Business Requirements
-
-#### Functional Requirements
-
-- Allow guests to browse menus and place orders without registration.
-- Allow registered customers to log in, view order history, and use loyalty points.
-- Support pizza customization by size, crust type, and optional toppings.
-- Support side dishes such as drinks, fries, pasta, and BBQ chicken.
-- Support combo promotions with time-based availability.
-- Support menu grouping such as appetizer, main course, dessert, vegetarian, and kids menu.
-- Support cash on delivery only.
-- Support kitchen order processing and readiness updates.
-- Integrate with a third-party delivery API instead of managing internal delivery staff.
-- Provide admin screens for managing products, combos, categories, orders, customers, and reports.
-- Provide a simple AI recommendation feature for menu suggestion.
-
-#### Non-Functional Requirements
-
-- The system must be easy to use on desktop and mobile web.
-- The architecture must be simple enough for a student team to deliver in 8 weeks.
-- The database design must support future extension without forcing a redesign of core entities.
-- The source code must be organized enough for parallel work by 5 members.
-
-### 2.3 Business Value
-
-- Gives the team a project with realistic business flow and enough technical depth for the course.
-- Covers both customer-facing and admin-facing workflows.
-- Creates a clear bridge between software analysis, UI design, database design, and implementation.
-- Produces a demonstrable MVP with visible business value during final presentation.
-
-### 2.4 Constraints
-
-- Total schedule is 8 weeks.
-- Payment method is limited to cash on delivery.
-- Delivery is handled by a third-party API, not internal delivery staff.
-- The team should focus on shipping a stable MVP, not a feature-heavy platform.
-- Design and code decisions must prioritize implementation feasibility over unnecessary complexity.
-
-## 3. Feasibility Snapshot
-
-### 3.1 Technical Feasibility
-
-- The approved scope is feasible for a 5-person team if architecture is kept simple and modular.
-- A standard web stack with backend, relational database, and responsive frontend is sufficient.
-- Third-party delivery should be integrated at API level only, with a mock fallback during development.
-- AI recommendation should stay simple, such as preference-based suggestion backed by menu data.
-
-### 3.2 Operational Feasibility
-
-- The project can be split cleanly into analysis, design, backend, frontend, database, and testing streams.
-- Weekly checkpoints reduce the chance of document work and coding work drifting apart.
-- The system is small enough to test manually and with a limited automated test set.
-
-### 3.3 Schedule Feasibility
-
-- 8 weeks is realistic if core deliverables are locked early and the team avoids scope creep.
-- The risky areas are checkout flow, kitchen workflow, and external delivery integration.
-- These risky areas therefore need to be finished before the last 2 weeks.
-
-## 4. Delivery Strategy
-
-### 4.1 Recommended Working Model
-
-The team should use a hybrid academic-delivery approach:
-
-- Week 1 focuses on locking analysis and scope.
-- Week 2 focuses on screens, architecture, and database design.
-- Weeks 3 to 6 focus on feature implementation in prioritized vertical slices.
-- Week 7 focuses on integration, testing, and bug fixing.
-- Week 8 focuses on report finalization, deployment, and final demo.
-
-This approach is more suitable than a pure phase model because it preserves academic documentation quality while still giving the team enough time to build and stabilize a real product.
-
-### 4.2 Definition of Done Per Week
-
-A week is considered complete only when:
-
-- The agreed deliverables for that week are uploaded to the repo or shared workspace.
-- The responsible member has completed a walkthrough for the team.
-- Cross-dependencies for the next week are unblocked.
-- Major issues are logged instead of being left implicit.
-
-## 5. MVP Scope Estimation
-
-### 5.1 Core MVP Modules
-
-- Public menu browsing
-- Pizza customization
-- Cart and checkout
-- Guest checkout and customer login
-- Loyalty points for registered users
-- Combo and category management
-- Kitchen order workflow
-- Third-party delivery request and status synchronization
-- Admin product and order management
-- Basic sales and order reports
-- Simple AI recommendation widget
-
-### 5.2 Items Explicitly Kept Out of Scope
+### 2.2 Các mục ngoài phạm vi MVP
 
 - Online payment gateway
-- Internal delivery staff portal
-- Complex promotion engine
-- Advanced analytics or BI dashboard
+- Cổng quản lý shipper nội bộ
+- AI recommendation widget
+- Advanced analytics hoặc BI dashboard
 - Multi-branch support
-- Real-time route optimization
 
-## 6. Team Roles
+## 3. Vai trò và phân công chính
 
-### 6.1 Primary Role Assignment
-
-| Member | Primary Role | Main Responsibility |
+| Thành viên | Vai trò chính | Trách nhiệm trọng tâm |
 |---|---|---|
-| Mai Văn Nhật Minh | Technical Lead | System architecture, backend structure, integration review, release coordination |
-| Tạ Quốc Hùng | Backend Lead | Order flow, kitchen flow, delivery API integration, business logic |
-| Nguyễn Xuân Chí Thành | Product and Documentation Lead | Requirement alignment, report writing, acceptance criteria, progress control |
-| Ngô Mạnh Hiếu | Database and Reporting Lead | ERD, schema design, migrations, reporting queries, admin data support |
-| Trần Hoàng | Frontend and UI Lead | Screen design, frontend implementation, responsive behavior, demo polish |
+| Mai Văn Nhật Minh | Technical Lead | Kiến trúc hệ thống, review tích hợp, chốt module boundary, điều phối release |
+| Tạ Quốc Hùng | Backend Lead | Order flow, kitchen order queue, delivery integration, nghiệp vụ lõi |
+| Nguyễn Xuân Chí Thành | Product/UX Support | Đồng thiết kế UI/UX, rà use case, kiểm tra acceptance flow, hỗ trợ refine trải nghiệm |
+| Ngô Mạnh Hiếu | Database and Reporting Lead | ERD, schema, migration direction, reporting query, dữ liệu demo |
+| Trần Hoàng | Frontend and UI Lead | Dẫn dắt UI/UX, component inventory, frontend implementation direction, responsive behavior |
 
-### 6.2 Collaboration Rules
+### 3.1 Nguyên tắc phối hợp
 
-- Every module must have one primary owner and one support owner.
-- No one works in isolation on a critical flow without at least one review from another member.
-- Frontend and backend contracts must be written before parallel implementation starts.
-- Documentation must be updated continuously instead of being delayed until the last week.
+- Mỗi module phải có một người sở hữu chính và ít nhất một người hỗ trợ
+- `Hoàng + Chí Thành` là cặp ưu tiên cho các đầu việc liên quan `wireflow`, `screen behavior`, `UX consistency`, `component naming`
+- `Nhật Minh + Quốc Hùng` là cặp ưu tiên cho các đầu việc liên quan `order lifecycle`, `kitchen queue`, `delivery integration`
+- `Hiếu` cần tham gia sớm từ giai đoạn UI/flow để bảo đảm không lệch thiết kế dữ liệu
+- Không tạo task riêng kiểu `viết report`; chỉ giữ các task phục vụ sản phẩm như `use case alignment`, `acceptance flow`, `UI/UX review`, `backlog refinement`
 
-## 7. Weekly Roadmap
+## 4. Kế hoạch 10 tuần
 
-## Week 1: Scope Lock and Analysis Completion
+## Tuần 1: 23/03/2026 - 29/03/2026
 
-### Required Outputs
+### Mục tiêu chính
 
-- Finalized project scope
-- Approved use case list and general use case diagram
-- Screen inventory for customer, admin, and kitchen flows
-- Initial backlog and priority list
-- Working agreement for the 5-member team
+Hoàn thiện `full UI/UX` cho toàn bộ MVP và chốt `ERD v1`.
 
-### Weekly Tasks
+### Deliverables
 
-| Member | Main Tasks |
+- Bộ screen đầy đủ cho guest, customer, admin, kitchen
+- User flow và screen flow hoàn chỉnh
+- Design guideline cơ bản cho màu sắc, typography, component reuse
+- ERD v1, danh sách bảng, quan hệ chính, bảng trung gian
+- Mapping giữa `use case -> screen -> bảng dữ liệu`
+
+### Phân công
+
+| Thành viên | Công việc chính |
 |---|---|
-| Mai Văn Nhật Minh | Propose technical direction, identify risky modules, define top-level architecture candidates |
-| Tạ Quốc Hùng | Refine order lifecycle, kitchen workflow, and delivery integration logic |
-| Nguyễn Xuân Chí Thành | Consolidate requirements from topic, maintain report consistency, finalize scope statement |
-| Ngô Mạnh Hiếu | Identify domain entities and draft initial data object list |
-| Trần Hoàng | Produce screen map and low-fidelity wireframe list for all main pages |
+| Mai Văn Nhật Minh | Review screen flow theo logic hệ thống, chốt module boundary mức cao giữa frontend/backend/DB, rà tính nhất quán giữa UI flow và use case |
+| Tạ Quốc Hùng | Đặc tả flow cart, checkout, kitchen order queue, delivery handoff; xác định order states và điều kiện chuyển trạng thái; hỗ trợ Hiếu chốt entity liên quan order |
+| Nguyễn Xuân Chí Thành | Đồng thiết kế UI/UX cùng Hoàng cho các màn hình customer-facing; rà use case để không thiếu screen hay flow; hỗ trợ chuẩn hóa tên màn hình, thao tác, trạng thái nghiệp vụ |
+| Ngô Mạnh Hiếu | Thiết kế ERD v1; liệt kê bảng, khóa chính/ngoại, bảng loyalty, bảng tracking, bảng combo; chốt data dictionary bản đầu |
+| Trần Hoàng | Dẫn dắt full UI/UX cho toàn bộ screen MVP; phân chia phần việc UI với Chí Thành; chuẩn bị prototype và wireflow để team review |
 
-### Exit Criteria
+### Deadline
 
-- The team agrees on exactly what is in MVP and what is out.
-- Use case analysis is stable enough to support UI and DB design in Week 2.
+- Review giữa tuần: `Thứ năm 26/03/2026`
+- Chốt tuần: `Chủ nhật 29/03/2026`
 
-## Week 2: Screen Design and Database Design
+### Exit criteria
 
-### Required Outputs
+- Không còn screen nào của MVP bị thiếu
+- ERD đủ rõ để bắt đầu tách API/module
+- Team thống nhất order states, kitchen queue logic, loyalty logic ở mức MVP
 
-- High-level architecture decision
-- Main screen designs or structured wireframes
-- Initial ERD and table list
-- API/module inventory
-- Development environment and repository conventions
+## Tuần 2: 30/03/2026 - 05/04/2026
 
-### Weekly Tasks
+### Mục tiêu chính
 
-| Member | Main Tasks |
+Chuyển từ thiết kế sang đặc tả kỹ thuật và chuẩn bị code.
+
+### Deliverables
+
+- UI/UX final sau review
+- ERD v2 đã chốt
+- API/module list
+- Flow spec cho các nghiệp vụ chính
+- Backlog implementation theo ưu tiên
+- Kế hoạch bắt đầu code từ tuần kế tiếp
+
+### Phân công
+
+| Thành viên | Công việc chính |
 |---|---|
-| Mai Văn Nhật Minh | Lock architecture, define module boundaries, define backend project structure and API conventions |
-| Tạ Quốc Hùng | Draft service flow for cart, checkout, kitchen, and delivery integration |
-| Nguyễn Xuân Chí Thành | Write planning and design documentation, track design consistency across teams |
-| Ngô Mạnh Hiếu | Create ERD, define tables, keys, and relationships, prepare migration plan |
-| Trần Hoàng | Produce screen designs for public pages, customer pages, admin pages, and kitchen dashboard |
+| Mai Văn Nhật Minh | Chốt kiến trúc hệ thống và cấu trúc project; định nghĩa module/backend boundary, convention API, auth/role strategy; rà dependency giữa frontend và backend |
+| Tạ Quốc Hùng | Viết flow spec cho order lifecycle, checkout, kitchen queue, delivery synchronization; xác định case lỗi và case chặn nghiệp vụ cần xử lý sớm |
+| Nguyễn Xuân Chí Thành | Hỗ trợ refine UI/UX sau review; chuẩn hóa screen naming, component naming, user flow wording; cùng Hoàng chốt screen spec để frontend code không phải đoán |
+| Ngô Mạnh Hiếu | Cập nhật ERD v2; đề xuất migration order, seed data structure, reporting query direction; chốt mapping `screen/form -> bảng/cột dữ liệu` |
+| Trần Hoàng | Hoàn thiện mockup/prototype fidelity cao; tạo component inventory cho frontend; chốt asset/layout spec và handoff cho giai đoạn code |
 
-### Exit Criteria
+### Deadline
 
-- Screen flows and database design are approved by the team.
-- Backend and frontend can start implementation in parallel without guessing.
+- Review giữa tuần: `Thứ năm 02/04/2026`
+- Chốt tuần: `Chủ nhật 05/04/2026`
 
-## Week 3: Foundation Build
+### Exit criteria
 
-### Required Outputs
+- Có thể bắt đầu code mà không phải đoán screen, bảng dữ liệu, hay flow nghiệp vụ
+- API contract và data contract mức đầu đủ để backend/frontend làm song song
+- Backlog tuần 3-4 được sắp theo ưu tiên rõ ràng
 
-- Project skeleton running locally
-- Authentication and role setup
-- Base database migrations and seed data
-- Public menu pages and frontend shell
-- Initial admin and kitchen access structure
+## Tuần 3-4: 06/04/2026 - 19/04/2026
 
-### Weekly Tasks
+### Trọng tâm
 
-| Member | Main Tasks |
+- Setup project skeleton
+- Thiết lập auth và role
+- Hoàn thiện catalog/menu foundation
+- Tạo base schema, migration, seed data
+- Dựng frontend shell và routing chính
+
+### Phân công chính
+
+| Thành viên | Công việc trọng tâm |
 |---|---|
-| Mai Văn Nhật Minh | Set up backend foundation, authentication, role structure, shared coding conventions |
-| Tạ Quốc Hùng | Implement catalog services, cart logic skeleton, and order state model |
-| Nguyễn Xuân Chí Thành | Prepare test checklist for core flows, update weekly progress documentation |
-| Ngô Mạnh Hiếu | Implement migrations, seeders, sample menu data, and basic admin data support |
-| Trần Hoàng | Build frontend shell, navigation, menu pages, product detail page, and cart UI base |
+| Nhật Minh | Kiến trúc codebase, nền tảng dự án, review tích hợp |
+| Quốc Hùng | Catalog service, cart skeleton, order state model |
+| Chí Thành | Hỗ trợ UI refinement, acceptance flow, rà độ khớp giữa flow và giao diện |
+| Mạnh Hiếu | Migration, seed, schema refinement |
+| Trần Hoàng | Frontend shell, menu pages, product detail page, cart UI base |
 
-### Exit Criteria
+## Tuần 5-6: 20/04/2026 - 03/05/2026
 
-- The app can run locally with seeded data.
-- The team has a working base to continue feature development.
+### Trọng tâm
 
-## Week 4: Core Ordering Flow
+- Hoàn thiện cart và COD checkout
+- Hoàn thiện guest tracking và customer account flow
+- Triển khai loyalty points
+- Triển khai kitchen order queue
+- Hoàn thiện admin order monitoring cơ bản
 
-### Required Outputs
+### Phân công chính
 
-- Guest checkout flow
-- Customer login and account flow
-- Cart-to-checkout pipeline
-- Loyalty point earning logic draft
-- Kitchen queue visibility
-
-### Weekly Tasks
-
-| Member | Main Tasks |
+| Thành viên | Công việc trọng tâm |
 |---|---|
-| Mai Văn Nhật Minh | Review checkout architecture, enforce consistency across services and controllers |
-| Tạ Quốc Hùng | Implement checkout logic, order creation, kitchen queue handoff, and order tracking structure |
-| Nguyễn Xuân Chí Thành | Validate use cases against implementation, prepare acceptance criteria for ordering flow |
-| Ngô Mạnh Hiếu | Finalize order-related schema, loyalty point tables, and admin order query support |
-| Trần Hoàng | Implement checkout pages, login/register pages, account pages, and order tracking UI |
+| Nhật Minh | Review flow checkout, giữ consistency hệ thống |
+| Quốc Hùng | Implement checkout, order creation, kitchen queue logic |
+| Chí Thành | Hỗ trợ UI/UX cho checkout, tracking, account flow; kiểm tra trải nghiệm người dùng theo use case |
+| Mạnh Hiếu | Schema cho order, loyalty, reporting |
+| Trần Hoàng | Checkout UI, auth UI, account UI, tracking UI, kitchen UI |
 
-### Exit Criteria
+## Tuần 7-8: 04/05/2026 - 17/05/2026
 
-- A user can browse, customize, add to cart, and place a COD order.
-- Kitchen staff can see newly created orders.
+### Trọng tâm
 
-## Week 5: Admin, Kitchen, and AI Recommendation
+- Admin management
+- Combo/category management
+- Delivery integration
+- Basic reports
+- Responsive refinement
 
-### Required Outputs
+### Phân công chính
 
-- Admin management for pizzas, options, categories, and combos
-- Kitchen status update flow
-- AI recommendation MVP
-- Customer history and loyalty display
-
-### Weekly Tasks
-
-| Member | Main Tasks |
+| Thành viên | Công việc trọng tâm |
 |---|---|
-| Mai Văn Nhật Minh | Review integration quality, refactor unstable backend areas, support difficult implementation blockers |
-| Tạ Quốc Hùng | Implement kitchen progress flow and delivery request trigger points |
-| Nguyễn Xuân Chí Thành | Track feature completeness, update reports, prepare mid-project review materials |
-| Ngô Mạnh Hiếu | Implement admin data operations, combo schedule logic, and reporting query drafts |
-| Trần Hoàng | Implement admin screens, kitchen dashboard, order history UI, and AI recommendation widget UI |
+| Nhật Minh | Integration review, xử lý điểm nghẽn |
+| Quốc Hùng | Delivery API/mock integration, error handling |
+| Chí Thành | Hỗ trợ UI/UX cho admin flow, rà soát hành vi thực tế với use case |
+| Mạnh Hiếu | Reporting queries, dữ liệu demo, tối ưu schema sử dụng |
+| Trần Hoàng | Admin screens, reporting views, polish responsive UI |
 
-### Exit Criteria
+## Tuần 9-10: 18/05/2026 - 31/05/2026
 
-- Admin and kitchen users can perform core daily operations.
-- The AI recommendation feature is demonstrable end to end.
+### Trọng tâm
 
-## Week 6: Integration and Reporting Completion
+- Test tích hợp
+- Sửa lỗi
+- UAT nội bộ
+- Chốt demo flow
+- Chốt môi trường demo và tài liệu hỗ trợ thuyết trình
 
-### Required Outputs
+### Phân công chính
 
-- Third-party delivery integration or mock integration
-- Order tracking synchronized with delivery state
-- Basic reports for orders, revenue, and top-selling items
-- Responsive refinement for key screens
-
-### Weekly Tasks
-
-| Member | Main Tasks |
+| Thành viên | Công việc trọng tâm |
 |---|---|
-| Mai Văn Nhật Minh | Lead integration review, resolve cross-module inconsistencies, prepare release branch strategy |
-| Tạ Quốc Hùng | Implement delivery API request and status synchronization, add failure handling and retry rules |
-| Nguyễn Xuân Chí Thành | Prepare user acceptance flow, keep report and actual implementation aligned |
-| Ngô Mạnh Hiếu | Finalize reporting queries, optimize schema usage, prepare realistic demo dataset |
-| Trần Hoàng | Refine responsive frontend, connect tracking and admin reporting views to real data |
+| Nhật Minh | Code freeze, release coordination, deployment/demo environment |
+| Quốc Hùng | Fix bug nghiệp vụ và integration |
+| Chí Thành | Hỗ trợ UAT, rà soát user flow demo, kiểm tra độ mượt của trải nghiệm |
+| Mạnh Hiếu | Data integrity, report accuracy, demo dataset |
+| Trần Hoàng | UI polish, demo-critical screens, visual materials |
 
-### Exit Criteria
+## 5. Phân chia ownership theo module
 
-- MVP is feature-complete.
-- Reports and delivery integration are functioning at MVP level.
-
-## Week 7: Testing and Stabilization
-
-### Required Outputs
-
-- Bug list and fix status
-- Release candidate build
-- Finalized seed/demo dataset
-- UAT checklist and internal walkthrough
-
-### Weekly Tasks
-
-| Member | Main Tasks |
-|---|---|
-| Mai Văn Nhật Minh | Coordinate code freeze, review major bugs, improve deployment readiness |
-| Tạ Quốc Hùng | Fix backend edge cases and integration bugs in checkout, kitchen, and delivery |
-| Nguyễn Xuân Chí Thành | Lead UAT sessions, maintain issue board, drive priority decisions for final fixes |
-| Ngô Mạnh Hiếu | Validate data integrity, report accuracy, and migration reliability |
-| Trần Hoàng | Fix UI and usability issues, polish demo-critical screens, ensure responsive consistency |
-
-### Exit Criteria
-
-- No critical bug remains in the main demo flow.
-- The team has one stable release candidate.
-
-## Week 8: Final Delivery, Report, and Demo
-
-### Required Outputs
-
-- Final working demo
-- Final report package
-- Final slides and speaking flow
-- Deployment or demo environment
-- Backup demo plan
-
-### Weekly Tasks
-
-| Member | Main Tasks |
-|---|---|
-| Mai Văn Nhật Minh | Final technical validation, deployment readiness, demo environment setup |
-| Tạ Quốc Hùng | Prepare backend demo path, verify integrations, prepare fallback handling for live demo |
-| Nguyễn Xuân Chí Thành | Finalize report narrative, consolidate all written materials, coordinate presentation flow |
-| Ngô Mạnh Hiếu | Finalize ERD, database screenshots, reporting evidence, and supporting data materials |
-| Trần Hoàng | Final UI polish, capture screenshots, prepare demo script visuals and walkthrough support |
-
-### Exit Criteria
-
-- The team can demonstrate the entire MVP without dependency on unfinished features.
-- Report, screenshots, diagrams, and product behavior are consistent with each other.
-
-## 8. Ownership by Module
-
-| Module | Primary Owner | Support Owner |
+| Module | Owner chính | Owner hỗ trợ |
 |---|---|---|
-| Requirements, report coherence, acceptance criteria | Nguyễn Xuân Chí Thành | Mai Văn Nhật Minh |
-| Architecture and code integration | Mai Văn Nhật Minh | Tạ Quốc Hùng |
-| Ordering, kitchen, delivery API logic | Tạ Quốc Hùng | Mai Văn Nhật Minh |
-| Database, migrations, reports | Ngô Mạnh Hiếu | Tạ Quốc Hùng |
-| UI design and frontend implementation | Trần Hoàng | Nguyễn Xuân Chí Thành |
+| Kiến trúc hệ thống và tích hợp | Mai Văn Nhật Minh | Tạ Quốc Hùng |
+| Order flow, kitchen queue, delivery integration | Tạ Quốc Hùng | Mai Văn Nhật Minh |
+| UI/UX tổng thể và frontend implementation direction | Trần Hoàng | Nguyễn Xuân Chí Thành |
+| UX consistency, screen behavior, acceptance flow | Nguyễn Xuân Chí Thành | Trần Hoàng |
+| Database, migration, reporting | Ngô Mạnh Hiếu | Tạ Quốc Hùng |
 | Admin module | Ngô Mạnh Hiếu | Trần Hoàng |
-| AI recommendation feature | Trần Hoàng | Mai Văn Nhật Minh |
 
-## 9. Main Risks and Mitigation
+## 6. Rủi ro chính và hướng giảm thiểu
 
-| Risk | Impact | Mitigation |
+| Rủi ro | Mức ảnh hưởng | Hướng giảm thiểu |
 |---|---|---|
-| Scope grows after Week 2 | High | Freeze MVP scope after Week 2 and move new ideas to backlog |
-| Frontend and backend mismatch | High | Freeze API contracts in Week 2 and review them before Week 3 coding |
-| Delivery API instability | Medium | Build with mock service first and switch to real integration when stable |
-| Documentation lags behind implementation | High | Thành updates report weekly and joins all review checkpoints |
-| Reporting queries become too complex late | Medium | Hiếu prepares schema and reporting strategy from Week 2 |
-| Demo flow breaks under time pressure | High | Maintain a stable demo branch and seed data from Week 7 |
+| UI/UX và use case lệch nhau | Cao | Chốt mapping `use case -> screen -> data` ngay trong Tuần 1 |
+| Frontend và backend lệch contract | Cao | Khóa API/module list và flow spec trong Tuần 2 |
+| Kitchen queue logic không rõ | Cao | Đặc tả order states, priority rules, handoff rules ngay từ Tuần 1 |
+| Delivery API không ổn định | Trung bình | Làm mock integration trước, tách rõ retry và fallback handling |
+| DB thiết kế muộn hoặc phải sửa lớn | Cao | Hoàn tất ERD v1 trong Tuần 1 và ERD v2 trong Tuần 2 |
+| Dồn quá nhiều code về cuối kỳ | Cao | Xen kẽ DB, backend, frontend ngay từ Tuần 3 thay vì làm tuần tự cứng |
 
-## 10. Recommended Tools
+## 7. Công cụ khuyến nghị
 
-- `Draw.io` or `Figma`: use case diagram, screen flow, UI mockups
-- `MySQL Workbench` or equivalent: ERD and schema design
-- `GitHub` or `GitLab`: source control and issue tracking
-- `Jira`, `Trello`, or `Notion`: weekly task board
-- `Postman` or `Bruno`: API verification
-- `Discord`, `Zalo`, or `Messenger`: communication
+- `Figma` hoặc `Draw.io`: use case diagram, screen flow, UI mockup
+- `MySQL Workbench`: ERD và schema design
+- `GitHub` hoặc `GitLab`: source control và issue tracking
+- `Jira`, `Trello` hoặc `Notion`: sprint board và theo dõi đầu việc
+- `Postman` hoặc `Bruno`: kiểm tra API
+- `Discord`, `Zalo` hoặc `Messenger`: trao đổi nội bộ
 
-## 11. Final Recommendation
+## 8. Kết luận
 
-The team should treat Weeks 1 and 2 as locking weeks, Weeks 3 to 6 as build weeks, Week 7 as stabilization week, and Week 8 as delivery week. The biggest mistake to avoid is spending too long polishing diagrams or screens while delaying the ordering flow, database structure, and integration backbone.
+Kế hoạch mới xem feasibility và general use case diagram là phần đã hoàn tất, sau đó dồn lực ngay vào `UI/UX + ERD + flow đặc tả` trong 2 tuần đầu để tạo nền tảng chắc cho giai đoạn code. Cách chia việc này giúp nhóm tránh tình trạng vừa code vừa đoán màn hình, đoán dữ liệu, hoặc đổi logic nghiệp vụ quá muộn.
 
-If the team follows this plan with weekly checkpoints and clear ownership, the PizzaHust MVP is realistic within 8 weeks for a 5-person team.
+Nếu giữ đúng mốc review cuối tuần và bám phạm vi MVP đã khóa, PizzaHust vẫn là một đồ án khả thi trong khung 10 tuần còn lại, đồng thời đủ linh hoạt để cập nhật yêu cầu theo mô hình Agile.
