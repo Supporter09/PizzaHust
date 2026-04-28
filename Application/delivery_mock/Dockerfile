@@ -2,7 +2,11 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir fastapi==0.115.0 uvicorn[standard]==0.30.6 httpx==0.27.2 pydantic==2.7.4
+RUN pip install --no-cache-dir \
+    fastapi==0.136.1 \
+    uvicorn[standard]==0.46.0 \
+    httpx==0.28.1 \
+    pydantic==2.13.3
 
 COPY . .
 

@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 echo "=== [1/6] Checking prerequisites ==="
 command -v docker >/dev/null || { echo "docker required"; exit 1; }
 command -v docker compose >/dev/null 2>&1 || command -v docker-compose >/dev/null || { echo "docker compose required"; exit 1; }
-command -v node >/dev/null || { echo "node 20+ required"; exit 1; }
+command -v node >/dev/null || { echo "node 22+ required"; exit 1; }
 command -v python3 >/dev/null || { echo "python 3.12 required"; exit 1; }
 
 echo "=== [2/6] .env ==="
