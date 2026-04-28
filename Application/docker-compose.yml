@@ -1,0 +1,79 @@
+name: pizzahust
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pizzahust
+      MYSQL_USER: pizza
+      MYSQL_PASSWORD: pizza
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  delivery-mock:
+    build:
+      context: ./delivery_mock
+    restart: unless-stopped
+    environment:
+      DELIVERY_WEBHOOK_SECRET: dev-mock-secret-change-me
+      BACKEND_BASE_URL: http://backend:8000
+    ports:
+      - "9000:9000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://127.0.0.1:9000/healthz', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      delivery-mock:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql+pymysql://pizza:pizza@mysql:3306/pizzahust
+      SESSION_SECRET: dev-session-secret-change-me
+      DELIVERY_PROVIDER: mock
+      DELIVERY_BASE_URL: http://delivery-mock:9000
+      DELIVERY_API_KEY: dev-api-key
+      DELIVERY_WEBHOOK_SECRET: dev-mock-secret-change-me
+      DELIVERY_FEE_VND: "22000"
+      LOYALTY_ACCRUAL_RATE: "10000"
+      LOYALTY_REDEEM_VALUE_VND: "1000"
+      LOYALTY_MAX_REDEEM_PCT: "0.5"
+      ORDER_PROMISED_TIME_DEFAULT_MIN: "45"
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api
+    ports:
+      - "3000:3000"
+
+volumes:
+  mysql_data: {}
