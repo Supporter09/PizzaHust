@@ -1,0 +1,111 @@
+{
+  "$schema": "./feature_list.schema.json",
+  "invariants": {
+    "max_in_progress": 1,
+    "id_pattern": "^(infra-\\d{3}|U\\d+|A\\d+|K\\d+|T\\d+)$"
+  },
+  "features": [
+    {
+      "id": "infra-001",
+      "name": "Application/ wrapper + harness scaffolding",
+      "description": "Create Application/ tree, write AGENTS/PRODUCT/ARCHITECTURE/CONTRACTS, init.sh, verify.sh, docker-compose, .env.example.",
+      "depends_on": [],
+      "status": "in-progress",
+      "owner": "Minh",
+      "evidence": ""
+    },
+    {
+      "id": "infra-002",
+      "name": "Docker compose stack: mysql + backend + frontend + delivery-mock",
+      "description": "Compose file boots all four services. Healthchecks for each. init.sh idempotent.",
+      "depends_on": ["infra-001"],
+      "status": "todo",
+      "owner": "Minh",
+      "evidence": ""
+    },
+    {
+      "id": "infra-003",
+      "name": "Schema from ERD: dbml + initial Alembic migration",
+      "description": "Translate Week 1/ERD.pdf into schema.dbml and the first Alembic migration. Includes kitchen_queue_view.",
+      "depends_on": ["infra-002"],
+      "status": "todo",
+      "owner": "Hieu",
+      "evidence": ""
+    },
+    {
+      "id": "infra-004",
+      "name": "Auth + role guards (cookie sessions)",
+      "description": "Starlette session middleware, argon2 hashing, role guards, CSRF token, login/register/logout endpoints.",
+      "depends_on": ["infra-003"],
+      "status": "todo",
+      "owner": "Minh",
+      "evidence": ""
+    },
+    {
+      "id": "infra-005",
+      "name": "Delivery port + mock service",
+      "description": "DeliveryPort protocol, mock adapter, delivery-mock standalone FastAPI service with HMAC-signed webhooks.",
+      "depends_on": ["infra-002"],
+      "status": "todo",
+      "owner": "Hung",
+      "evidence": ""
+    },
+    {
+      "id": "infra-006",
+      "name": "Order state machine + pricing + loyalty domain",
+      "description": "Pure domain modules with tests. Order transitions, pricing pipeline, loyalty rules, service-area whitelist.",
+      "depends_on": ["infra-003"],
+      "status": "todo",
+      "owner": "Hung",
+      "evidence": ""
+    },
+    {
+      "id": "infra-007",
+      "name": "OpenAPI export + frontend type generation",
+      "description": "Export /api/openapi.json, npm run gen:types pipeline, CI drift check.",
+      "depends_on": ["infra-002"],
+      "status": "todo",
+      "owner": "Minh",
+      "evidence": ""
+    },
+    {
+      "id": "infra-008",
+      "name": "Frontend shell: layout, routing, theme, API client",
+      "description": "Next.js App Router shell, Tailwind config, light/dark + responsive base, lib/api wrapper.",
+      "depends_on": ["infra-007"],
+      "status": "todo",
+      "owner": "Hoang",
+      "evidence": ""
+    },
+
+    { "id": "U1",  "name": "Browse Menus",                        "depends_on": ["infra-006", "infra-008"], "status": "todo", "owner": "Hoang",  "evidence": "" },
+    { "id": "U2",  "name": "View Item Details",                   "depends_on": ["U1"],                     "status": "todo", "owner": "Hoang",  "evidence": "" },
+    { "id": "U3",  "name": "Customize Pizza",                     "depends_on": ["U2"],                     "status": "todo", "owner": "Hoang",  "evidence": "" },
+    { "id": "U4",  "name": "View Combo Promotions",               "depends_on": ["U1"],                     "status": "todo", "owner": "Hoang",  "evidence": "" },
+    { "id": "U5",  "name": "Manage Cart",                         "depends_on": ["U3", "U4"],               "status": "todo", "owner": "Hoang",  "evidence": "" },
+    { "id": "U6",  "name": "Place COD Order",                     "depends_on": ["U5", "infra-006"],        "status": "todo", "owner": "Hung",   "evidence": "" },
+    { "id": "U7",  "name": "Track Order",                         "depends_on": ["U6", "infra-005"],        "status": "todo", "owner": "Hung",   "evidence": "" },
+    { "id": "U8",  "name": "Register",                            "depends_on": ["infra-004"],              "status": "todo", "owner": "Hoang",  "evidence": "" },
+    { "id": "U9",  "name": "Log In",                              "depends_on": ["infra-004"],              "status": "todo", "owner": "Hoang",  "evidence": "" },
+    { "id": "U10", "name": "View Order History",                  "depends_on": ["U6", "U9"],               "status": "todo", "owner": "Hoang",  "evidence": "" },
+    { "id": "U11", "name": "Manage Profile",                      "depends_on": ["U9"],                     "status": "todo", "owner": "Hoang",  "evidence": "" },
+    { "id": "U12", "name": "View Loyalty Points",                 "depends_on": ["U9", "infra-006"],        "status": "todo", "owner": "Hoang",  "evidence": "" },
+    { "id": "U13", "name": "Redeem Points for Discount",          "depends_on": ["U6", "U12"],              "status": "todo", "owner": "Hung",   "evidence": "" },
+
+    { "id": "A1",  "name": "Manage Pizza Catalog",                "depends_on": ["infra-004"],              "status": "todo", "owner": "Hieu",   "evidence": "" },
+    { "id": "A2",  "name": "Manage Pizza Options and Side Dishes","depends_on": ["A1"],                     "status": "todo", "owner": "Hieu",   "evidence": "" },
+    { "id": "A3",  "name": "Manage Menu Categories",              "depends_on": ["A1"],                     "status": "todo", "owner": "Hieu",   "evidence": "" },
+    { "id": "A4",  "name": "Manage Combo Campaigns",              "depends_on": ["A1"],                     "status": "todo", "owner": "Hieu",   "evidence": "" },
+    { "id": "A5",  "name": "Monitor Orders and Delivery Exceptions","depends_on": ["U6", "infra-005"],      "status": "todo", "owner": "Hieu",   "evidence": "" },
+    { "id": "A6",  "name": "Manage Customer Accounts",            "depends_on": ["infra-004"],              "status": "todo", "owner": "Hieu",   "evidence": "" },
+    { "id": "A7",  "name": "View Sales and Order Reports",        "depends_on": ["U6"],                     "status": "todo", "owner": "Hieu",   "evidence": "" },
+
+    { "id": "K1",  "name": "View Kitchen Order Queue",            "depends_on": ["U6", "infra-003"],        "status": "todo", "owner": "Hung",   "evidence": "" },
+    { "id": "K2",  "name": "Process Prioritized Order",           "depends_on": ["K1"],                     "status": "todo", "owner": "Hung",   "evidence": "" },
+    { "id": "K3",  "name": "Update Preparation Status",           "depends_on": ["K2"],                     "status": "todo", "owner": "Hung",   "evidence": "" },
+    { "id": "K4",  "name": "Mark Order Ready for Dispatch",       "depends_on": ["K3", "infra-005"],        "status": "todo", "owner": "Hung",   "evidence": "" },
+
+    { "id": "T1",  "name": "Request Delivery Service (mock-first)","depends_on": ["infra-005", "K4"],       "status": "todo", "owner": "Hung",   "evidence": "" },
+    { "id": "T2",  "name": "Synchronize Delivery Status",         "depends_on": ["T1"],                     "status": "todo", "owner": "Hung",   "evidence": "" }
+  ]
+}
