@@ -10,16 +10,16 @@
       "name": "Application/ wrapper + harness scaffolding",
       "description": "Create Application/ tree, write AGENTS/PRODUCT/ARCHITECTURE/CONTRACTS, init.sh, verify.sh, docker-compose, .env.example.",
       "depends_on": [],
-      "status": "in-progress",
+      "status": "done",
       "owner": "Minh",
-      "evidence": ""
+      "evidence": "verify.sh green at f17af03, 2026-05-02T20:08:32+07:00"
     },
     {
       "id": "infra-002",
       "name": "Docker compose stack: mysql + backend + frontend + delivery-mock",
       "description": "Compose file boots all four services. Healthchecks for each. init.sh idempotent.",
       "depends_on": ["infra-001"],
-      "status": "todo",
+      "status": "in-progress",
       "owner": "Minh",
       "evidence": ""
     },

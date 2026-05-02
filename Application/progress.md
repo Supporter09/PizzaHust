@@ -59,3 +59,22 @@ Append-only session journal. Each session ends with a dated block. Keep blocks â
 
 **Next**
 - Same as above: `infra-001` exits when `init.sh` + `verify.sh` are green on a clean machine with the new versions.
+
+---
+
+## 2026-05-02 â€” infra-001 completed, infra-002 started
+
+**Done**
+- Ran `./init.sh` in `Application/` with exit code `0`.
+- Ran `./verify.sh` in `Application/` with exit code `0`.
+- Updated `feature_list.json`: `infra-001` -> `done` with evidence, `infra-002` -> `in-progress`.
+- Updated `session-handoff.md` to point to `infra-002`.
+
+**Verified**
+- `verify.sh` green at commit `f17af03` on `2026-05-02T20:08:32+07:00`.
+
+**Blockers**
+- Existing blocker remains: `infra-003` depends on Hieu's ERD-to-DBML + initial Alembic migration.
+
+**Next**
+- Execute `infra-002` acceptance: bring up compose stack and confirm all service healthchecks green end-to-end.
