@@ -10,7 +10,7 @@ services:
       MYSQL_USER: pizza
       MYSQL_PASSWORD: pizza
     ports:
-      - "3306:3306"
+      - "${MYSQL_HOST_PORT:-33306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:

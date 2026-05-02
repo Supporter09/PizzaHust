@@ -25,12 +25,12 @@
     "@types/node": "25.6.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "eslint": "10.2.1",
+    "eslint": "9.39.1",
     "eslint-config-next": "16.2.4",
     "openapi-typescript": "7.13.0",
     "postcss": "8.5.12",
     "tailwindcss": "4.2.4",
-    "typescript": "6.0.3",
+    "typescript": "5.9.3",
     "vitest": "4.1.5"
   }
 }

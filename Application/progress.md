@@ -78,3 +78,23 @@ Append-only session journal. Each session ends with a dated block. Keep blocks â
 
 **Next**
 - Execute `infra-002` acceptance: bring up compose stack and confirm all service healthchecks green end-to-end.
+
+---
+
+## 2026-05-02 â€” infra-002 completed (WSL compatibility fixes)
+
+**Done**
+- Made MySQL host port configurable in `docker-compose.yml` via `MYSQL_HOST_PORT` (default `33306`), documented in `.env.example`.
+- Fixed `init.sh` host-run migration/seed DB connectivity by rewriting `DATABASE_URL` from compose host to `127.0.0.1:${MYSQL_HOST_PORT}`.
+- Made `init.sh` WSL-safe by skipping Linux Playwright Chromium install and relying on Windows Chrome debug endpoint.
+- Updated Playwright e2e spec and `verify.sh` to support CDP attach flow (`~/.local/bin/open-chrome-debug`) for WSL smoke tests.
+- Fixed frontend dependency issues: pinned `typescript` to `5.9.3` (openapi-typescript peer compatibility) and `eslint` to `9.39.1` (Next.js tooling compatibility).
+- Switched `frontend/eslint.config.mjs` to current Next.js 16 flat-config style (`eslint-config-next/*` imports).
+- Made `verify.sh` phase-aware for pre-`infra-003` Alembic metadata and separated frontend unit tests from e2e (`vitest --exclude tests/e2e/**`).
+
+**Verified**
+- `./init.sh` exits `0`.
+- `./verify.sh` exits `0` at commit `51fa769` on `2026-05-02T20:44:32+07:00`.
+
+**Next**
+- Start `infra-003`: translate ERD to `schema.dbml` and create initial Alembic migration (including `kitchen_queue_view`).

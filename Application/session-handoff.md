@@ -1,13 +1,13 @@
 # session-handoff.md
 
-**Current feature:** `infra-002` — Docker compose stack: mysql + backend + frontend + delivery-mock
+**Current feature:** `infra-003` — Schema from ERD: dbml + initial Alembic migration
 **Branch:** `main`
 **Resume command:**
 
 ```
-cd Application && ./init.sh && docker compose ps && ./verify.sh
+cd Application && ./init.sh && ./verify.sh
 ```
 
-**Top blocker:** Hieu's ERD-to-DBML translation (`infra-003`) still blocks `infra-004` onward. Product assumptions in `PRODUCT.md` still need team confirmation before `U13` / loyalty implementation.
+**Top blocker:** Need authoritative ERD translation to `schema.dbml` and initial migration details (including `kitchen_queue_view`) before auth/domain features can proceed.
 
-**Next feature after this:** `infra-003` (schema.dbml + initial Alembic migration).
+**Next feature after this:** `infra-004` (auth + role guards) once `infra-003` is complete.
