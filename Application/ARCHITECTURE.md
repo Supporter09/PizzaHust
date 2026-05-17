@@ -41,6 +41,7 @@ Single owner: `backend/app/domain/order_state.py`.
 States (closed set):
 - `Received`
 - `Preparing`
+- `DispatchPending`
 - `ReadyForDispatch`
 - `Delivering`
 - `Delivered`
@@ -53,13 +54,16 @@ Allowed transitions:
 |---|---|---|
 | `Received` | `Preparing` | K2 (kitchen accept) |
 | `Received` | `Cancelled` | A5 (admin cancel) |
-| `Preparing` | `ReadyForDispatch` | K4 (kitchen mark ready) |
+| `Preparing` | `ReadyForDispatch` | K3 + T1 success (kitchen mark ready) |
+| `Preparing` | `DispatchPending` | K3 + T1 timeout/fail |
 | `Preparing` | `Cancelled` | A5 |
+| `DispatchPending` | `ReadyForDispatch` | A5 retry delivery (T1 success) |
+| `DispatchPending` | `Cancelled` | A5 |
 | `ReadyForDispatch` | `Delivering` | T2 webhook (`Accepted` / `PickedUp`) |
 | `Delivering` | `Delivered` | T2 webhook (`Delivered`) |
 | `Delivering` | `DeliveryFailed` | T2 webhook (`Failed`) |
 
-`Delivered`, `DeliveryFailed`, `Cancelled` are terminal. K4 also triggers T1 atomically — if T1 fails, K4 reverts and surfaces the error to admin (A5).
+`Delivered`, `DeliveryFailed`, `Cancelled` are terminal. K3 triggers T1 atomically. If T1 fails, the order moves to `DispatchPending` for A5 retry/cancel handling.
 
 ## Kitchen Queue Priority
 
@@ -129,7 +133,7 @@ Frontend never recomputes — it calls `POST /api/cart/quote` and renders the re
 
 ## Order Code
 
-`backend/app/domain/order_code.py::generate()` returns a ULID, displayed as 26-char Crockford base32.
+`backend/app/domain/order_code.py::generate()` returns `PIZZ-` + 6 random chars from Crockford base32 alphabet (excluding `I`, `L`, `O`, `U`), with DB-level uniqueness check and at most 3 retries on collision.
 
 Tracking lookup: `GET /api/orders/track/{code}` — rate limited 5/min/IP. Returns minimal projection (see PRODUCT.md "Tracking & Privacy").
 
@@ -159,6 +163,11 @@ Frontend reads only `NEXT_PUBLIC_API_BASE_URL`. All other config is server-side.
 - Schema source-of-truth: `Application/schema.dbml` (translated from `Week 1/ERD.pdf` by Hieu).
 - `alembic check` runs in `verify.sh` to catch model/migration drift.
 - Seeds: `python -m app.seeds.run` populates categories, sample pizzas, toppings, combos for dev. Idempotent.
+- Combo campaign fields:
+  - `validity_start`: datetime when the combo becomes visible.
+  - `validity_end`: datetime, must be greater than `validity_start`.
+  - `target_group`: nullable int for intended diner count.
+  - `status`: derived enum `[Scheduled, Active, Expired]` from the validity window.
 
 ## Deployment Topology (dev/demo)
 

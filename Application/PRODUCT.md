@@ -15,7 +15,7 @@ Web-only online ordering and store management for a single pizza shop. Replaces 
 - Guest checkout with order-code tracking.
 - Customer register, login, profile, order history, loyalty points, redeem at checkout.
 - Admin: pizzas, options/side dishes, categories, combos, customers, order monitoring, basic reports.
-- Kitchen order queue with prioritized order handling and preparation status updates.
+- Kitchen order queue with prioritized display, preparation status updates, and dispatch handoff.
 - Mock-first third-party delivery integration with status synchronization.
 - Basic sales and order reports for the store owner.
 
@@ -54,14 +54,14 @@ Source: `Documents/Latex/section3_analysis.tex`. IDs are reused as feature IDs i
 | U3 | Customize Pizza | includes U3.1 size, U3.2 crust; extends with U3.3 toppings |
 | U4 | View Combo Promotions | time-windowed availability |
 | U5 | Manage Cart | session-bound for guest, account-bound for customer |
-| U6 | Place COD Order | includes U6.1 delivery info, U6.2 fee, U6.3 confirm; extended by U13 |
+| U6 | Place COD Order | includes U6.1 delivery info and U6.2 review/confirm; extended by U14 |
 | U7 | Track Order | includes U7.1 sync delivery; calls T2 |
 | U8 | Register | customer only |
 | U9 | Log In | customer only |
-| U10 | View Order History | customer only |
-| U11 | Manage Profile | customer only |
-| U12 | View Loyalty Points | customer only |
-| U13 | Redeem Points for Discount | extends U6, customer only |
+| U11 | View Order History | customer only (`U10` reserved for deferred AI flow) |
+| U12 | Manage Profile | customer only |
+| U13 | View Loyalty Points | customer only |
+| U14 | Redeem Points for Discount | extends U6, customer only |
 
 ### Admin (A)
 
@@ -79,10 +79,9 @@ Source: `Documents/Latex/section3_analysis.tex`. IDs are reused as feature IDs i
 
 | ID | Name |
 |---|---|
-| K1 | View Kitchen Order Queue |
-| K2 | Process Prioritized Order |
-| K3 | Update Preparation Status |
-| K4 | Mark Order Ready for Dispatch (includes T1) |
+| K1 | View Incoming Orders |
+| K2 | Update Preparation Status |
+| K3 | Mark Order Ready for Dispatch (includes T1) |
 
 ### Third-Party Delivery (T)
 
@@ -104,7 +103,7 @@ These values live in `backend/app/domain/pricing.py` and `backend/app/domain/loy
 | `LOYALTY_MAX_REDEEM_PCT` | 50% of subtotal (placeholder — confirm) | feasibility doc |
 | `LOYALTY_ACCRUAL_TRIGGER` | on `Delivered` only | harness decision |
 | `LOYALTY_REFUND_ON_CANCEL` | true | harness decision |
-| `ORDER_CODE_FORMAT` | ULID, displayed as 26-char Crockford base32 | harness decision |
+| `ORDER_CODE_FORMAT` | `PIZZ-` + 6 Crockford base32 chars (exclude I/L/O/U) | harness decision |
 | `ORDER_CODE_LOOKUP_RATE_LIMIT` | 5 req / minute / IP | harness decision |
 | `ORDER_PROMISED_TIME_DEFAULT_MIN` | 45 minutes from creation (confirm) | harness decision |
 
@@ -116,8 +115,8 @@ Defined in `ARCHITECTURE.md`. Summary:
 
 ```
 Received → Preparing → Ready for Dispatch → Delivering → Delivered
-                                                       ↘ Delivery Failed
-            ↘ Cancelled (admin-only, before Ready for Dispatch)
+            ↘ DispatchPending ↗
+            ↘ Cancelled       ↘ Delivery Failed
 ```
 
 Only transitions in this graph are valid. Any other transition raises a domain error.

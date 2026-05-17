@@ -67,7 +67,7 @@ In this order:
 - COD only. No payment gateway code.
 - Inner-Hanoi service area only. Reject other addresses at checkout.
 - Delivery fee constant `DELIVERY_FEE_VND` lives in `backend/app/domain/pricing.py`.
-- Order codes are non-guessable (ULID or 10-char base32). Tracking endpoint is rate-limited.
+- Order codes use format `PIZZ-` + 6 Crockford base32 chars (exclude I/L/O/U). Tracking endpoint is rate-limited.
 - Auth = httpOnly signed-cookie sessions, role claim inside session. No JWT.
 - Polling, not WebSocket, for kitchen and tracking views.
 - Kitchen queue priority is a SQL view expression, not Python. Single source of truth.

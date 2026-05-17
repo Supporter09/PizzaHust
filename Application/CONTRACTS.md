@@ -9,7 +9,7 @@ REST API contract for PizzaHUST. Backend exports OpenAPI at `/api/openapi.json`;
 - Authentication: httpOnly cookie set by `/api/auth/login`. CSRF token in `X-CSRF-Token` header on state-changing routes.
 - Money values: integer VND (e.g., `22000`). No floats anywhere.
 - Timestamps: ISO 8601 UTC (`2026-04-28T10:00:00Z`).
-- IDs: integer surrogate keys for internal entities; ULID strings for order codes.
+- IDs: integer surrogate keys for internal entities; `PIZZ-XXXXXX` strings for order codes.
 
 ## Error Envelope
 
@@ -66,7 +66,7 @@ Error codes (closed set, extend in this doc only):
 | POST | `/api/cart/quote` | Compute pricing for a candidate cart + address |
 | POST | `/api/orders` | Place COD order. Returns `{ order_code, total_vnd, status }`. Rejects with `OUT_OF_SERVICE_AREA` if address invalid |
 
-### Order tracking (U7, U10)
+### Order tracking (U7, U11)
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -74,7 +74,7 @@ Error codes (closed set, extend in this doc only):
 | GET | `/api/orders/me` | Customer order history (auth required) |
 | GET | `/api/orders/me/{id}` | Customer order detail (auth required) |
 
-### Auth & profile (U8, U9, U11, U12)
+### Auth & profile (U8, U9, U12, U13)
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -98,16 +98,16 @@ All under `/api/admin/`, role=`admin` required.
 | GET | `/api/admin/customers` | A6 |
 | GET | `/api/admin/reports/sales` | A7, query params: `from`, `to` |
 
-### Kitchen (K1–K4)
+### Kitchen (K1–K3)
 
 All under `/api/kitchen/`, role=`kitchen` required.
 
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/kitchen/queue` | Ordered queue (reads `kitchen_queue_view`) |
-| POST | `/api/kitchen/orders/{id}/accept` | K2: Received → Preparing |
-| PATCH | `/api/kitchen/orders/{id}/status` | K3: update sub-stage |
-| POST | `/api/kitchen/orders/{id}/ready` | K4: Preparing → ReadyForDispatch + T1 |
+| POST | `/api/kitchen/orders/{id}/accept` | K2 flow: Received → Preparing |
+| PATCH | `/api/kitchen/orders/{id}/status` | K2: update preparation sub-stage |
+| POST | `/api/kitchen/orders/{id}/ready` | K3: T1 handoff; success → ReadyForDispatch, timeout/fail → DispatchPending |
 
 ### Delivery webhook (T2)
 
@@ -155,7 +155,7 @@ All under `/api/kitchen/`, role=`kitchen` required.
 
 ```json
 {
-  "order_code": "01J9X4QYXZK7T9P5N3M0H8B2QW",
+  "order_code": "PIZZ-7K2M9Q",
   "total_vnd": 277000,
   "status": "Received",
   "promised_at": "2026-04-28T11:15:00Z"
@@ -166,7 +166,7 @@ All under `/api/kitchen/`, role=`kitchen` required.
 
 ```json
 {
-  "order_code": "01J9X4QYXZK7T9P5N3M0H8B2QW",
+  "order_code": "PIZZ-7K2M9Q",
   "status": "Delivering",
   "timeline": [
     { "status": "Received",         "at": "2026-04-28T10:00:00Z" },

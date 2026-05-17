@@ -22,16 +22,15 @@ flowchart LR
             U5["U5 Manage Cart"]
             U6["U6 Place COD Order"]
             U6_1["U6.1 Provide Delivery Information"]
-            U6_2["U6.2 Calculate Delivery Fee"]
-            U6_3["U6.3 Confirm Cash on Delivery"]
+            U6_2["U6.2 Review and Confirm Order"]
             U7["U7 Track Order"]
             U7_1["U7.1 Synchronize Delivery Status"]
             U8["U8 Register"]
             U9["U9 Log In"]
-            U10["U10 View Order History"]
-            U11["U11 Manage Profile"]
-            U12["U12 View Loyalty Points"]
-            U13["U13 Redeem Points for Discount"]
+            U11["U11 View Order History"]
+            U12["U12 Manage Profile"]
+            U13["U13 View Loyalty Points"]
+            U14["U14 Redeem Points for Discount"]
         end
 
         subgraph ADM["Administration"]
@@ -47,10 +46,9 @@ flowchart LR
 
         subgraph KIT["Kitchen Operations"]
             direction TB
-            K1["K1 View Kitchen Order Queue"]
-            K2["K2 Process Prioritized Order"]
-            K3["K3 Update Preparation Status"]
-            K4["K4 Mark Order Ready for Dispatch"]
+            K1["K1 View Incoming Orders"]
+            K2["K2 Update Preparation Status"]
+            K3["K3 Mark Order Ready for Dispatch"]
         end
 
         subgraph INT["External Services Integration"]
@@ -70,10 +68,10 @@ flowchart LR
     Guest --- U8
 
     Customer --- U9
-    Customer --- U10
     Customer --- U11
     Customer --- U12
     Customer --- U13
+    Customer --- U14
 
     Admin --- A1
     Admin --- A2
@@ -86,7 +84,6 @@ flowchart LR
     Kitchen --- K1
     Kitchen --- K2
     Kitchen --- K3
-    Kitchen --- K4
 
     DeliveryAPI --- T1
     DeliveryAPI --- T2
@@ -97,8 +94,9 @@ flowchart LR
 
     U6 -->|include| U6_1
     U6 -->|include| U6_2
-    U6 -->|include| U6_3
-    U13 -.->|extend| U6
+    U14 -.->|extend| U6
     U7 -->|include| U7_1
     U7_1 -->|include| T2
-    K4 -->|include| T1
+    K3 -->|include| T1
+
+    %% U10 is intentionally reserved for deferred AI recommendation flow.
