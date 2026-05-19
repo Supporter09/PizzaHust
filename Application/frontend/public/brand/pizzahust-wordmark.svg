@@ -1,0 +1,23 @@
+<svg width="820" height="220" viewBox="0 0 820 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="820" height="220" rx="26" fill="#FFFDFB"/>
+  <g transform="translate(28 24)">
+    <rect x="0" y="0" width="172" height="172" rx="30" fill="#FFF7F4"/>
+    <path d="M18 62C36 34 66 22 87 22C112 22 139 34 155 62C122 55 104 52 87 52C69 52 49 55 18 62Z" fill="#D83F20"/>
+    <path d="M35 78C50 72 67 68 87 68C105 68 123 72 139 78L130 91C117 86 102 82 87 82C72 82 57 86 45 91L35 78Z" fill="#A62B14"/>
+    <circle cx="63" cy="110" r="9" fill="#2F8F3A"/>
+    <circle cx="88" cy="119" r="10" fill="#D95A34"/>
+    <circle cx="114" cy="109" r="9" fill="#D9A43C"/>
+    <path d="M49 135C59 128 71 124 87 124C102 124 115 128 125 135" stroke="#181B16" stroke-width="5.5" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(228 40)">
+    <text x="0" y="64" fill="#D83F20" font-family="Space Grotesk, Arial, sans-serif" font-size="82" font-weight="800" letter-spacing="2">PIZZA</text>
+    <text x="0" y="134" fill="#181B16" font-family="Space Grotesk, Arial, sans-serif" font-size="82" font-weight="800" letter-spacing="2">HUST</text>
+    <rect x="2" y="152" width="540" height="12" rx="6" fill="url(#underline)"/>
+  </g>
+  <defs>
+    <linearGradient id="underline" x1="2" y1="158" x2="542" y2="158" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2F8F3A"/>
+      <stop offset="1" stop-color="#D95A34"/>
+    </linearGradient>
+  </defs>
+</svg>
