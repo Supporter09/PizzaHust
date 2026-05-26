@@ -1,4 +1,4 @@
-"""Alembic env. Real metadata is wired in infra-003."""
+"""Alembic environment for the backend-owned DB schema."""
 
 from __future__ import annotations
 
@@ -7,13 +7,16 @@ import os
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+from app.infra.db import models  # noqa: F401
+from app.infra.db.base import metadata
+
 config = context.config
 config.set_main_option(
     "sqlalchemy.url",
     os.getenv("DATABASE_URL", config.get_main_option("sqlalchemy.url") or ""),
 )
 
-target_metadata = None  # set in infra-003 once SQLAlchemy models exist
+target_metadata = metadata
 
 
 def run_migrations_offline() -> None:
@@ -22,6 +25,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        compare_type=True,
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -34,7 +38,11 @@ def run_migrations_online() -> None:
         poolclass=pool.NullPool,
     )
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_type=True,
+        )
         with context.begin_transaction():
             context.run_migrations()
 
