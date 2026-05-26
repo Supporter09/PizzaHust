@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PizzaHUST · Kế hoạch chia việc 3 tuần</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #FAF7F2;
+    --bg-card: #FFFFFF;
+    --bg-soft: #F2EDE3;
+    --ink: #1A1815;
+    --ink-soft: #5B574F;
+    --ink-faint: #908B81;
+    --line: #E5DFD2;
+    --line-strong: #C9C1AE;
+
+    --crust: #C73E1D;        /* tomato red */
+    --crust-deep: #8E2A12;
+    --cheese: #E8B448;       /* mozzarella gold */
+    --basil: #4B7F3C;        /* basil green */
+    --olive: #3A4D2E;
+    --char: #2B2622;         /* charred crust */
+
+    --owner-minh: #C73E1D;
+    --owner-thanh: #2F6FAF;
+    --owner-hieu: #7A4FB5;
+    --owner-hung: #4B7F3C;
+    --owner-hoang: #D98014;
+
+    --shadow-sm: 0 1px 2px rgba(43, 38, 34, 0.06), 0 1px 1px rgba(43, 38, 34, 0.04);
+    --shadow-md: 0 4px 14px rgba(43, 38, 34, 0.08), 0 2px 4px rgba(43, 38, 34, 0.04);
+    --shadow-lg: 0 18px 50px rgba(43, 38, 34, 0.12), 0 4px 12px rgba(43, 38, 34, 0.06);
+
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 16px;
+    --r-xl: 22px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(199, 62, 29, 0.04), transparent 35%),
+      radial-gradient(circle at 88% 92%, rgba(232, 180, 72, 0.05), transparent 40%);
+    min-height: 100vh;
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 56px 40px 96px;
+  }
+
+  /* ============ HEADER ============ */
+  header.hero {
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    padding: 44px 48px;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-md);
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  header.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(135deg, transparent 65%, rgba(199, 62, 29, 0.06) 100%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--crust);
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-eyebrow::before {
+    content: "";
+    width: 26px;
+    height: 1.5px;
+    background: var(--crust);
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 54px;
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    margin: 0 0 18px;
+    color: var(--ink);
+  }
+  h1 em {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--crust);
+  }
+  .hero-sub {
+    color: var(--ink-soft);
+    font-size: 17px;
+    max-width: 720px;
+    margin: 0 0 28px;
+    line-height: 1.6;
+  }
+  .hero-meta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
+  }
+  .hero-meta-cell {
+    padding: 0 24px;
+    border-right: 1px solid var(--line);
+  }
+  .hero-meta-cell:first-child { padding-left: 0; }
+  .hero-meta-cell:last-child { padding-right: 0; border-right: none; }
+  .hero-meta-cell .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+  }
+  .hero-meta-cell .value {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  .hero-meta-cell .value small {
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* ============ SECTION HEADERS ============ */
+  section { margin-bottom: 56px; }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--crust);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .section-head h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin: 0;
+    flex: 1;
+  }
+  .section-head .note {
+    font-size: 13px;
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+
+  /* ============ CHANGE LOG ============ */
+  .change-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .change-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 20px 22px;
+    box-shadow: var(--shadow-sm);
+  }
+  .change-card .tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .tag.add { background: #E6F0E0; color: #2D5A1F; }
+  .tag.mod { background: #FBE9C9; color: #8B5A0E; }
+  .tag.rem { background: #F5D9D2; color: #8E2A12; }
+  .tag.ren { background: #DDE7F2; color: #1F4670; }
+  .change-card h4 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .change-card p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+  .change-card code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--bg-soft);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--char);
+  }
+
+  /* ============ TEAM ============ */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+  }
+  .member {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 20px 18px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .member::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--owner);
+  }
+  .member.minh { --owner: var(--owner-minh); }
+  .member.thanh { --owner: var(--owner-thanh); }
+  .member.hieu { --owner: var(--owner-hieu); }
+  .member.hung { --owner: var(--owner-hung); }
+  .member.hoang { --owner: var(--owner-hoang); }
+  .member .role {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--owner);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .member .name {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .member .scope {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .member .count {
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+
+  /* ============ WEEK BLOCK ============ */
+  .week-block {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 32px 32px 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+  .week-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 8px;
+    padding-bottom: 18px;
+    border-bottom: 1px dashed var(--line-strong);
+  }
+  .week-head .left h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .week-head .left .dates {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+  }
+  .week-head .right {
+    text-align: right;
+    max-width: 480px;
+  }
+  .week-head .right .theme {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--crust);
+    font-weight: 600;
+  }
+  .week-head .right .goal {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  .person-block {
+    padding: 22px 0 4px;
+    border-bottom: 1px solid var(--line);
+  }
+  .person-block:last-child { border-bottom: none; }
+  .person-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .person-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 11px;
+    border-radius: 999px;
+    color: white;
+    background: var(--owner);
+  }
+  .person-pill::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.85);
+  }
+  .person-block.minh { --owner: var(--owner-minh); }
+  .person-block.thanh { --owner: var(--owner-thanh); }
+  .person-block.hieu { --owner: var(--owner-hieu); }
+  .person-block.hung { --owner: var(--owner-hung); }
+  .person-block.hoang { --owner: var(--owner-hoang); }
+
+  .person-head .role-label {
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  .task-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .task {
+    display: flex;
+    gap: 14px;
+    padding: 10px 12px;
+    border-radius: var(--r-sm);
+    transition: background 0.15s;
+    align-items: flex-start;
+  }
+  .task:hover { background: var(--bg-soft); }
+  .task-check {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 3px;
+    background: white;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+  }
+  .task-check:hover { border-color: var(--owner, var(--crust)); }
+  .task-check.checked {
+    background: var(--owner, var(--basil));
+    border-color: var(--owner, var(--basil));
+  }
+  .task-check.checked::after {
+    content: "✓";
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    position: absolute;
+    top: -2px;
+    left: 2px;
+  }
+  .task-body { flex: 1; min-width: 0; }
+  .task-title {
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.5;
+    font-weight: 500;
+  }
+  .task-title .id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    background: var(--bg-soft);
+    color: var(--char);
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .task-meta {
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-top: 2px;
+  }
+  .task-meta strong {
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  /* ============ MILESTONE / GATE ============ */
+  .gate {
+    background: linear-gradient(135deg, #FFF8EC, #FBF2DD);
+    border: 1px solid var(--cheese);
+    border-radius: var(--r-md);
+    padding: 16px 20px;
+    margin-top: 18px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .gate-icon {
+    width: 28px; height: 28px;
+    background: var(--cheese);
+    color: var(--char);
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .gate-body { flex: 1; }
+  .gate-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8B5A0E;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .gate-text {
+    font-size: 13.5px;
+    color: var(--char);
+    line-height: 1.5;
+  }
+  .gate-text code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: rgba(0,0,0,0.06);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ============ DEPENDENCY MAP ============ */
+  .dep-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 24px 28px;
+    box-shadow: var(--shadow-sm);
+  }
+  .dep-card h4 {
+    font-family: 'Fraunces', serif;
+    margin: 0 0 14px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .dep-card pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    background: var(--bg-soft);
+    padding: 16px 18px;
+    border-radius: var(--r-sm);
+    overflow-x: auto;
+    margin: 0;
+    color: var(--char);
+  }
+
+  /* ============ RISK ============ */
+  .risk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .risk-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+    border-left: 3px solid var(--crust);
+  }
+  .risk-card .risk-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--crust);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .risk-card h4 {
+    margin: 0 0 6px;
+    font-size: 14.5px;
+    font-weight: 600;
+  }
+  .risk-card p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .risk-card .mitig {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+    font-size: 12.5px;
+    color: var(--basil);
+    font-style: italic;
+  }
+
+  /* ============ FOOTER ============ */
+  footer {
+    margin-top: 64px;
+    padding-top: 28px;
+    border-top: 1.5px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+  }
+  footer .mono { color: var(--char); }
+
+  @media (max-width: 900px) {
+    .wrap { padding: 32px 20px 64px; }
+    h1 { font-size: 38px; }
+    .hero-meta { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .hero-meta-cell { padding: 0; border: none; }
+    .team-grid { grid-template-columns: repeat(2, 1fr); }
+    .change-grid { grid-template-columns: 1fr; }
+    .risk-grid { grid-template-columns: 1fr; }
+    .week-head { flex-direction: column; align-items: flex-start; }
+    .week-head .right { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="hero-eyebrow">Pizza HUST · Sprint Plan</div>
+    <h1>Three weeks <em>to ship.</em></h1>
+    <p class="hero-sub">
+      Kế hoạch chia việc chi tiết cho 5 thành viên, từ <strong>17/05/2026 → 07/06/2026</strong>.
+      Dựa trên Use Case Diagram mới nhất (32 trang chi tiết, 5 UC mẫu đã đặc tả) và bộ feature_list.json hiện tại.
+      Mỗi đầu mục là một checklist hành động cụ thể — không phải mô tả chung chung.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-meta-cell">
+        <div class="label">Bắt đầu</div>
+        <div class="value">17/05 <small>Chủ Nhật</small></div>
+      </div>
+      <div class="hero-meta-cell">
+        <div class="label">Demo cuối</div>
+        <div class="value">07/06 <small>3 tuần · 21 ngày</small></div>
+      </div>
+      <div class="hero-meta-cell">
+        <div class="label">Thành viên</div>
+        <div class="value">5 <small>Minh · Thành · Hiếu · Hùng · Hoàng</small></div>
+      </div>
+      <div class="hero-meta-cell">
+        <div class="label">Use cases</div>
+        <div class="value">25 <small>13 U · 7 A · 3 K · 2 T</small></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ CHANGES SINCE feature_list.json ============ -->
+  <section>
+    <div class="section-head">
+      <span class="section-num">01</span>
+      <h2>Thay đổi so với feature_list.json</h2>
+      <span class="note">phát hiện từ slide & ảnh use case mới</span>
+    </div>
+    <div class="change-grid">
+
+      <div class="change-card">
+        <span class="tag rem">− DEFER</span>
+        <h4>Nhánh AI Recommendation — out-of-scope sprint này</h4>
+        <p>Slide có actor <code>AI Recommendation Service</code> + <code>AI1</code> và <code>U10: Get AI Menu Recommendation</code> nhưng <strong>không implement trong 3 tuần này</strong>. Để dành cho sprint sau hoặc stretch goal nếu dư thời gian sau code freeze.</p>
+      </div>
+
+      <div class="change-card">
+        <span class="tag ren">↻ RENUMBER</span>
+        <h4>Đẩy số thứ tự nhánh Customer</h4>
+        <p><code>U10 → U11</code> View Order History · <code>U11 → U12</code> Manage Profile · <code>U12 → U13</code> View Loyalty Points · <code>U13 → U14</code> Redeem Points for Discount. Vị trí <code>U10</code> bỏ trống (giữ chỗ cho AI sau này).</p>
+      </div>
+
+      <div class="change-card">
+        <span class="tag mod">~ MOD</span>
+        <h4>U3 Customize Pizza được tách rõ</h4>
+        <p>Thêm 3 sub-UC: <code>U3.1</code> Select Pizza Size & <code>U3.2</code> Select Crust Type (&laquo;include&raquo;); <code>U3.3</code> Add Extra Toppings (&laquo;extend&raquo;).</p>
+      </div>
+
+      <div class="change-card">
+        <span class="tag mod">~ MOD</span>
+        <h4>U6 Place COD Order có 2 sub-flow</h4>
+        <p>Tách rõ <code>U6.1</code> Provide Delivery Information và <code>U6.2</code> Review and Confirm Order (&laquo;include&raquo;). UC U13 cũ (Redeem) giờ &laquo;extend&raquo; U6.</p>
+      </div>
+
+      <div class="change-card">
+        <span class="tag rem">− REMOVE</span>
+        <h4>Kitchen rút từ 4 UC xuống 3 UC</h4>
+        <p>UC <code>K2 cũ: Process Prioritized Order</code> bị gộp vào K1 (queue đã có sort theo priority). <code>K4 cũ: Mark Order Ready for Dispatch</code> → đổi tên thành <code>K3 mới</code>.</p>
+      </div>
+
+      <div class="change-card">
+        <span class="tag mod">~ MOD</span>
+        <h4>Order Code format chốt</h4>
+        <p>Theo slide U6 Output Data: <code>PIZZ-XXXXXX</code> (6 ký tự uppercase letters + digits). ARCHITECTURE.md ghi ULID Crockford 26-char — cần thống nhất lại (xem mục Risk).</p>
+      </div>
+
+      <div class="change-card">
+        <span class="tag add">+ ADD</span>
+        <h4>Trạng thái "Dispatch Pending"</h4>
+        <p>Theo slide K3 Alternative Flow #1: khi delivery API timeout, order vào trạng thái <code>Dispatch Pending</code> chờ Admin retry. Order state machine cần thêm state này.</p>
+      </div>
+
+      <div class="change-card">
+        <span class="tag mod">~ MOD</span>
+        <h4>Combo có Target Group</h4>
+        <p>A4 Manage Combo Campaigns: thêm field <code>target_group</code> (số người), <code>validity_start</code>, <code>validity_end</code> (datetime). Combo có lifecycle: Scheduled / Active / Expired.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ TEAM ============ -->
+  <section>
+    <div class="section-head">
+      <span class="section-num">02</span>
+      <h2>Phân vai 5 thành viên</h2>
+      <span class="note">cân theo strength + tránh blocking</span>
+    </div>
+    <div class="team-grid">
+      <div class="member minh">
+        <div class="role">Infra · Auth · DevOps</div>
+        <div class="name">Minh</div>
+        <div class="scope">Scaffolding, Docker, OpenAPI, Auth cookie + role guards, CI/verify.sh, deploy.</div>
+        <div class="count">infra-001 · 002 · 004 · 007 · deploy</div>
+      </div>
+      <div class="member thanh">
+        <div class="role">Admin Ops · Reports · QA</div>
+        <div class="name">Thành</div>
+        <div class="scope">A5 Monitor Orders, A6 Customer Accounts, A7 Sales Reports, T2 webhook, Playwright E2E, demo script.</div>
+        <div class="count">A5 · A6 · A7 · T2 · QA · Demo</div>
+      </div>
+      <div class="member hieu">
+        <div class="role">Data · Admin Catalog</div>
+        <div class="name">Hiếu</div>
+        <div class="scope">Schema/migrations, seeds, Admin catalog (A1–A4), tài liệu DB.</div>
+        <div class="count">infra-003 · A1 · A2 · A3 · A4</div>
+      </div>
+      <div class="member hung">
+        <div class="role">Domain · Kitchen · Delivery</div>
+        <div class="name">Hùng</div>
+        <div class="scope">Order state machine, pricing, loyalty, Kitchen (K1–K3), Delivery mock + webhook (T1, T2).</div>
+        <div class="count">infra-005 · 006 · U6 · U7 · U14 · K1–K3 · T1 · T2</div>
+      </div>
+      <div class="member hoang">
+        <div class="role">Frontend · Customer UX</div>
+        <div class="name">Hoàng</div>
+        <div class="scope">Next.js shell, toàn bộ Guest/Customer UI (U1–U5, U8, U9, U11–U13).</div>
+        <div class="count">infra-008 · U1–U5 · U8 · U9 · U11 · U12 · U13</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WEEK 1 ============ -->
+  <section>
+    <div class="section-head">
+      <span class="section-num">03</span>
+      <h2>Tuần 1 · Foundation & Catalog</h2>
+      <span class="note">17/05 → 23/05</span>
+    </div>
+
+    <div class="week-block">
+      <div class="week-head">
+        <div class="left">
+          <h3>Tuần 1</h3>
+          <div class="dates">SUN 17/05 · MON 18/05 · TUE 19/05 · WED 20/05 · THU 21/05 · FRI 22/05 · SAT 23/05</div>
+        </div>
+        <div class="right">
+          <div class="theme">THEME · Move the dough</div>
+          <div class="goal">Hết tuần: Docker stack chạy, DB có schema + seed, Auth login/register hoạt động, Browse Menu render được pizza thật từ DB.</div>
+        </div>
+      </div>
+
+      <!-- MINH -->
+      <div class="person-block minh">
+        <div class="person-head">
+          <span class="person-pill">Minh</span>
+          <span class="role-label">Infra · Auth · DevOps</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-004</span> Hoàn thiện Starlette SessionMiddleware + argon2 password hashing</div><div class="task-meta"><strong>Deliverable:</strong> <code>backend/app/infra/auth/</code> · session signed cookie, role enum (guest/customer/admin/kitchen)</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-004</span> Tạo 3 endpoint: POST /api/auth/register, /login, /logout</div><div class="task-meta"><strong>Acceptance:</strong> rate limit 5 req/min/IP, CSRF token double-submit cho POST</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-004</span> Role guard dependency <code>require_role(*roles)</code> + viết test pytest</div><div class="task-meta"><strong>Test cases:</strong> guest gọi admin endpoint → 403, customer login đúng → set cookie</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-007</span> Export <code>/api/openapi.json</code> + script <code>npm run gen:types</code></div><div class="task-meta"><strong>CI:</strong> verify.sh kiểm tra drift giữa OpenAPI và frontend types</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">DevOps</span> Setup GitHub Actions: lint + type + pytest + vitest chạy trên mỗi PR</div><div class="task-meta"><strong>Output:</strong> <code>.github/workflows/ci.yml</code></div></li>
+        </ul>
+      </div>
+
+      <!-- HIEU -->
+      <div class="person-block hieu">
+        <div class="person-head">
+          <span class="person-pill">Hiếu</span>
+          <span class="role-label">Data · Admin Panel</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-003</span> Hoàn thành schema.dbml + Alembic migration đầu tiên</div><div class="task-meta"><strong>Tables:</strong> users, pizzas, pizza_sizes, pizza_crusts, toppings, categories, side_dishes, combos, combo_items, orders, order_lines, addresses, loyalty_ledger, delivery_jobs</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-003</span> Tạo SQL view <code>kitchen_queue_view</code> trong migration</div><div class="task-meta"><strong>Formula:</strong> age + overdue penalty + status boost (xem ARCHITECTURE.md)</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-003</span> Cấu hình <code>alembic check</code> chạy trong verify.sh để phát hiện model drift</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Seeds</span> Viết <code>app/seeds/run.py</code> idempotent: 3 category, 8 pizza, 5 size×crust combo, 10 topping, 4 side dish, 2 combo</div><div class="task-meta"><strong>Mục tiêu:</strong> Hoàng có data thật để build UI từ ngày 3</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">A1</span> Khung CRUD pizza: GET/POST/PUT /api/admin/pizzas, validation Pydantic, upload ảnh local</div><div class="task-meta"><strong>Alt flow:</strong> chặn duplicate name, ảnh > 5MB, warn khi deactivate pizza có trong combo</div></div></li>
+        </ul>
+      </div>
+
+      <!-- HUNG -->
+      <div class="person-block hung">
+        <div class="person-head">
+          <span class="person-pill">Hùng</span>
+          <span class="role-label">Domain · Kitchen · Delivery</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-006</span> Pure domain module <code>order_state.py</code> + transitions với unit tests</div><div class="task-meta"><strong>States mới:</strong> thêm <code>DispatchPending</code> giữa Preparing và ReadyForDispatch</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-006</span> Pricing pipeline <code>compute_order_total()</code> + tests (subtotal → combo → loyalty cap → delivery fee)</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-006</span> Loyalty domain rules (accrual 10000 VND = 1 pt, redeem cap 50%)</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-006</span> Service area whitelist <code>is_inner_hanoi(addr)</code> + danh sách quận nội thành</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-005</span> Khởi tạo <code>Application/delivery_mock/</code> standalone FastAPI service port 9000</div><div class="task-meta"><strong>2 endpoint:</strong> POST /jobs (tạo job, trả reference), POST /admin/advance (manual advance status)</div></div></li>
+        </ul>
+      </div>
+
+      <!-- HOANG -->
+      <div class="person-block hoang">
+        <div class="person-head">
+          <span class="person-pill">Hoàng</span>
+          <span class="role-label">Frontend · Customer UX</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-008</span> Next.js App Router shell + Tailwind + design tokens (color, font, spacing)</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-008</span> <code>lib/api</code> wrapper từ OpenAPI types (chờ Minh export ngày 2)</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">infra-008</span> Layout: header (logo, menu, cart icon, user), footer, mobile responsive</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U1</span> Trang <code>/menu</code>: grid pizza, filter theo category, skeleton loader</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U2</span> Trang <code>/menu/[slug]</code>: hiển thị chi tiết item, nút "Customize"</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U8 · U9</span> Form đăng ký + đăng nhập (chờ Minh xong /api/auth)</div></div></li>
+        </ul>
+      </div>
+
+      <!-- THANH -->
+      <div class="person-block thanh">
+        <div class="person-head">
+          <span class="person-pill">Thành</span>
+          <span class="role-label">Admin Ops · Reports · QA</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Spec</span> Soạn spec ngắn (1 trang) cho A5/A6/A7 dựa trên slide + diagram, gửi Hiếu review</div><div class="task-meta"><strong>Mục tiêu:</strong> chốt scope Monitor Orders / Customer Accounts / Reports trước thứ Tư</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">A6</span> Khung API Customer Accounts: list / search / get detail / lock / unlock (chờ infra-004 của Minh)</div><div class="task-meta"><strong>Acceptance:</strong> chỉ admin gọi được, lock user → user đó login → 403</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">QA</span> Setup Playwright + viết smoke test đầu tiên: homepage load + login flow</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">QA</span> Soạn 5 bộ test data (user, address, cart) dùng chung cho cả nhóm</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Docs</span> Cập nhật <code>CONTRACTS.md</code> với schema lỗi, order code format <code>PIZZ-XXXXXX</code>, ghi rõ AI là out-of-scope</div></div></li>
+        </ul>
+      </div>
+
+      <div class="gate">
+        <div class="gate-icon">G1</div>
+        <div class="gate-body">
+          <div class="gate-title">Gate cuối tuần 1 · Sat 23/05</div>
+          <div class="gate-text">
+            <code>docker compose up</code> sạch. Browse menu render 8 pizza từ DB. Login/Register hoạt động. <code>verify.sh</code> xanh. OpenAPI types đã được generate sang frontend. Nếu một trong những điều này chưa xong → bonus weekend.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WEEK 2 ============ -->
+  <section>
+    <div class="section-head">
+      <span class="section-num">04</span>
+      <h2>Tuần 2 · Ordering & Kitchen Loop</h2>
+      <span class="note">24/05 → 30/05</span>
+    </div>
+
+    <div class="week-block">
+      <div class="week-head">
+        <div class="left">
+          <h3>Tuần 2</h3>
+          <div class="dates">SUN 24/05 · MON 25/05 · TUE 26/05 · WED 27/05 · THU 28/05 · FRI 29/05 · SAT 30/05</div>
+        </div>
+        <div class="right">
+          <div class="theme">THEME · From cart to oven</div>
+          <div class="goal">Hết tuần: Customer đặt được đơn COD, Kitchen thấy queue, Admin quản được catalog + combo, tracking trang hoạt động end-to-end qua delivery mock.</div>
+        </div>
+      </div>
+
+      <!-- MINH -->
+      <div class="person-block minh">
+        <div class="person-head">
+          <span class="person-pill">Minh</span>
+          <span class="role-label">Infra · Auth · DevOps</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Infra</span> Structured JSON logging (structlog) + X-Request-ID middleware</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Infra</span> Error envelope chuẩn (code/message/details) cho toàn bộ /api</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Infra</span> CSRF middleware áp toàn bộ POST/PUT/PATCH/DELETE</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">DevOps</span> Setup demo env (cloud VPS hoặc Railway/Fly): deploy nightly từ main branch</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Support</span> Pair với Hùng giải auth/role cho admin & kitchen endpoint</div></div></li>
+        </ul>
+      </div>
+
+      <!-- HIEU -->
+      <div class="person-block hieu">
+        <div class="person-head">
+          <span class="person-pill">Hiếu</span>
+          <span class="role-label">Data · Admin Catalog</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">A1</span> Admin UI: bảng pizza + form thêm/sửa + upload ảnh + nút deactivate</div><div class="task-meta">Frontend route <code>/admin/pizzas</code> (Hiếu tự build, có thể nhờ Hoàng review style)</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">A2</span> Manage Pizza Options (sizes, crusts, toppings) + Side Dishes CRUD</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">A3</span> Manage Menu Categories (thứ tự hiển thị, active/inactive)</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">A4</span> Manage Combo Campaigns: form chọn component items, set price, validity window, target_group</div><div class="task-meta"><strong>Validation:</strong> combo_price ≤ sum(items), validity_end &gt; validity_start, cảnh báo nếu chứa pizza inactive</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Seeds</span> Mở rộng seed: 2 combo "Lunch Duo for 2" và "Family Feast 4" với validity hợp lý để demo</div></div></li>
+        </ul>
+      </div>
+
+      <!-- HUNG -->
+      <div class="person-block hung">
+        <div class="person-head">
+          <span class="person-pill">Hùng</span>
+          <span class="role-label">Domain · Kitchen · Delivery</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U6</span> Cart quote API <code>POST /api/cart/quote</code> trả về subtotal/discount/fee/total</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U6</span> Place order API: validate địa chỉ, gen order code <code>PIZZ-XXXXXX</code>, lưu order + lines, đẩy vào kitchen queue</div><div class="task-meta"><strong>Alt:</strong> reject nếu address ngoài Hà Nội, phone không khớp regex VN, item bị deactivate</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U7</span> Track order API <code>GET /api/orders/track/{code}</code> rate-limited 5/min/IP + projection tối thiểu</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U14</span> Loyalty redeem flow: API kiểm tra balance, áp discount, ghi loyalty_ledger</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">K1</span> Kitchen API <code>GET /api/kitchen/queue</code> đọc từ <code>kitchen_queue_view</code> + UI <code>/kitchen</code></div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">K2</span> Update Preparation Status: nút Accept (Received→Preparing), checkpoint items</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">K3 · T1</span> Mark Ready for Dispatch: atomic transaction → đổi state + gọi delivery mock; nếu fail → DispatchPending + alert Admin</div></div></li>
+        </ul>
+      </div>
+
+      <!-- HOANG -->
+      <div class="person-block hoang">
+        <div class="person-head">
+          <span class="person-pill">Hoàng</span>
+          <span class="role-label">Frontend · Customer UX</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U3</span> Customize Pizza modal: tab Size (U3.1) → Crust (U3.2) → Toppings (U3.3), live price update</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U4</span> Trang <code>/promotions</code>: render combo active với countdown đến validity_end</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U5</span> Cart drawer/page: edit quantity, remove, hiển thị quote từ API</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U6.1</span> Checkout step 1: form recipient + address + delivery note + validation VN phone</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U6.2</span> Checkout step 2: review tổng đơn, redeem points checkbox (nếu logged in), submit COD</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U7</span> Trang <code>/track</code>: input order code hoặc chọn từ history; render timeline với 6 trạng thái</div></div></li>
+        </ul>
+      </div>
+
+      <!-- THANH -->
+      <div class="person-block thanh">
+        <div class="person-head">
+          <span class="person-pill">Thành</span>
+          <span class="role-label">Admin Ops · Reports · QA</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">A6</span> Admin UI <code>/admin/customers</code>: bảng customer, search theo phone/email, view detail order history, nút lock/unlock</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">A5</span> Monitor Orders dashboard: list order theo state, lọc theo <code>DispatchPending</code> để retry; cảnh báo realtime khi có exception</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">T2</span> Webhook handler <code>POST /api/webhooks/delivery</code> + xác thực HMAC, advance order state theo event (Accepted / PickedUp / Delivered / Failed)</div><div class="task-meta"><strong>Edge:</strong> idempotent với event_id, phải xử lý webhook đến trễ và duplicate</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Support</span> Hỗ trợ Hoàng: build component shared <code>OrderTimeline</code> + <code>StatusBadge</code> dùng chung cho U7, U11, A5</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">QA</span> Playwright E2E happy path: register → browse → customize → cart → checkout → track</div></div></li>
+        </ul>
+      </div>
+
+      <div class="gate">
+        <div class="gate-icon">G2</div>
+        <div class="gate-body">
+          <div class="gate-title">Gate cuối tuần 2 · Sat 30/05</div>
+          <div class="gate-text">
+            Đặt được đơn COD thực sự từ web. Kitchen mark ready → mock delivery cấp reference → webhook quay lại đổi state → trang track hiển thị "Delivering". Admin quản được toàn bộ catalog + combo. Nếu webhook ↔ state machine còn flaky → freeze Tuần 3 ngày 1 để fix.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WEEK 3 ============ -->
+  <section>
+    <div class="section-head">
+      <span class="section-num">05</span>
+      <h2>Tuần 3 · Loyalty, Reports & Polish</h2>
+      <span class="note">31/05 → 07/06</span>
+    </div>
+
+    <div class="week-block">
+      <div class="week-head">
+        <div class="left">
+          <h3>Tuần 3</h3>
+          <div class="dates">SUN 31/05 · MON 01/06 · TUE 02/06 · WED 03/06 · THU 04/06 · FRI 05/06 · SAT 06/06 · SUN 07/06</div>
+        </div>
+        <div class="right">
+          <div class="theme">THEME · Box it up</div>
+          <div class="goal">Hết tuần: Loyalty đầy đủ vòng đời, Sales report cho admin, toàn bộ E2E xanh, slide demo + record video sẵn sàng.</div>
+        </div>
+      </div>
+
+      <!-- MINH -->
+      <div class="person-block minh">
+        <div class="person-head">
+          <span class="person-pill">Minh</span>
+          <span class="role-label">Infra · Auth · DevOps</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Ops</span> Setup HTTPS cho demo env, set <code>Secure</code> cookie, kiểm tra CSP header</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Ops</span> Backup DB script + restore test 1 lần</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Perf</span> Load test nhẹ với k6: 50 RPS browse menu, 10 RPS checkout — log p95</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Polish</span> Pair với từng người fix các vấn đề auth/role còn sót</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Demo</span> Chuẩn bị seed reset script: <code>make demo-reset</code> trả về trạng thái sạch trong &lt; 30s</div></div></li>
+        </ul>
+      </div>
+
+      <!-- HIEU -->
+      <div class="person-block hieu">
+        <div class="person-head">
+          <span class="person-pill">Hiếu</span>
+          <span class="role-label">Data · Admin Catalog</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">A4</span> Combo campaign: countdown auto-expire ở backend (cron-like check), trạng thái chuyển Expired tự động</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">A1·A2</span> Bulk-import script (CSV) cho pizza + topping — phục vụ demo khi cần thêm món nhanh</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Polish</span> Admin Panel: navigation chuẩn, breadcrumb, search/filter các bảng A1–A4</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Docs</span> Soạn ER diagram cuối cùng + cập nhật <code>schema.dbml</code></div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Demo</span> Soạn demo data hấp dẫn: 3 customer mẫu (có history + points), 2 combo "Lunch Duo" + "Family"</div></div></li>
+        </ul>
+      </div>
+
+      <!-- HUNG -->
+      <div class="person-block hung">
+        <div class="person-head">
+          <span class="person-pill">Hùng</span>
+          <span class="role-label">Domain · Kitchen · Delivery</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U13 · U14</span> View Loyalty Points page + Redeem Points luồng đầy đủ (UI + backend)</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U14</span> Đảm bảo loyalty ledger ghi đúng: earn khi Delivered, deduct khi redeem, reverse khi Cancelled</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">T2</span> Test các edge: webhook trễ, webhook duplicate (idempotent), HMAC sai → 401</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Domain</span> Bổ sung test order state machine cho path DispatchPending → ReadyForDispatch sau retry</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Polish</span> Bug bash với Hoàng cho luồng checkout (top priority)</div></div></li>
+        </ul>
+      </div>
+
+      <!-- HOANG -->
+      <div class="person-block hoang">
+        <div class="person-head">
+          <span class="person-pill">Hoàng</span>
+          <span class="role-label">Frontend · Customer UX</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U11</span> View Order History page: list đơn, click vào xem chi tiết + reorder button</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U12</span> Manage Profile: đổi tên, phone, password; quản lý địa chỉ đã lưu</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">U13</span> View Loyalty Points UI: tổng điểm, lịch sử giao dịch điểm</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Polish</span> Responsive pass: mobile 375px → desktop 1440px cho mọi route</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Polish</span> Empty states + error states + loading skeletons khắp UI</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">A11y</span> Keyboard nav + focus ring + alt text + Lighthouse a11y ≥ 90</div></div></li>
+        </ul>
+      </div>
+
+      <!-- THANH -->
+      <div class="person-block thanh">
+        <div class="person-head">
+          <span class="person-pill">Thành</span>
+          <span class="role-label">Admin Ops · Reports · QA</span>
+        </div>
+        <ul class="task-list">
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">A7</span> View Sales Reports: doanh thu theo ngày/tuần, top pizza, order count theo status, chart (Recharts/Chart.js)</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">A7</span> Export CSV button cho mỗi report (dùng cho demo "in báo cáo cuối ngày")</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">QA</span> Hoàn thiện E2E suite: 5 luồng (browse, register, order, track, redeem). Tất cả chạy CI.</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">QA</span> Bug bash session 90 phút với cả team thứ 5 04/06</div></div></li>
+          <li class="task"><div class="task-check"></div><div class="task-body"><div class="task-title"><span class="id">Demo</span> Soạn kịch bản demo 8 phút + slide pitch + record screencast dự phòng</div></div></li>
+        </ul>
+      </div>
+
+      <div class="gate">
+        <div class="gate-icon">G3</div>
+        <div class="gate-body">
+          <div class="gate-title">Code freeze · Fri 05/06 EOD · Demo · Sun 07/06</div>
+          <div class="gate-text">
+            Friday 5/6 18:00: hard freeze, chỉ bug fix. Saturday 6/6: rehearsal full team với <code>make demo-reset</code>. Sunday 7/6: demo. README chốt, slide chốt, screencast backup ready.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CRITICAL PATH ============ -->
+  <section>
+    <div class="section-head">
+      <span class="section-num">06</span>
+      <h2>Critical path · Ai chờ ai</h2>
+      <span class="note">đường dây ưu tiên không được chậm</span>
+    </div>
+    <div class="dep-card">
+      <h4>Chuỗi dependency chính</h4>
+<pre>
+Tuần 1 ─────────────────────────────────────────────
+infra-003 (Hiếu schema) ──┬─→ infra-004 (Minh auth)
+                          ├─→ infra-006 (Hùng domain)
+                          └─→ seeds (Hiếu)
+infra-007 (Minh openapi) ───→ infra-008 (Hoàng shell) ──→ U1·U2 (Hoàng)
+
+Tuần 2 ─────────────────────────────────────────────
+infra-006 (Hùng) + seeds  ──→ U5·U6 quote/place (Hùng) ──→ U6.1/U6.2 UI (Hoàng)
+                                     │
+                                     └──→ K1 queue API ──→ K2 ──→ K3 ──┐
+infra-005 (Hùng delivery-mock) ──────────────────────────────────┘
+                                                                       │
+                                                                       └──→ T1 request (Hùng) ──→ T2 webhook (Thành)
+                                                                                                       │
+                                                                                                       └──→ U7 Track (Hoàng + Hùng)
+infra-004 (Minh) ──→ A1–A4 (Hiếu) · A5·A6 (Thành)
+
+Tuần 3 ─────────────────────────────────────────────
+U6 (Hùng) ──→ A7 reports (Thành) ──→ slide demo
+U9 (Hoàng) + U6 (Hùng) ──→ U11·U13 history/points (Hoàng) ──→ U14 redeem (Hùng)
+</pre>
+    </div>
+  </section>
+
+  <!-- ============ RISKS ============ -->
+  <section>
+    <div class="section-head">
+      <span class="section-num">07</span>
+      <h2>Rủi ro &amp; mitigation</h2>
+      <span class="note">đã được nhận diện sẵn</span>
+    </div>
+    <div class="risk-grid">
+
+      <div class="risk-card">
+        <div class="risk-tag">RISK · HIGH</div>
+        <h4>Order code format mâu thuẫn</h4>
+        <p>Slide ghi <code>PIZZ-XXXXXX</code> (6 chars), ARCHITECTURE.md ghi ULID 26 chars Crockford.</p>
+        <div class="mitig">Mitigation: chốt theo slide. Hùng đổi <code>order_code.generate()</code> sang random 6 chars + check uniqueness, update ARCHITECTURE.md trong Tuần 1.</div>
+      </div>
+
+      <div class="risk-card">
+        <div class="risk-tag">RISK · MED</div>
+        <h4>Admin UI workload tập trung cuối tuần 2</h4>
+        <p>Hiếu phải xong A1–A4 và Thành phải xong A5+A6 cùng trong tuần 2 — nếu một bên chậm, gate G2 sẽ bị kéo.</p>
+        <div class="mitig">Mitigation: share component admin layout (table, form, modal) ngay từ ngày 1 tuần 2. Daily standup theo dõi sát các UC A1–A6.</div>
+      </div>
+
+      <div class="risk-card">
+        <div class="risk-tag">RISK · MED</div>
+        <h4>K3 + T1 atomic transaction phức tạp</h4>
+        <p>Nếu T1 fail giữa chừng, K4 phải revert + alert admin.</p>
+        <div class="mitig">Mitigation: dùng saga pattern đơn giản — đặt state thành DispatchPending, có nút retry ở A5. Test edge case kỹ tuần 2.</div>
+      </div>
+
+      <div class="risk-card">
+        <div class="risk-tag">RISK · MED</div>
+        <h4>Hoàng over-loaded UI nhánh Customer</h4>
+        <p>Hoàng đảm nhận U1–U5, U8, U9, U11–U13 — nhiều route.</p>
+        <div class="mitig">Mitigation: Thành assist U10 (AI widget), Hiếu tự build admin UI (không kéo Hoàng vào). Pair programming với Hùng tuần 2 cho checkout.</div>
+      </div>
+
+      <div class="risk-card">
+        <div class="risk-tag">RISK · MED</div>
+        <h4>Loyalty rule không đồng nhất</h4>
+        <p>Khi nào earn (Delivered?), khi nào reverse (Cancelled sau khi đã earn?).</p>
+        <div class="mitig">Mitigation: Hùng viết spec 1 trang trong tuần 1, ghi đè vào PRODUCT.md. Earn chỉ khi Delivered, reverse nếu reopen.</div>
+      </div>
+
+      <div class="risk-card">
+        <div class="risk-tag">RISK · LOW</div>
+        <h4>Demo env không ổn định</h4>
+        <p>Demo trên VPS có thể chậm hoặc fail trong lúc trình bày.</p>
+        <div class="mitig">Mitigation: Thành record screencast dự phòng tuần 3. Minh giữ local docker-compose chạy song song trong lúc demo.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ RITUALS ============ -->
+  <section>
+    <div class="section-head">
+      <span class="section-num">08</span>
+      <h2>Quy tắc làm việc</h2>
+      <span class="note">nhanh, gọn, không ghì</span>
+    </div>
+    <div class="dep-card">
+      <ul style="margin:0; padding-left: 22px; line-height: 1.85; color: var(--ink-soft);">
+        <li><strong style="color:var(--ink);">Standup 15 phút mỗi sáng 9:00</strong> (Zoom). Mỗi người: hôm qua xong gì · hôm nay làm gì · đang vướng gì.</li>
+        <li><strong style="color:var(--ink);">PR rule:</strong> mọi PR cần ít nhất 1 reviewer khác lĩnh vực. Minh review infra, Hùng review domain, Hoàng review UI.</li>
+        <li><strong style="color:var(--ink);">verify.sh xanh = điều kiện cần để merge.</strong> Không bypass.</li>
+        <li><strong style="color:var(--ink);">Mỗi người tối đa 1 task in-progress</strong> (theo invariant trong feature_list.json).</li>
+        <li><strong style="color:var(--ink);">Demo dry-run mini thứ 6 mỗi tuần 17:00</strong> — show progress 10 phút/người để phát hiện sớm regression.</li>
+        <li><strong style="color:var(--ink);">Branch convention:</strong> <code>feat/U6-place-order</code> / <code>fix/K3-revert-on-t1-fail</code> / <code>chore/seeds-update</code>.</li>
+        <li><strong style="color:var(--ink);">Slack channel #pizzahust-blockers</strong> — chỉ post khi đang bị chặn, kèm tag người liên quan.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <div class="mono">PizzaHUST · 3-Week Sprint Plan</div>
+    <div>Generated 17/05/2026 · Updated when use cases change</div>
+  </footer>
+
+</div>
+
+<script>
+  // Cho phép tick checkbox để theo dõi tiến độ trong browser (state-less, không lưu)
+  document.querySelectorAll('.task-check').forEach(el => {
+    el.addEventListener('click', () => el.classList.toggle('checked'));
+  });
+</script>
+</body>
+</html>
