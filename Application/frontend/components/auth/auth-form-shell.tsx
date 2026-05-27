@@ -2,30 +2,28 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ApiError, apiPost } from "@/lib/api/client";
 
 type Mode = "login" | "register";
 
 type LoginState = {
-  identifier: string;
+  phoneNumber: string;
   password: string;
-  remember: boolean;
 };
 
 type RegisterState = {
   fullName: string;
-  phone: string;
-  email: string;
+  phoneNumber: string;
   password: string;
   confirmPassword: string;
 };
 
 type Status = { type: "idle" | "success" | "error"; message: string };
 
-const INITIAL_LOGIN: LoginState = { identifier: "", password: "", remember: true };
+const INITIAL_LOGIN: LoginState = { phoneNumber: "", password: "" };
 const INITIAL_REGISTER: RegisterState = {
   fullName: "",
-  phone: "",
-  email: "",
+  phoneNumber: "",
   password: "",
   confirmPassword: "",
 };
@@ -38,29 +36,22 @@ function fieldLabel(text: string) {
   return <label className="ml-1 block text-[10px] font-extrabold uppercase tracking-[0.16em] text-[color:var(--ink-muted)]">{text}</label>;
 }
 
-function validatePhone(phone: string): boolean {
+function validatePhoneNumber(phone: string): boolean {
   return /^(0|\+84)\d{9,10}$/.test(phone.trim());
 }
 
-async function postJson(path: string, payload: Record<string, unknown>) {
-  const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api";
-  const res = await fetch(`${base}${path}`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    let details = "";
-    try {
-      const errorBody = (await res.json()) as { error?: { message?: string }; detail?: string };
-      details = errorBody?.error?.message ?? errorBody?.detail ?? "";
-    } catch {
-      details = "";
-    }
-    throw new Error(details || `API ${res.status}`);
+function parseApiError(error: unknown): { status?: number; message: string } {
+  if (error instanceof ApiError) {
+    const payload = error.payload as { detail?: string } | null;
+    return {
+      status: error.status,
+      message: payload?.detail ?? `API ${error.status}`,
+    };
   }
+  if (error instanceof Error) {
+    return { message: error.message };
+  }
+  return { message: "Unexpected error" };
 }
 
 export function AuthFormShell({ mode }: { mode: Mode }) {
@@ -73,25 +64,32 @@ export function AuthFormShell({ mode }: { mode: Mode }) {
     event.preventDefault();
     setStatus({ type: "idle", message: "" });
 
-    if (!loginForm.identifier.trim() || !loginForm.password.trim()) {
-      setStatus({ type: "error", message: "Vui long nhap day du identifier va password." });
+    if (!loginForm.phoneNumber.trim() || !loginForm.password.trim()) {
+      setStatus({ type: "error", message: "Vui long nhap day du so dien thoai va password." });
+      return;
+    }
+    if (!validatePhoneNumber(loginForm.phoneNumber)) {
+      setStatus({ type: "error", message: "So dien thoai chua dung dinh dang Viet Nam." });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await postJson("/auth/login", {
-        identifier: loginForm.identifier.trim(),
-        password: loginForm.password,
-        remember: loginForm.remember,
+      await apiPost("/auth/login", {
+        body: {
+          phone_number: loginForm.phoneNumber.trim(),
+          password: loginForm.password,
+        },
       });
       setStatus({ type: "success", message: "Dang nhap thanh cong. Ban co the tiep tuc vao menu." });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Login failed";
-      if (message.includes("404") || message.includes("405")) {
-        setStatus({ type: "error", message: "API /auth/login chua san sang. Minh chua mo backend auth." });
+      const parsed = parseApiError(error);
+      if (parsed.status === 404 || parsed.status === 405) {
+        setStatus({ type: "error", message: "API /auth/login chua san sang." });
+      } else if (parsed.status === 401) {
+        setStatus({ type: "error", message: "Sai so dien thoai hoac mat khau." });
       } else {
-        setStatus({ type: "error", message });
+        setStatus({ type: "error", message: parsed.message });
       }
     } finally {
       setIsSubmitting(false);
@@ -102,11 +100,11 @@ export function AuthFormShell({ mode }: { mode: Mode }) {
     event.preventDefault();
     setStatus({ type: "idle", message: "" });
 
-    if (!registerForm.fullName.trim() || !registerForm.phone.trim() || !registerForm.password.trim()) {
+    if (!registerForm.fullName.trim() || !registerForm.phoneNumber.trim() || !registerForm.password.trim()) {
       setStatus({ type: "error", message: "Vui long dien full name, phone va password." });
       return;
     }
-    if (!validatePhone(registerForm.phone)) {
+    if (!validatePhoneNumber(registerForm.phoneNumber)) {
       setStatus({ type: "error", message: "So dien thoai chua dung dinh dang Viet Nam." });
       return;
     }
@@ -121,20 +119,23 @@ export function AuthFormShell({ mode }: { mode: Mode }) {
 
     setIsSubmitting(true);
     try {
-      await postJson("/auth/register", {
-        full_name: registerForm.fullName.trim(),
-        phone: registerForm.phone.trim(),
-        email: registerForm.email.trim() || undefined,
-        password: registerForm.password,
+      await apiPost("/auth/register", {
+        body: {
+          full_name: registerForm.fullName.trim(),
+          phone_number: registerForm.phoneNumber.trim(),
+          password: registerForm.password,
+        },
       });
       setStatus({ type: "success", message: "Dang ky thanh cong. Ban co the dang nhap ngay bay gio." });
       setRegisterForm(INITIAL_REGISTER);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Register failed";
-      if (message.includes("404") || message.includes("405")) {
-        setStatus({ type: "error", message: "API /auth/register chua san sang. Minh chua mo backend auth." });
+      const parsed = parseApiError(error);
+      if (parsed.status === 404 || parsed.status === 405) {
+        setStatus({ type: "error", message: "API /auth/register chua san sang." });
+      } else if (parsed.status === 409) {
+        setStatus({ type: "error", message: "So dien thoai da ton tai." });
       } else {
-        setStatus({ type: "error", message });
+        setStatus({ type: "error", message: parsed.message });
       }
     } finally {
       setIsSubmitting(false);
@@ -194,13 +195,13 @@ export function AuthFormShell({ mode }: { mode: Mode }) {
           {mode === "login" ? (
             <form onSubmit={submitLogin} className="space-y-5">
               <div className="space-y-2">
-                {fieldLabel("Operator Identifier")}
+                {fieldLabel("Phone Number")}
                 <input
                   className={inputBaseClassName()}
-                  placeholder="Enter email or phone"
-                  autoComplete="username"
-                  value={loginForm.identifier}
-                  onChange={(event) => setLoginForm((prev) => ({ ...prev, identifier: event.target.value }))}
+                  placeholder="09xxxxxxxx"
+                  autoComplete="tel"
+                  value={loginForm.phoneNumber}
+                  onChange={(event) => setLoginForm((prev) => ({ ...prev, phoneNumber: event.target.value }))}
                 />
               </div>
               <div className="space-y-2">
@@ -214,17 +215,6 @@ export function AuthFormShell({ mode }: { mode: Mode }) {
                   onChange={(event) => setLoginForm((prev) => ({ ...prev, password: event.target.value }))}
                 />
               </div>
-              <label className="flex items-center gap-3 py-1">
-                <input
-                  type="checkbox"
-                  checked={loginForm.remember}
-                  onChange={(event) => setLoginForm((prev) => ({ ...prev, remember: event.target.checked }))}
-                  className="h-4 w-4 rounded border-[color:var(--ghost-border)] text-[color:var(--primary)]"
-                />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--ink-muted)]">
-                  Persist session on this device
-                </span>
-              </label>
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -251,19 +241,8 @@ export function AuthFormShell({ mode }: { mode: Mode }) {
                   className={inputBaseClassName()}
                   placeholder="09xxxxxxxx"
                   autoComplete="tel"
-                  value={registerForm.phone}
-                  onChange={(event) => setRegisterForm((prev) => ({ ...prev, phone: event.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                {fieldLabel("Email (Optional)")}
-                <input
-                  type="email"
-                  className={inputBaseClassName()}
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  value={registerForm.email}
-                  onChange={(event) => setRegisterForm((prev) => ({ ...prev, email: event.target.value }))}
+                  value={registerForm.phoneNumber}
+                  onChange={(event) => setRegisterForm((prev) => ({ ...prev, phoneNumber: event.target.value }))}
                 />
               </div>
               <div className="space-y-2">

@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Login */
+        post: operations["login_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register */
+        post: operations["register_auth_register_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/healthz": {
         parameters: {
             query?: never;
@@ -21,10 +55,119 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Menu Items */
+        get: operations["list_items_items_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
+    schemas: {
+        /** AuthResponse */
+        AuthResponse: {
+            /** Message */
+            message: string;
+            user: components["schemas"]["AuthUserResponse"];
+        };
+        /** AuthUserResponse */
+        AuthUserResponse: {
+            /** Current Points */
+            current_points: number;
+            /** Full Name */
+            full_name: string;
+            /** Membership Tier */
+            membership_tier: string;
+            /** Phone Number */
+            phone_number: string;
+            /** Role */
+            role: string;
+            /** Total Points Earned */
+            total_points_earned: number;
+            /** User Id */
+            user_id: number;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /** LoginRequest */
+        LoginRequest: {
+            /** Password */
+            password: string;
+            /** Phone Number */
+            phone_number: string;
+        };
+        /** MenuItemResponse */
+        MenuItemResponse: {
+            /** Badge */
+            badge?: string | null;
+            /** Category */
+            category: string;
+            /** Crusts */
+            crusts: components["schemas"]["MenuOptionResponse"][];
+            /** Description */
+            description: string;
+            /** Id */
+            id: string;
+            /** Image Url */
+            image_url: string;
+            /** Name */
+            name: string;
+            /** Price Vnd */
+            price_vnd: number;
+            /** Sizes */
+            sizes: components["schemas"]["MenuOptionResponse"][];
+            /** Slug */
+            slug: string;
+        };
+        /** MenuOptionResponse */
+        MenuOptionResponse: {
+            /** Label */
+            label: string;
+            /** Price Delta Vnd */
+            price_delta_vnd: number;
+            /** Value */
+            value: string;
+        };
+        /** RegisterRequest */
+        RegisterRequest: {
+            /** Address */
+            address?: string | null;
+            /** Full Name */
+            full_name: string;
+            /** Password */
+            password: string;
+            /** Phone Number */
+            phone_number: string;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Context */
+            ctx?: Record<string, never>;
+            /** Input */
+            input?: unknown;
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+        };
+    };
     responses: never;
     parameters: never;
     requestBodies: never;
@@ -33,6 +176,72 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    login_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    register_auth_register_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     healthz_healthz_get: {
         parameters: {
             query?: never;
@@ -51,6 +260,26 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    list_items_items_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuItemResponse"][];
                 };
             };
         };

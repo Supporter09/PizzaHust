@@ -1,3 +1,5 @@
+import { apiGet } from "@/lib/api/client";
+
 export type OptionChoice = {
   value: string;
   label: string;
@@ -185,12 +187,8 @@ function normalizeItems(payload: unknown): MenuItem[] {
 }
 
 async function fetchItemsFromApi(): Promise<MenuItem[]> {
-  const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api";
-  const response = await fetch(`${base}/items`, { method: "GET", credentials: "include" });
-  if (!response.ok) {
-    throw new Error(`API ${response.status}`);
-  }
-  return normalizeItems(await response.json());
+  const payload = await apiGet("/items");
+  return normalizeItems(payload);
 }
 
 export async function getMenuCatalog(): Promise<CatalogResult> {
