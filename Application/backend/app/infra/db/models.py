@@ -40,6 +40,7 @@ class OrderStatus(StrEnum):
     RECEIVED = "Received"
     PREPARING = "Preparing"
     READY_FOR_DISPATCH = "ReadyForDispatch"
+    DISPATCH_PENDING = "DispatchPending"
     DELIVERING = "Delivering"
     DELIVERED = "Delivered"
     DELIVERY_FAILED = "DeliveryFailed"
@@ -71,9 +72,13 @@ class User(Base):
 
     user_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     full_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True)
     phone_number: Mapped[str] = mapped_column(String(15), nullable=False, unique=True)
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     address: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    is_locked: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="0"
+    )
     role: Mapped[UserRole] = mapped_column(
         user_role_enum,
         nullable=False,
@@ -172,6 +177,9 @@ class Combo(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     combo_price_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
     target_people: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    target_group: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    validity_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
+    validity_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
 
     combo_items: Mapped[list[ComboItem]] = relationship(back_populates="combo")
     order_items: Mapped[list[OrderItem]] = relationship(back_populates="combo")
@@ -287,6 +295,20 @@ class OrderItemTopping(Base):
 
     order_item: Mapped[OrderItem] = relationship(back_populates="toppings")
     topping: Mapped[Topping] = relationship(back_populates="order_item_toppings")
+
+
+class WebhookEvent(Base):
+    """Idempotency store for incoming delivery webhook events."""
+
+    __tablename__ = "webhook_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    event_id: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
+    received_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False),
+        nullable=False,
+        server_default=func.now(),
+    )
 
 
 class OrderTracking(Base):
