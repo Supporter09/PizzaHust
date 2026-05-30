@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-import os
+from collections.abc import AsyncGenerator
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.infra.config import get_settings
+
 
 def get_database_url() -> str:
-    database_url = os.getenv("DATABASE_URL")
-    if not database_url:
-        raise RuntimeError("DATABASE_URL is required")
-    return database_url
+    return get_settings().database_url
 
 
 def create_db_engine(database_url: str | None = None) -> Engine:
@@ -29,3 +28,11 @@ def create_session_factory(database_url: str | None = None) -> sessionmaker[Sess
 
 def get_session() -> Session:
     return create_session_factory()()
+
+
+async def get_db_session() -> AsyncGenerator[Session, None]:
+    session = get_session()
+    try:
+        yield session
+    finally:
+        session.close()
