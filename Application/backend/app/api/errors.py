@@ -7,21 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette import status
 
-
-class APIError(Exception):
-    def __init__(
-        self,
-        *,
-        code: str,
-        message: str,
-        status_code: int,
-        details: dict[str, Any] | None = None,
-    ) -> None:
-        self.code = code
-        self.message = message
-        self.status_code = status_code
-        self.details = details
-        super().__init__(message)
+from app.core.errors import APIError
 
 
 def _request_id(request: Request) -> str:

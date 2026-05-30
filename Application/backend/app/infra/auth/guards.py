@@ -6,7 +6,7 @@ from fastapi import Depends, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.errors import APIError
+from app.core.errors import APIError
 from app.infra.auth.session_state import read_session
 from app.infra.db.models import User, UserRole
 from app.infra.db.session import get_db_session

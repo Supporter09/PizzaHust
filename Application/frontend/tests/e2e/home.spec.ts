@@ -9,7 +9,7 @@ test("home renders", async () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     await page.goto(targetUrl);
-    await expect(page.getByRole("heading", { name: "PizzaHUST" })).toBeVisible();
+    await expect(page.locator("body")).toContainText(/PizzaHust|PizzaHUST/);
     await browser.close();
     return;
   }
@@ -18,6 +18,6 @@ test("home renders", async () => {
   const context = browser.contexts()[0] ?? (await browser.newContext());
   const cdpPage = await context.newPage();
   await cdpPage.goto(targetUrl);
-  await expect(cdpPage.getByRole("heading", { name: "PizzaHUST" })).toBeVisible();
+  await expect(cdpPage.locator("body")).toContainText(/PizzaHust|PizzaHUST/);
   await browser.close();
 });

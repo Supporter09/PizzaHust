@@ -7,7 +7,7 @@ from typing import Annotated
 
 from fastapi import Depends, Request, status
 
-from app.api.errors import APIError
+from app.core.errors import APIError
 from app.infra.config import Settings, get_settings_dependency
 
 
