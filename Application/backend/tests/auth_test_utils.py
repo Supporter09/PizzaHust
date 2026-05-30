@@ -16,11 +16,13 @@ def build_test_app(db_slug: str, *, auth_rate_limit_per_minute: int | None = Non
     else:
         os.environ["AUTH_RATE_LIMIT_PER_MINUTE"] = str(auth_rate_limit_per_minute)
 
+    from app.infra.auth.rate_limit import reset_auth_rate_limiter
     from app.infra.config import get_settings
     from app.infra.db.base import metadata
     from app.infra.db.session import create_db_engine
 
     get_settings.cache_clear()
+    reset_auth_rate_limiter()
     engine = create_db_engine(os.environ["DATABASE_URL"])
     metadata.drop_all(bind=engine)
     metadata.create_all(bind=engine)

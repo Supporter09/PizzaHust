@@ -45,6 +45,16 @@ def set_authenticated_session(request: Request, user: User) -> str:
     return csrf_token
 
 
+def ensure_csrf_token(request: Request) -> str:
+    csrf_token = request.session.get(SESSION_KEY_CSRF)
+    if isinstance(csrf_token, str) and csrf_token:
+        return csrf_token
+
+    csrf_token = secrets.token_urlsafe(32)
+    request.session[SESSION_KEY_CSRF] = csrf_token
+    return csrf_token
+
+
 def clear_authenticated_session(request: Request) -> None:
     request.session.clear()
 

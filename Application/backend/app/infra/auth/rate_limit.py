@@ -34,6 +34,13 @@ _auth_limiter: InMemoryRateLimiter | None = None
 _auth_limiter_limit: int | None = None
 
 
+def reset_auth_rate_limiter() -> None:
+    global _auth_limiter
+    global _auth_limiter_limit
+    _auth_limiter = None
+    _auth_limiter_limit = None
+
+
 def _client_ip(request: Request) -> str:
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:

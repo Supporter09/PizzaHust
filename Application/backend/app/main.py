@@ -12,6 +12,7 @@ from app.api.errors import (
     handle_http_exception,
     handle_validation_error,
 )
+from app.api.loyalty import router as loyalty_router
 from app.infra.config import get_settings
 
 settings = get_settings()
@@ -37,6 +38,7 @@ app.add_exception_handler(APIError, handle_api_error)
 app.add_exception_handler(HTTPException, handle_http_exception)
 app.add_exception_handler(RequestValidationError, handle_validation_error)
 app.include_router(auth_router)
+app.include_router(loyalty_router)
 
 
 @app.middleware("http")

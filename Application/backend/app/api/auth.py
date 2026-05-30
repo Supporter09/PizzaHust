@@ -13,6 +13,7 @@ from app.infra.auth import (
     clear_authenticated_session,
     enforce_auth_rate_limit,
     enforce_csrf,
+    ensure_csrf_token,
     get_current_user,
     hash_password,
     needs_rehash,
@@ -57,6 +58,16 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     user: AuthUserDTO
     csrf_token: str
+
+
+class MeResponse(BaseModel):
+    user: AuthUserDTO
+    csrf_token: str
+
+
+class UpdateProfileRequest(BaseModel):
+    full_name: str | None = Field(default=None, min_length=2, max_length=100)
+    address: str | None = Field(default=None, max_length=255)
 
 
 class MessageResponse(BaseModel):
@@ -151,3 +162,38 @@ async def logout(
     clear_authenticated_session(request)
     response.delete_cookie(key=settings.csrf_cookie_name, path="/")
     return MessageResponse(message="Logged out")
+
+
+@router.get("/me", response_model=MeResponse)
+async def me(
+    request: Request,
+    response: Response,
+    user: Annotated[User, Depends(get_current_user)],
+    settings: AppSettings,
+) -> MeResponse:
+    csrf_token = ensure_csrf_token(request)
+    _set_csrf_cookie(response, settings, csrf_token)
+    return MeResponse(user=AuthUserDTO.model_validate(user), csrf_token=csrf_token)
+
+
+@router.patch("/me", response_model=AuthUserDTO)
+async def update_me(
+    payload: UpdateProfileRequest,
+    _: Annotated[None, Depends(enforce_csrf)],
+    user: Annotated[User, Depends(get_current_user)],
+    db: DBSession,
+) -> AuthUserDTO:
+    has_changes = False
+    if payload.full_name is not None:
+        user.full_name = payload.full_name.strip()
+        has_changes = True
+    if payload.address is not None:
+        user.address = payload.address.strip() if payload.address else None
+        has_changes = True
+
+    if has_changes:
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    return AuthUserDTO.model_validate(user)
