@@ -11,6 +11,9 @@ from sqlalchemy.orm import Session
 from app.api.errors import APIError
 from app.infra.auth import (
     clear_authenticated_session,
+    enforce_auth_rate_limit,
+    enforce_csrf,
+    get_current_user,
     hash_password,
     needs_rehash,
     set_authenticated_session,
@@ -76,6 +79,7 @@ def _set_csrf_cookie(response: Response, settings: Settings, csrf_token: str) ->
     "/register",
     response_model=RegisterResponse,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(enforce_auth_rate_limit)],
 )
 async def register(payload: RegisterRequest, db: DBSession) -> RegisterResponse:
     new_user = User(
@@ -100,7 +104,11 @@ async def register(payload: RegisterRequest, db: DBSession) -> RegisterResponse:
     return RegisterResponse(user=AuthUserDTO.model_validate(new_user))
 
 
-@router.post("/login", response_model=LoginResponse)
+@router.post(
+    "/login",
+    response_model=LoginResponse,
+    dependencies=[Depends(enforce_auth_rate_limit)],
+)
 async def login(
     payload: LoginRequest,
     request: Request,
@@ -136,6 +144,8 @@ async def login(
 async def logout(
     request: Request,
     response: Response,
+    _: Annotated[None, Depends(enforce_csrf)],
+    __: Annotated[User, Depends(get_current_user)],
     settings: AppSettings,
 ) -> MessageResponse:
     clear_authenticated_session(request)
