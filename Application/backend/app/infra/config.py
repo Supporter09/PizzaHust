@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     session_max_age_seconds: int = Field(default=60 * 60 * 24 * 14, alias="SESSION_MAX_AGE_SECONDS")
     session_https_only: bool = Field(default=False, alias="SESSION_HTTPS_ONLY")
     session_same_site: str = Field(default="lax", alias="SESSION_SAME_SITE")
+    frontend_origin: str = Field(default="http://localhost:3000", alias="FRONTEND_ORIGIN")
 
     csrf_cookie_name: str = Field(default="csrf_token", alias="CSRF_COOKIE_NAME")
 

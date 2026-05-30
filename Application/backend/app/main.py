@@ -3,6 +3,7 @@ from __future__ import annotations
 import ulid
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.auth import router as auth_router
@@ -32,6 +33,14 @@ app.add_middleware(
     same_site=settings.session_same_site,
     https_only=settings.session_https_only,
     path="/",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.frontend_origin],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.add_exception_handler(APIError, handle_api_error)
