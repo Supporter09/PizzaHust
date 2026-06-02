@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from functools import lru_cache
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
@@ -14,16 +15,28 @@ def get_database_url() -> str:
 
 
 def create_db_engine(database_url: str | None = None) -> Engine:
-    return create_engine(database_url or get_database_url(), pool_pre_ping=True)
+    # pool_recycle guards against MySQL dropping idle connections (wait_timeout).
+    return create_engine(
+        database_url or get_database_url(),
+        pool_pre_ping=True,
+        pool_recycle=3600,
+    )
 
 
-def create_session_factory(database_url: str | None = None) -> sessionmaker[Session]:
+@lru_cache(maxsize=None)
+def _session_factory(database_url: str | None) -> sessionmaker[Session]:
+    # Cached per URL: the Engine (and its connection pool) is created once per
+    # process and reused, instead of a fresh pool on every request.
     return sessionmaker(
         bind=create_db_engine(database_url),
         autoflush=False,
         autocommit=False,
         expire_on_commit=False,
     )
+
+
+def create_session_factory(database_url: str | None = None) -> sessionmaker[Session]:
+    return _session_factory(database_url)
 
 
 def get_session() -> Session:
