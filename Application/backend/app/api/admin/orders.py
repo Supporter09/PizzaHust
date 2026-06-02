@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -44,8 +44,8 @@ class OrderCancelIn(BaseModel):
 @router.get("", response_model=list[OrderSummaryOut])
 def list_orders(
     status: str | None = None,
-    page: int = 1,
-    page_size: int = 30,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(30, ge=1, le=100),
     db: Session = Depends(get_db),
     _admin: User = Depends(_require_admin),
 ) -> list[OrderSummaryOut]:
@@ -54,7 +54,7 @@ def list_orders(
         try:
             s = OrderStatus(status)
         except ValueError:
-            raise HTTPException(status_code=400, detail="VALIDATION_FAILED")
+            raise HTTPException(status_code=400, detail="VALIDATION_FAILED") from None
         stmt = stmt.where(Order.current_status == s)
     stmt = stmt.order_by(Order.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
     orders = db.scalars(stmt).all()
