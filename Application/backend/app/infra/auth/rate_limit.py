@@ -11,6 +11,11 @@ from app.core.errors import APIError
 from app.infra.config import Settings, get_settings_dependency
 
 
+# When the key map grows past this many buckets, sweep fully-expired buckets.
+# Bounds memory against one-off keys (e.g. spoofed IPs) that never revisit.
+_SWEEP_THRESHOLD = 1024
+
+
 class InMemoryRateLimiter:
     def __init__(self, limit: int, window_seconds: int) -> None:
         self.limit = limit
@@ -18,9 +23,17 @@ class InMemoryRateLimiter:
         self._events: dict[str, deque[float]] = {}
         self._lock = Lock()
 
+    def _sweep_expired(self, now: float) -> None:
+        cutoff = now - self.window_seconds
+        stale = [k for k, w in self._events.items() if not w or w[-1] <= cutoff]
+        for k in stale:
+            del self._events[k]
+
     def allow(self, key: str) -> bool:
         now = time.monotonic()
         with self._lock:
+            if len(self._events) > _SWEEP_THRESHOLD:
+                self._sweep_expired(now)
             window = self._events.setdefault(key, deque())
             while window and (now - window[0]) > self.window_seconds:
                 window.popleft()
@@ -42,9 +55,10 @@ def reset_auth_rate_limiter() -> None:
 
 
 def _client_ip(request: Request) -> str:
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        return forwarded.split(",", maxsplit=1)[0].strip()
+    # Use the real peer address. X-Forwarded-For is client-controlled and the
+    # backend is not behind a trusted reverse proxy in this stack, so honoring it
+    # would let a caller spoof the key and bypass the limit. Revisit (with a
+    # trusted-proxy allowlist) if a proxy is introduced.
     if request.client and request.client.host:
         return request.client.host
     return "unknown"
