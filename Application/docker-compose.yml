@@ -24,7 +24,8 @@ services:
       context: ./delivery_mock
     restart: unless-stopped
     environment:
-      DELIVERY_WEBHOOK_SECRET: dev-mock-secret-change-me
+      # Must match the backend's secret (same env source) or webhook HMACs fail.
+      DELIVERY_WEBHOOK_SECRET: ${DELIVERY_WEBHOOK_SECRET:?set DELIVERY_WEBHOOK_SECRET in .env}
       BACKEND_BASE_URL: http://backend:8000
     ports:
       - "9000:9000"
