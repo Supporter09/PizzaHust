@@ -23,9 +23,11 @@ class Settings(BaseSettings):
     auth_rate_limit_per_minute: int = Field(default=5, alias="AUTH_RATE_LIMIT_PER_MINUTE")
 
     admin_seed_phone: str = Field(default="0900000001", alias="ADMIN_SEED_PHONE")
-    admin_seed_password: str = Field(default="admin123", alias="ADMIN_SEED_PASSWORD")
     kitchen_seed_phone: str = Field(default="0900000002", alias="KITCHEN_SEED_PHONE")
-    kitchen_seed_password: str = Field(default="kitchen123", alias="KITCHEN_SEED_PASSWORD")
+    # No defaults: privileged seed passwords must come from the environment so no
+    # weak credential is baked into the source. .env.example documents dev values.
+    admin_seed_password: str | None = Field(default=None, alias="ADMIN_SEED_PASSWORD")
+    kitchen_seed_password: str | None = Field(default=None, alias="KITCHEN_SEED_PASSWORD")
 
 
 @lru_cache(maxsize=1)

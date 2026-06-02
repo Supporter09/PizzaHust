@@ -39,6 +39,11 @@ def _upsert_role_user(
 
 def main() -> None:
     settings = get_settings()
+    if not settings.admin_seed_password or not settings.kitchen_seed_password:
+        raise SystemExit(
+            "ADMIN_SEED_PASSWORD and KITCHEN_SEED_PASSWORD must be set to seed "
+            "privileged accounts (see .env.example)."
+        )
     _upsert_role_user(
         full_name="Demo Admin",
         phone_number=settings.admin_seed_phone,
