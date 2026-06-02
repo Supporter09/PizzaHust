@@ -56,7 +56,7 @@ def test_login_rejects_invalid_password() -> None:
     async def scenario() -> None:
         transport = httpx.ASGITransport(app=app_instance)
         async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            await client.post(
+            register_response = await client.post(
                 "/api/auth/register",
                 json={
                     "full_name": "Admin",
@@ -65,6 +65,9 @@ def test_login_rejects_invalid_password() -> None:
                     "address": None,
                 },
             )
+            # Without this, a register regression would fall through to the
+            # nonexistent-user path, which also 401s — masking the failure.
+            assert register_response.status_code == 201
 
             login_response = await client.post(
                 "/api/auth/login",

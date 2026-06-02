@@ -38,6 +38,8 @@ export default function RegisterPage() {
         address: address.trim() || undefined,
       });
       setSuccessMessage("Account created. Redirecting to login...");
+      // Leave loading=true so the form stays disabled until navigation — stops a
+      // second register() firing during the redirect delay.
       setTimeout(() => {
         router.push("/login");
       }, 600);
@@ -47,7 +49,6 @@ export default function RegisterPage() {
       } else {
         setErrorMessage("Unable to register right now.");
       }
-    } finally {
       setLoading(false);
     }
   };

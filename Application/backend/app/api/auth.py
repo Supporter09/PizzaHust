@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, Response, status
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -33,6 +33,15 @@ AppSettings = Annotated[Settings, Depends(get_settings_dependency)]
 _DUMMY_PASSWORD_HASH = hash_password("timing-equalizer-not-a-real-password")
 
 
+def _stripped_nonblank(value: str) -> str:
+    # min_length runs on the raw value, so "   " slips through; strip and reject
+    # so we never store an empty name/phone.
+    stripped = value.strip()
+    if not stripped:
+        raise ValueError("must not be blank")
+    return stripped
+
+
 class AuthUserDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -48,6 +57,11 @@ class RegisterRequest(BaseModel):
     phone_number: str = Field(min_length=8, max_length=15)
     password: str = Field(min_length=8, max_length=72)
     address: str | None = Field(default=None, max_length=255)
+
+    @field_validator("full_name", "phone_number")
+    @classmethod
+    def _no_blank(cls, v: str) -> str:
+        return _stripped_nonblank(v)
 
 
 class RegisterResponse(BaseModel):
@@ -72,6 +86,11 @@ class MeResponse(BaseModel):
 class UpdateProfileRequest(BaseModel):
     full_name: str | None = Field(default=None, min_length=2, max_length=100)
     address: str | None = Field(default=None, max_length=255)
+
+    @field_validator("full_name")
+    @classmethod
+    def _no_blank_name(cls, v: str | None) -> str | None:
+        return _stripped_nonblank(v) if v is not None else None
 
 
 class MessageResponse(BaseModel):

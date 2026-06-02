@@ -36,10 +36,12 @@ Deliver demo-ready authentication end-to-end for PizzaHust with cookie sessions,
 - Added brand tokens and auth UI styling with primary `#D32F2F`.
 
 ## Pending Finalization
-- Regenerate backend OpenAPI and sync `Application/openapi.json`.
-- Run full `./verify.sh` from `Application/`.
-- Update `feature_list.json`, `progress.md`, `session-handoff.md` with final evidence.
-- Ensure `infra-003` marked done before closing `infra-004`.
+- [x] Update `feature_list.json`, `progress.md`, `session-handoff.md` with final evidence.
+- [x] Ensure `infra-003` marked done before closing `infra-004`.
+- [ ] Regenerate backend OpenAPI and sync `Application/openapi.json` — deferred to
+      `infra-007` (OpenAPI export + type-gen); current spec is known to drift
+      (missing cookie/CSRF security scheme, error-envelope responses).
+- [ ] Run full `./verify.sh` from `Application/` in CI / the compose stack.
 
 ## Commit Cadence
 - Commit 1: backend auth core.
