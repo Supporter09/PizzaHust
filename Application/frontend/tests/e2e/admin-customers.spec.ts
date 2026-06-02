@@ -1,8 +1,29 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 const BASE = process.env.E2E_BASE_URL ?? "http://localhost:3000";
+const ADMIN_PHONE = process.env.E2E_ADMIN_PHONE ?? "0900000001";
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "admin123";
+
+async function loginAsAdmin(page: Page) {
+  // Authenticate via the API; the cookie is shared with the page context.
+  const res = await page.request.post(`${BASE}/api/auth/login`, {
+    data: { phone_number: ADMIN_PHONE, password: ADMIN_PASSWORD },
+  });
+  expect(res.ok(), "admin seed login should succeed against a seeded stack").toBeTruthy();
+}
+
+test.describe("Admin auth guard", () => {
+  test("unauthenticated access redirects to login", async ({ page }) => {
+    await page.goto(`${BASE}/admin/customers`);
+    await expect(page).toHaveURL(/\/login/);
+  });
+});
 
 test.describe("A6 – Admin Customer Accounts", () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page);
+  });
+
   test("customers page renders table", async ({ page }) => {
     await page.goto(`${BASE}/admin/customers`);
     await expect(page.getByRole("heading", { name: "Customer Accounts" })).toBeVisible();
@@ -11,6 +32,10 @@ test.describe("A6 – Admin Customer Accounts", () => {
 });
 
 test.describe("A5 – Monitor Orders", () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page);
+  });
+
   test("orders page renders with status filter chips", async ({ page }) => {
     await page.goto(`${BASE}/admin/orders`);
     await expect(page.getByRole("heading", { name: "Monitor Orders" })).toBeVisible();
