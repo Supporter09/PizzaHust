@@ -16,7 +16,7 @@ dependencies = [
   "structlog>=25.5",
   "httpx>=0.28",
   "itsdangerous>=2.2",
-  "starlette>=1.0",
+  "starlette>=0.46,<0.48",
 ]
 
 [project.optional-dependencies]
@@ -41,7 +41,7 @@ files = ["app/domain"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-asyncio_mode = "auto"
+asyncio_mode = "strict"
 
 [tool.importlinter]
 root_package = "app"

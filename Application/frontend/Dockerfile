@@ -5,6 +5,8 @@ RUN npm install --omit=dev --silent
 
 FROM node:22-alpine AS build
 WORKDIR /app
+ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
+ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
 COPY package.json ./
 RUN npm install --silent
 COPY . .

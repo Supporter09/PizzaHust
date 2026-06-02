@@ -79,11 +79,11 @@ Error codes (closed set, extend in this doc only):
 | Method | Path | Purpose |
 |---|---|---|
 | POST | `/api/auth/register` | Create customer account |
-| POST | `/api/auth/login` | Login, sets cookie |
+| POST | `/api/auth/login` | Login, sets session cookie + CSRF cookie |
 | POST | `/api/auth/logout` | Clear session |
-| GET | `/api/auth/me` | Current session profile |
-| PATCH | `/api/auth/me` | Update profile |
-| GET | `/api/loyalty/me` | Balance + recent transactions |
+| GET | `/api/auth/me` | Current session profile + CSRF token |
+| PATCH | `/api/auth/me` | Update profile (`full_name`, `address`) |
+| GET | `/api/loyalty/me` | Loyalty balance summary |
 
 ### Admin (A1–A7)
 
@@ -159,6 +159,30 @@ All under `/api/kitchen/`, role=`kitchen` required.
   "total_vnd": 277000,
   "status": "Received",
   "promised_at": "2026-04-28T11:15:00Z"
+}
+```
+
+### `POST /api/auth/login` — response
+
+```json
+{
+  "user": {
+    "user_id": 12,
+    "full_name": "Minh Nguyen",
+    "phone_number": "0901234567",
+    "address": "Hanoi",
+    "role": "customer"
+  },
+  "csrf_token": "<token>"
+}
+```
+
+### `GET /api/loyalty/me` — response
+
+```json
+{
+  "current_points": 0,
+  "total_points_earned": 0
 }
 ```
 
