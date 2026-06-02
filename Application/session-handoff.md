@@ -4,7 +4,7 @@
 **Branch:** `main`
 **Resume command:**
 
-```
+```bash
 cd Application && ./init.sh && ./verify.sh
 ```
 
