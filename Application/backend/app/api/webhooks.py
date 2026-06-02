@@ -10,6 +10,7 @@ from typing import Literal
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.infra.db.deps import get_db
@@ -36,6 +37,10 @@ class DeliveryEvent(BaseModel):
 
 def _verify_hmac(body: bytes, signature: str) -> bool:
     secret = os.environ.get("DELIVERY_WEBHOOK_SECRET", "")
+    if not secret:
+        # Fail closed: an unset secret must reject everything, otherwise an
+        # attacker could forge a valid signature using an empty key.
+        return False
     expected = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature)
 
@@ -59,6 +64,14 @@ async def delivery_webhook(
         return
 
     db.add(WebhookEvent(event_id=event_key))
+    try:
+        # Flush now so the unique-constraint collision surfaces here. This closes
+        # the TOCTOU window: a concurrent duplicate that passed the check above
+        # loses the insert race and is treated as an idempotent no-op.
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        return
 
     order: Order | None = db.scalar(
         select(Order).where(Order.delivery_reference == event.reference)
