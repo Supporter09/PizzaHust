@@ -18,7 +18,13 @@ class SessionData(dict[str, Any]):
     @property
     def user_id(self) -> int | None:
         value = self.get(SESSION_KEY_USER_ID)
-        return int(value) if isinstance(value, int | str) else None
+        if not isinstance(value, int | str):
+            return None
+        try:
+            # A tampered/stale cookie must read as unauthenticated, not 500.
+            return int(value)
+        except (TypeError, ValueError):
+            return None
 
     @property
     def role(self) -> str | None:
