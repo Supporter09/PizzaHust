@@ -24,9 +24,9 @@ def create_db_engine(database_url: str | None = None) -> Engine:
 
 
 @lru_cache(maxsize=None)
-def _session_factory(database_url: str | None) -> sessionmaker[Session]:
-    # Cached per URL: the Engine (and its connection pool) is created once per
-    # process and reused, instead of a fresh pool on every request.
+def _session_factory(database_url: str) -> sessionmaker[Session]:
+    # Cached per resolved URL: the Engine (and its connection pool) is created
+    # once per process and reused, instead of a fresh pool on every request.
     return sessionmaker(
         bind=create_db_engine(database_url),
         autoflush=False,
@@ -36,7 +36,9 @@ def _session_factory(database_url: str | None) -> sessionmaker[Session]:
 
 
 def create_session_factory(database_url: str | None = None) -> sessionmaker[Session]:
-    return _session_factory(database_url)
+    # Resolve before caching so the cache key is the real URL, not None — a
+    # changed database_url must produce a new engine, not reuse the stale one.
+    return _session_factory(database_url or get_database_url())
 
 
 def get_session() -> Session:
