@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import HTTPException, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette import status
@@ -67,6 +68,6 @@ async def handle_validation_error(request: Request, exc: RequestValidationError)
             request,
             code="VALIDATION_FAILED",
             message="Input failed schema validation.",
-            details={"errors": exc.errors()},
+            details={"errors": jsonable_encoder(exc.errors())},
         ),
     )
