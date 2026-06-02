@@ -21,15 +21,31 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params);
   const [customer, setCustomer] = useState<CustomerDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError("");
     fetch(`/api/admin/customers/${id}`, { credentials: "include" })
-      .then((r) => r.json())
-      .then(setCustomer)
-      .finally(() => setLoading(false));
+      .then(async (r) => {
+        if (!active) return;
+        if (!r.ok) {
+          // Never store an error envelope as if it were a customer.
+          setError(r.status === 404 ? "Customer not found" : `Failed to load customer (HTTP ${r.status})`);
+          return;
+        }
+        setCustomer(await r.json());
+      })
+      .catch(() => active && setError("Failed to load customer"))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
   }, [id]);
 
   if (loading) return <div className="text-gray-400 p-4">Loading…</div>;
+  if (error) return <div className="text-red-600 p-4">{error}</div>;
   if (!customer) return <div className="text-red-600 p-4">Customer not found</div>;
 
   return (

@@ -24,15 +24,21 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [toggling, setToggling] = useState<number | null>(null);
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
       const qs = query ? `?q=${encodeURIComponent(query)}` : "";
       const res = await fetch(`/api/admin/customers${qs}`, { credentials: "include" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setCustomers(await res.json());
+    } catch (e) {
+      // Surface the failure instead of rendering an empty "no customers" state.
+      setError(String(e));
+      setCustomers([]);
     } finally {
       setLoading(false);
     }
@@ -78,6 +84,12 @@ export default function CustomersPage() {
           className="w-full max-w-sm rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#C73E1D]/30 focus:border-[#C73E1D]"
         />
       </div>
+
+      {error && (
+        <div className="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
+          {error}
+        </div>
+      )}
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200 text-sm">

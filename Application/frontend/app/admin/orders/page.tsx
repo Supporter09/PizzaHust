@@ -41,27 +41,52 @@ export default function MonitorOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [retrying, setRetrying] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const [dispatchPendingCount, setDispatchPendingCount] = useState(0);
 
-  const fetchOrders = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  const fetchOrders = useCallback(
+    async (background = false) => {
+      // Background polls keep the current rows on screen instead of flashing
+      // the "Loading…" placeholder every 15s.
+      if (!background) setLoading(true);
+      setError("");
+      try {
+        const qs = statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : "";
+        const res = await fetch(`/api/admin/orders${qs}`, { credentials: "include" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        setOrders(await res.json());
+      } catch (e) {
+        setError(String(e));
+      } finally {
+        if (!background) setLoading(false);
+      }
+    },
+    [statusFilter],
+  );
+
+  // Count of stuck orders is independent of the active filter, so query for it
+  // directly — otherwise the warning vanishes whenever a different filter is on.
+  const fetchDispatchPendingCount = useCallback(async () => {
     try {
-      const qs = statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : "";
-      const res = await fetch(`/api/admin/orders${qs}`, { credentials: "include" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setOrders(await res.json());
-    } catch (e) {
-      setError(String(e));
-    } finally {
-      setLoading(false);
+      const res = await fetch("/api/admin/orders?status=DispatchPending", {
+        credentials: "include",
+      });
+      if (!res.ok) return;
+      const rows: OrderRow[] = await res.json();
+      setDispatchPendingCount(rows.length);
+    } catch {
+      // Non-critical; leave the previous count in place.
     }
-  }, [statusFilter]);
+  }, []);
 
   useEffect(() => {
     void fetchOrders();
-    const id = setInterval(fetchOrders, 15_000);
+    void fetchDispatchPendingCount();
+    const id = setInterval(() => {
+      void fetchOrders(true);
+      void fetchDispatchPendingCount();
+    }, 15_000);
     return () => clearInterval(id);
-  }, [fetchOrders]);
+  }, [fetchOrders, fetchDispatchPendingCount]);
 
   async function retryDispatch(orderId: number) {
     setRetrying(orderId);
@@ -72,14 +97,13 @@ export default function MonitorOrdersPage() {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       await fetchOrders();
+      await fetchDispatchPendingCount();
     } catch (e) {
       alert(`Retry failed: ${e}`);
     } finally {
       setRetrying(null);
     }
   }
-
-  const dispatchPendingCount = orders.filter(o => o.current_status === "DispatchPending").length;
 
   return (
     <div>
