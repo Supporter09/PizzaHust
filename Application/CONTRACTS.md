@@ -86,6 +86,12 @@ Error codes (closed set, extend in this doc only):
 | PATCH | `/api/auth/me` | Update profile (`full_name`, `address`) |
 | GET | `/api/loyalty/me` | Loyalty balance summary |
 
+> **`email` field.** `User.email` exists (nullable, unique) and is returned by
+> admin endpoints (A6). It is **not** collected at registration and **not**
+> editable via `PATCH /api/auth/me` in this sprint — registration takes only
+> `full_name`, `phone_number`, `password`, `address`. Email-based signup/login is
+> deferred; the column is reserved for future use and admin-side display.
+
 ### Admin (A1–A7)
 
 All under `/api/admin/`, role=`admin` required.
