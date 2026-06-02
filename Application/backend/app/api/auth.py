@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, EmailStr, field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -33,7 +33,7 @@ def _validate_phone(v: str) -> str:
 class RegisterIn(BaseModel):
     full_name: str
     phone_number: str
-    email: str | None = None
+    email: EmailStr | None = None
     password: str
 
     @field_validator("phone_number")
@@ -69,7 +69,7 @@ class ProfileOut(BaseModel):
 
 class ProfilePatchIn(BaseModel):
     full_name: str | None = None
-    email: str | None = None
+    email: EmailStr | None = None
     address: str | None = None
 
 
@@ -91,6 +91,9 @@ def register(body: RegisterIn, request: Request, db: Session = Depends(get_db)) 
     )
     db.add(user)
     db.flush()
+    # Refresh so server-side defaults (current_points, membership_tier,
+    # is_locked) are populated before serializing ProfileOut.
+    db.refresh(user)
     set_session(request, user)
     return ProfileOut.model_validate(user)
 
