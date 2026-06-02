@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+# Rendered by Terraform templatefile(): only repo_url/project_id/domain are template
+# vars; every shell/compose variable is escaped with a doubled dollar so it survives.
+set -euo pipefail
+exec > >(tee -a /var/log/pizzahust-startup.log) 2>&1
+echo "=== pizzahust startup $(date -u +%FT%TZ) ==="
+
+ROOT=/opt/pizzahust
+APP="$${ROOT}/Application"
+SENTINEL="$${ROOT}/.bootstrapped"
+
+# --- [0] base packages (don't assume git/curl/python3 exist on the image) ---
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -y
+apt-get install -y ca-certificates curl git python3
+
+# --- [1] docker (idempotent) ---
+if ! command -v docker >/dev/null 2>&1; then
+  curl -fsSL https://get.docker.com | sh
+fi
+
+# --- [2] clone / update repo ---
+if [ -d "$${ROOT}/.git" ]; then
+  git -C "$${ROOT}" fetch --depth 1 origin main
+  git -C "$${ROOT}" reset --hard origin/main
+else
+  git clone --depth 1 "${repo_url}" "$${ROOT}"
+fi
+cd "$${APP}"
+
+# --- [3] fetch secrets from Secret Manager (metadata token + REST; no SDK) ---
+md_token() {
+  curl -s -H "Metadata-Flavor: Google" \
+    "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" \
+  | python3 -c 'import sys,json;print(json.load(sys.stdin)["access_token"])'
+}
+get_secret() {
+  local name="$1" tok
+  tok="$(md_token)"
+  curl -s -H "Authorization: Bearer $${tok}" \
+    "https://secretmanager.googleapis.com/v1/projects/${project_id}/secrets/$${name}/versions/latest:access" \
+  | python3 -c 'import sys,json,base64;print(base64.b64decode(json.load(sys.stdin)["payload"]["data"]).decode(),end="")'
+}
+
+SESSION_SECRET="$(get_secret session-secret)"
+DELIVERY_WEBHOOK_SECRET="$(get_secret delivery-webhook-secret)"
+MYSQL_ROOT_PASSWORD="$(get_secret mysql-root-password)"
+MYSQL_APP_PASSWORD="$(get_secret mysql-app-password)"
+ADMIN_SEED_PASSWORD="$(get_secret admin-seed-password)"
+KITCHEN_SEED_PASSWORD="$(get_secret kitchen-seed-password)"
+
+# --- [4] render .env (root-only; never committed) ---
+umask 077
+cat > "$${APP}/.env" <<EOF
+# Production env rendered on VM boot from Secret Manager. Do not commit.
+SESSION_SECRET=$${SESSION_SECRET}
+SESSION_HTTPS_ONLY=true
+SESSION_SAME_SITE=lax
+FRONTEND_ORIGIN=https://${domain}
+
+ADMIN_SEED_PHONE=0900000001
+ADMIN_SEED_PASSWORD=$${ADMIN_SEED_PASSWORD}
+KITCHEN_SEED_PHONE=0900000002
+KITCHEN_SEED_PASSWORD=$${KITCHEN_SEED_PASSWORD}
+
+DELIVERY_PROVIDER=mock
+DELIVERY_BASE_URL=http://delivery-mock:9000
+DELIVERY_API_KEY=dev-api-key
+DELIVERY_WEBHOOK_SECRET=$${DELIVERY_WEBHOOK_SECRET}
+
+DELIVERY_FEE_VND=22000
+LOYALTY_ACCRUAL_RATE=10000
+LOYALTY_REDEEM_VALUE_VND=1000
+LOYALTY_MAX_REDEEM_PCT=0.5
+ORDER_PROMISED_TIME_DEFAULT_MIN=45
+
+# Hardened MySQL creds (override replaces all four dev-default usages).
+MYSQL_ROOT_PASSWORD=$${MYSQL_ROOT_PASSWORD}
+MYSQL_APP_PASSWORD=$${MYSQL_APP_PASSWORD}
+
+# Browser bundle calls the API same-origin through nginx -> backend.
+# Read by BOTH the frontend build arg and runtime env (compose interpolates .env).
+NEXT_PUBLIC_API_BASE_URL=/api
+EOF
+
+# --- [5] nginx reverse proxy ---
+mkdir -p "$${APP}/nginx"
+cat > "$${APP}/nginx/default.conf" <<'EOF'
+server {
+    listen 80 default_server;
+    server_name _;
+    client_max_body_size 4m;
+
+    # LB health check + app liveness (GFE hits this directly, not behind IAP).
+    location = /healthz {
+        proxy_pass http://backend:8000/healthz;
+    }
+
+    # API: backend routers already carry the /api prefix, so preserve the path.
+    location /api/ {
+        proxy_pass http://backend:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+    }
+
+    # Everything else: Next.js standalone server.
+    location / {
+        proxy_pass http://frontend:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+EOF
+
+# --- [6] compose override: nginx + backend session/cors + MySQL hardening ---
+# DATABASE_URL and the MySQL creds/healthcheck are HARDCODED to dev defaults in
+# the base compose; override all coupled usages from the same Secret Manager values
+# or the DB never comes healthy. Generated passwords are alphanumeric, so the
+# DATABASE_URL needs no escaping. (MySQL applies new creds only on a fresh data
+# volume - always true for a Terraform-created VM.)
+# NOTE: every $${VAR} below is escaped so templatefile() leaves a literal $${VAR}
+# in the rendered file for docker compose to interpolate from .env at runtime.
+cat > "$${APP}/docker-compose.prod.yml" <<'EOF'
+services:
+  mysql:
+    environment:
+      MYSQL_ROOT_PASSWORD: $${MYSQL_ROOT_PASSWORD}
+      MYSQL_PASSWORD: $${MYSQL_APP_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h127.0.0.1", "-uroot", "-p$${MYSQL_ROOT_PASSWORD}"]
+
+  backend:
+    environment:
+      DATABASE_URL: mysql+pymysql://pizza:$${MYSQL_APP_PASSWORD}@mysql:3306/pizzahust
+      FRONTEND_ORIGIN: $${FRONTEND_ORIGIN}
+      SESSION_HTTPS_ONLY: $${SESSION_HTTPS_ONLY:-true}
+      SESSION_SAME_SITE: $${SESSION_SAME_SITE:-lax}
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "80:80"
+EOF
+
+DC="docker compose -f docker-compose.yml -f docker-compose.prod.yml"
+
+# --- [7] first boot: build + migrate + seed; later boots: just bring up ---
+if [ ! -f "$${SENTINEL}" ]; then
+  echo "=== first boot: build + migrate + seed ==="
+  $${DC} build
+  $${DC} up -d mysql delivery-mock
+  # PYTHONPATH=/app: the image's editable install registers no packages
+  # (pip -e runs before COPY), so alembic can't import `app` without it.
+  $${DC} run --rm -e PYTHONPATH=/app backend alembic upgrade head
+  $${DC} run --rm -e PYTHONPATH=/app backend python -m app.seeds.run
+  touch "$${SENTINEL}"
+fi
+
+# --- [8] bring up the full stack (idempotent) ---
+$${DC} up -d
+echo "=== pizzahust startup complete ==="
