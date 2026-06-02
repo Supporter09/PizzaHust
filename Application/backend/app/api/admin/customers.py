@@ -62,7 +62,8 @@ def list_customers(
             )
         )
 
-    stmt = stmt.offset((page - 1) * page_size).limit(page_size)
+    # Stable order so page boundaries are deterministic across requests.
+    stmt = stmt.order_by(User.user_id).offset((page - 1) * page_size).limit(page_size)
     rows = db.execute(stmt).all()
 
     result = []

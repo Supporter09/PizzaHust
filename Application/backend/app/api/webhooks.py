@@ -8,7 +8,7 @@ import os
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -56,7 +56,12 @@ async def delivery_webhook(
     if not _verify_hmac(body, x_signature):
         raise HTTPException(status_code=401, detail="UNAUTHENTICATED")
 
-    event = DeliveryEvent.model_validate_json(body)
+    try:
+        event = DeliveryEvent.model_validate_json(body)
+    except ValidationError:
+        # Malformed payload is a client error, not a server fault. 400 maps to
+        # VALIDATION_FAILED in the contract error envelope.
+        raise HTTPException(status_code=400, detail="VALIDATION_FAILED") from None
 
     event_key = event.event_id or f"{event.reference}:{event.state}"
     existing = db.scalar(select(WebhookEvent).where(WebhookEvent.event_id == event_key))

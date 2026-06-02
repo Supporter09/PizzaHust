@@ -57,20 +57,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <span className="ml-2 text-xs text-gray-400 font-mono uppercase tracking-widest">admin</span>
         </div>
         <nav className="flex-1 py-4 space-y-0.5 px-2">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={pathname === item.href ? "page" : undefined}
-              className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
-                pathname === item.href
-                  ? "bg-gray-100 text-gray-900 font-medium"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {NAV.map((item) => {
+            // Stay active on nested routes too, e.g. /admin/customers/[id].
+            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
+                  active
+                    ? "bg-gray-100 text-gray-900 font-medium"
+                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
       </aside>
       <main className="flex-1 overflow-auto p-6">{children}</main>
