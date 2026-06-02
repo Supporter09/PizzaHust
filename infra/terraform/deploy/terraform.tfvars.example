@@ -1,0 +1,17 @@
+# Copy to terraform.tfvars (gitignored) and fill in.
+project_id = "your-project-id"
+domain     = "your.domain.example"
+
+# Full IAM principals - NOT bare emails. These are PII; keep them only in the
+# gitignored terraform.tfvars, never in committed files.
+iap_allowed_members = [
+  "user:someone@gmail.com",
+]
+
+# Optional overrides (defaults shown):
+# region       = "asia-southeast1"
+# zone         = "asia-southeast1-a"
+# machine_type = "e2-medium"
+# repo_url     = "https://github.com/Supporter09/PizzaHust.git"
+# network_name = "mk8s-poc-net"
+# subnet_name  = "mk8s-poc-subnet"
