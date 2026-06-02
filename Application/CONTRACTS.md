@@ -9,7 +9,8 @@ REST API contract for PizzaHUST. Backend exports OpenAPI at `/api/openapi.json`;
 - Authentication: httpOnly cookie set by `/api/auth/login`. CSRF token in `X-CSRF-Token` header on state-changing routes.
 - Money values: integer VND (e.g., `22000`). No floats anywhere.
 - Timestamps: ISO 8601 UTC (`2026-04-28T10:00:00Z`).
-- IDs: integer surrogate keys for internal entities; `PIZZ-XXXXXX` strings for order codes.
+- IDs: integer surrogate keys for internal entities; `PIZZ-XXXXXX` strings for order codes (6 uppercase alphanumeric chars, e.g. `PIZZ-7K2M9Q`).
+- AI features (`U10`, AI Recommendation Service) are **out-of-scope** for this 3-week sprint.
 
 ## Error Envelope
 
@@ -85,6 +86,12 @@ Error codes (closed set, extend in this doc only):
 | PATCH | `/api/auth/me` | Update profile (`full_name`, `address`) |
 | GET | `/api/loyalty/me` | Loyalty balance summary |
 
+> **`email` field.** `User.email` exists (nullable, unique) and is returned by
+> admin endpoints (A6). It is **not** collected at registration and **not**
+> editable via `PATCH /api/auth/me` in this sprint — registration takes only
+> `full_name`, `phone_number`, `password`, `address`. Email-based signup/login is
+> deferred; the column is reserved for future use and admin-side display.
+
 ### Admin (A1–A7)
 
 All under `/api/admin/`, role=`admin` required.
@@ -94,9 +101,32 @@ All under `/api/admin/`, role=`admin` required.
 | GET/POST/PATCH/DELETE | `/api/admin/items` | A1, A2 |
 | GET/POST/PATCH/DELETE | `/api/admin/categories` | A3 |
 | GET/POST/PATCH/DELETE | `/api/admin/combos` | A4 |
-| GET/PATCH | `/api/admin/orders` | A5 (list, cancel, retry delivery) |
-| GET | `/api/admin/customers` | A6 |
+| GET | `/api/admin/orders` | A5 list, query param `status` |
+| GET | `/api/admin/orders/{id}` | A5 get order detail |
+| POST | `/api/admin/orders/{id}/cancel` | A5 cancel order |
+| POST | `/api/admin/orders/{id}/retry-dispatch` | A5 retry delivery for `DispatchPending` orders |
+| GET | `/api/admin/customers` | A6 list, query params: `q` (search), `page`, `page_size` |
+| GET | `/api/admin/customers/{id}` | A6 customer detail |
+| POST | `/api/admin/customers/{id}/lock` | A6 lock account, body `{ "reason": string \| null }` |
+| POST | `/api/admin/customers/{id}/unlock` | A6 unlock account |
 | GET | `/api/admin/reports/sales` | A7, query params: `from`, `to` |
+
+#### A5 Monitor Orders — scope
+- Lists all orders (any status). Client-side polling every 15s.
+- Filter by `status` enum value (including `DispatchPending`).
+- Alert banner when `DispatchPending` count > 0.
+- Retry dispatch sets order back to `ReadyForDispatch` for Kitchen to re-handoff.
+- AI Recommendation Service (`U10`) is **out-of-scope** for this sprint.
+
+#### A6 Customer Accounts — scope
+- Admin can search customers by `full_name`, `phone_number`, or `email`.
+- Lock/unlock: locked customer → subsequent login → `403 FORBIDDEN`.
+- Locking does **not** cancel in-progress orders automatically; Kitchen continues.
+
+#### A7 Sales Reports — scope (Week 3)
+- Aggregated by day/week.
+- Fields: `date`, `order_count`, `revenue_vnd`, `top_items[{name, count}]`.
+- CSV export via `?format=csv`.
 
 ### Kitchen (K1–K3)
 
@@ -114,6 +144,14 @@ All under `/api/kitchen/`, role=`kitchen` required.
 | Method | Path | Purpose |
 |---|---|---|
 | POST | `/api/webhooks/delivery` | HMAC-signed status callback. Verifies signature with `DELIVERY_WEBHOOK_SECRET` |
+
+#### Webhook payload
+```json
+{ "reference": "mock-abc123", "state": "Delivered", "event_id": "unique-id" }
+```
+- `X-Signature` header: `hmac-sha256(body, DELIVERY_WEBHOOK_SECRET)` hex digest.
+- Idempotent: duplicate `event_id` (or `reference:state` if no `event_id`) is silently ignored.
+- State → order status mapping: `Accepted/PickedUp/Delivering → Delivering`, `Delivered → Delivered`, `Failed → DeliveryFailed`.
 
 ## Schema Examples
 

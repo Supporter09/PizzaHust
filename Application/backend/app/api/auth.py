@@ -168,6 +168,14 @@ async def login(
     assert user is not None
     assert user.password_hash is not None
 
+    if user.is_locked:
+        # A6 account lock: refuse to issue a session to a locked account.
+        raise APIError(
+            code="FORBIDDEN",
+            message="This account is locked.",
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
     if needs_rehash(user.password_hash):
         user.password_hash = hash_password(payload.password)
         db.add(user)

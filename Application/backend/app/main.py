@@ -6,6 +6,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
+from app.api.admin.customers import router as admin_customers_router
+from app.api.admin.orders import router as admin_orders_router
 from app.api.auth import router as auth_router
 from app.api.errors import (
     APIError,
@@ -14,6 +16,7 @@ from app.api.errors import (
     handle_validation_error,
 )
 from app.api.loyalty import router as loyalty_router
+from app.api.webhooks import router as webhooks_router
 from app.infra.config import get_settings
 
 settings = get_settings()
@@ -48,6 +51,9 @@ app.add_exception_handler(HTTPException, handle_http_exception)
 app.add_exception_handler(RequestValidationError, handle_validation_error)
 app.include_router(auth_router)
 app.include_router(loyalty_router)
+app.include_router(admin_orders_router)
+app.include_router(admin_customers_router)
+app.include_router(webhooks_router)
 
 
 @app.middleware("http")

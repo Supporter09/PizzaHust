@@ -35,6 +35,14 @@ def get_current_user(request: Request, db: DBSession) -> User:
             status_code=status.HTTP_401_UNAUTHORIZED,
         )
 
+    if user.is_locked:
+        # A6 account lock must take effect on every authenticated request.
+        raise APIError(
+            code="FORBIDDEN",
+            message="This account is locked.",
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
     return user
 
 
