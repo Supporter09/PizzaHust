@@ -2,23 +2,18 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
-from app.infra.auth import get_current_user
+from app.infra.auth import require_role
 from app.infra.db.deps import get_db
 from app.infra.db.models import Order, User, UserRole
 
 router = APIRouter(prefix="/api/admin/customers", tags=["admin-customers"])
 
-
-def _require_admin(request: Request, db: Session = Depends(get_db)) -> User:
-    user = get_current_user(request, db)
-    if user.role != UserRole.ADMIN:
-        raise HTTPException(status_code=403, detail="FORBIDDEN")
-    return user
+require_admin = require_role(UserRole.ADMIN)
 
 
 class CustomerOut(BaseModel):
@@ -48,7 +43,7 @@ def list_customers(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
-    _admin: User = Depends(_require_admin),
+    _admin: User = Depends(require_admin),
 ) -> list[CustomerOut]:
     stmt = select(
         User,
@@ -84,7 +79,7 @@ def list_customers(
 def get_customer(
     user_id: int,
     db: Session = Depends(get_db),
-    _admin: User = Depends(_require_admin),
+    _admin: User = Depends(require_admin),
 ) -> CustomerDetailOut:
     row = db.execute(
         select(User, func.count(Order.order_id).label("order_count"))
@@ -106,7 +101,7 @@ def lock_customer(
     user_id: int,
     body: LockIn,
     db: Session = Depends(get_db),
-    _admin: User = Depends(_require_admin),
+    _admin: User = Depends(require_admin),
 ) -> None:
     user: User | None = db.get(User, user_id)
     if user is None or user.role != UserRole.CUSTOMER:
@@ -118,7 +113,7 @@ def lock_customer(
 def unlock_customer(
     user_id: int,
     db: Session = Depends(get_db),
-    _admin: User = Depends(_require_admin),
+    _admin: User = Depends(require_admin),
 ) -> None:
     user: User | None = db.get(User, user_id)
     if user is None or user.role != UserRole.CUSTOMER:

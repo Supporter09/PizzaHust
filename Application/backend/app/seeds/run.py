@@ -1,21 +1,18 @@
-"""Seed script – idempotent. Populates test data for development and E2E tests."""
+"""Seed script – idempotent. Baseline + demo data for development and E2E tests."""
 
 from __future__ import annotations
 
-import os
 from datetime import datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.infra.auth import hash_password
+from app.infra.config import Settings, get_settings
 from app.infra.db.models import (
     Category,
     Combo,
     ComboItem,
-    Order,
-    OrderStatus,
-    OrderTracking,
     PizzaCrust,
     PizzaSize,
     Product,
@@ -24,6 +21,9 @@ from app.infra.db.models import (
     UserRole,
 )
 from app.infra.db.session import create_session_factory
+
+# Non-privileged demo customer password — QA fixtures only, never a real account.
+DEMO_CUSTOMER_PASSWORD = "demo1234"
 
 
 def _upsert_user(db: Session, phone: str, **kwargs) -> User:
@@ -81,10 +81,16 @@ def _upsert_crust(db: Session, name: str) -> PizzaCrust:
 
 
 def main() -> None:
+    settings = get_settings()
+    if not settings.admin_seed_password or not settings.kitchen_seed_password:
+        raise SystemExit(
+            "ADMIN_SEED_PASSWORD and KITCHEN_SEED_PASSWORD must be set to seed "
+            "privileged accounts (see .env.example)."
+        )
     factory = create_session_factory()
     db: Session = factory()
     try:
-        _seed(db)
+        _seed(db, settings)
         db.commit()
         print("seeds: done")
     except Exception:
@@ -94,61 +100,60 @@ def main() -> None:
         db.close()
 
 
-def _seed(db: Session) -> None:
-    # ── Admin ──────────────────────────────────────────────────────
+def _seed(db: Session, settings: Settings) -> None:
+    # ── Privileged accounts ────────────────────────────────────────
+    # Passwords come from the environment — no weak credentials in source.
     _upsert_user(
         db,
-        phone="0900000001",
+        phone=settings.admin_seed_phone,
         full_name="Admin PizzaHUST",
         email="admin@pizzahust.vn",
-        password_hash=hash_password("admin1234"),
+        password_hash=hash_password(settings.admin_seed_password),
         role=UserRole.ADMIN,
     )
-
-    # ── Kitchen staff ──────────────────────────────────────────────
     _upsert_user(
         db,
-        phone="0900000002",
+        phone=settings.kitchen_seed_phone,
         full_name="Kitchen Staff",
-        password_hash=hash_password("kitchen1234"),
+        password_hash=hash_password(settings.kitchen_seed_password),
         role=UserRole.KITCHEN,
     )
 
     # ── 5 test customer accounts (QA test data) ────────────────────
     test_customers = [
-        ("0901234567", "Nguyễn Lan Anh", "lananh@test.vn", "demo1234", 0),
-        ("0912345678", "Trần Minh Khôi", None, "demo1234", 120),
-        ("0923456789", "Lê Thu Hà", "thuha@test.vn", "demo1234", 45),
-        ("0934567890", "Phạm Đức Trọng", None, "demo1234", 0),
-        ("0945678901", "Vũ Ngọc Linh", "ngolinh@test.vn", "demo1234", 310),
+        ("0901234567", "Nguyễn Lan Anh", "lananh@test.vn", 0),
+        ("0912345678", "Trần Minh Khôi", None, 120),
+        ("0923456789", "Lê Thu Hà", "thuha@test.vn", 45),
+        ("0934567890", "Phạm Đức Trọng", None, 0),
+        ("0945678901", "Vũ Ngọc Linh", "ngolinh@test.vn", 310),
     ]
-    for phone, name, email, pw, pts in test_customers:
-        u = _upsert_user(
+    for phone, name, email, pts in test_customers:
+        _upsert_user(
             db,
             phone=phone,
             full_name=name,
             email=email,
-            password_hash=hash_password(pw),
+            password_hash=hash_password(DEMO_CUSTOMER_PASSWORD),
             role=UserRole.CUSTOMER,
             current_points=pts,
             total_points_earned=pts,
         )
 
-    # ── Categories (3) ─────────────────────────────────────────────
+    # ── Categories ─────────────────────────────────────────────────
     cat_pizza = _upsert_category(db, "Pizza", "Handcrafted stone-oven pizzas")
     cat_side = _upsert_category(db, "Side Dishes", "Wings, fries, and more")
-    cat_drink = _upsert_category(db, "Drinks", "Soft drinks and juices")
+    _upsert_category(db, "Drinks", "Soft drinks and juices")
 
-    # ── Sizes (3) ──────────────────────────────────────────────────
-    sz_s = _upsert_size(db, "S", 0)
-    sz_m = _upsert_size(db, "M", 30_000)
-    sz_l = _upsert_size(db, "L", 60_000)
+    # ── Sizes ──────────────────────────────────────────────────────
+    _upsert_size(db, "S", 0)
+    _upsert_size(db, "M", 30_000)
+    _upsert_size(db, "L", 60_000)
 
-    # ── Crusts (2) ─────────────────────────────────────────────────
-    crust_thin = _upsert_crust(db, "thin")
-    crust_stuffed = _upsert_crust(db, "cheese-stuffed")
+    # ── Crusts ─────────────────────────────────────────────────────
+    _upsert_crust(db, "thin")
+    _upsert_crust(db, "cheese-stuffed")
 
-    # ── Toppings (10) ──────────────────────────────────────────────
+    # ── Toppings ───────────────────────────────────────────────────
     toppings = [
         ("Extra Cheese", 15_000),
         ("Mushroom", 12_000),
@@ -164,7 +169,7 @@ def _seed(db: Session) -> None:
     for name, price in toppings:
         _upsert_topping(db, name, price)
 
-    # ── Pizzas (8) ─────────────────────────────────────────────────
+    # ── Pizzas ─────────────────────────────────────────────────────
     pizzas = [
         ("Margherita Classic", 125_000),
         ("Pepperoni Fire", 145_000),
@@ -175,24 +180,28 @@ def _seed(db: Session) -> None:
         ("Garden Veggie", 125_000),
         ("Seafood Delight", 175_000),
     ]
-    pizza_products = []
-    for name, price in pizzas:
-        p = _upsert_product(db, name, category_id=cat_pizza.category_id, base_price_vnd=price, is_pizza=True)
-        pizza_products.append(p)
+    pizza_products = [
+        _upsert_product(
+            db, name, category_id=cat_pizza.category_id, base_price_vnd=price, is_pizza=True
+        )
+        for name, price in pizzas
+    ]
 
-    # ── Side dishes (4) ────────────────────────────────────────────
+    # ── Side dishes ────────────────────────────────────────────────
     sides = [
         ("Garlic Bread (4pcs)", 45_000),
         ("Chicken Wings (6pcs)", 85_000),
         ("Truffle Fries", 55_000),
         ("Coleslaw", 35_000),
     ]
-    side_products = []
-    for name, price in sides:
-        p = _upsert_product(db, name, category_id=cat_side.category_id, base_price_vnd=price, is_pizza=False)
-        side_products.append(p)
+    side_products = [
+        _upsert_product(
+            db, name, category_id=cat_side.category_id, base_price_vnd=price, is_pizza=False
+        )
+        for name, price in sides
+    ]
 
-    # ── Combos (2) ─────────────────────────────────────────────────
+    # ── Combos ─────────────────────────────────────────────────────
     now = datetime.utcnow()
 
     combo1 = db.scalar(select(Combo).where(Combo.name == "Lunch Duo for 2"))

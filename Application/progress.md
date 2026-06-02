@@ -98,3 +98,22 @@ Append-only session journal. Each session ends with a dated block. Keep blocks â
 
 **Next**
 - Start `infra-003`: translate ERD to `schema.dbml` and create initial Alembic migration (including `kitchen_queue_view`).
+
+---
+
+## 2026-05-30 â€” infra-003 + infra-004 completed
+
+**Done**
+- Closed `infra-003` state tracking and finalized schema/auth dependency chain.
+- Implemented backend auth stack: session middleware, Argon2 password hashing, auth error envelope, request-id header propagation.
+- Implemented `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`, `PATCH /api/auth/me`, `GET /api/loyalty/me`.
+- Added auth security controls: in-memory per-IP rate limit, CSRF double-submit, current-user/role guard utilities.
+- Updated seeds to idempotently provision demo `admin` + `kitchen` accounts from env.
+- Built frontend auth UI and state flow: `/login`, `/register`, `/account`, auth-aware navbar, profile edit, loyalty panel, red theme token `#D32F2F`.
+- Updated `CONTRACTS.md`, regenerated `openapi.json`, regenerated `frontend/lib/api/types.ts`, and saved continuation doc to `Application/docs/plans/2026-05-30-infra-004-auth-ui-plan.md`.
+
+**Verified**
+- `./verify.sh` exits `0` (includes fallback Playwright CDP run) at `2026-05-30T20:11:14+07:00`.
+
+**Next**
+- Start `infra-005` (delivery port + mock service hardening) or `infra-007` (OpenAPI export/CI drift pipeline) based on team assignment.

@@ -4,23 +4,18 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.infra.auth import get_current_user
+from app.infra.auth import require_role
 from app.infra.db.deps import get_db
 from app.infra.db.models import Order, OrderStatus, OrderTracking, User, UserRole
 
 router = APIRouter(prefix="/api/admin/orders", tags=["admin-orders"])
 
-
-def _require_admin(request: Request, db: Session = Depends(get_db)) -> User:
-    user = get_current_user(request, db)
-    if user.role != UserRole.ADMIN:
-        raise HTTPException(status_code=403, detail="FORBIDDEN")
-    return user
+require_admin = require_role(UserRole.ADMIN)
 
 
 class OrderSummaryOut(BaseModel):
@@ -47,7 +42,7 @@ def list_orders(
     page: int = Query(1, ge=1),
     page_size: int = Query(30, ge=1, le=100),
     db: Session = Depends(get_db),
-    _admin: User = Depends(_require_admin),
+    _admin: User = Depends(require_admin),
 ) -> list[OrderSummaryOut]:
     stmt = select(Order)
     if status:
@@ -65,7 +60,7 @@ def list_orders(
 def get_order(
     order_id: int,
     db: Session = Depends(get_db),
-    _admin: User = Depends(_require_admin),
+    _admin: User = Depends(require_admin),
 ) -> OrderSummaryOut:
     order: Order | None = db.get(Order, order_id)
     if order is None:
@@ -77,9 +72,8 @@ def get_order(
 def cancel_order(
     order_id: int,
     body: OrderCancelIn,
-    request: Request,
     db: Session = Depends(get_db),
-    admin: User = Depends(_require_admin),
+    admin: User = Depends(require_admin),
 ) -> None:
     order: Order | None = db.get(Order, order_id)
     if order is None:
@@ -98,9 +92,8 @@ def cancel_order(
 @router.post("/{order_id}/retry-dispatch", status_code=204)
 def retry_dispatch(
     order_id: int,
-    request: Request,
     db: Session = Depends(get_db),
-    admin: User = Depends(_require_admin),
+    admin: User = Depends(require_admin),
 ) -> None:
     """Re-attempt delivery handoff for a DispatchPending order."""
     order: Order | None = db.get(Order, order_id)

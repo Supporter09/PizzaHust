@@ -1,138 +1,215 @@
-"""Auth routes: register, login, logout, me. (infra-004 / U8 / U9 / U12)"""
-
 from __future__ import annotations
 
-import re
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel, EmailStr, field_validator
+from fastapi import APIRouter, Depends, Request, Response, status
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.errors import APIError
 from app.infra.auth import (
-    clear_session,
+    clear_authenticated_session,
+    enforce_auth_rate_limit,
+    enforce_csrf,
+    ensure_csrf_token,
     get_current_user,
     hash_password,
-    set_session,
+    needs_rehash,
+    set_authenticated_session,
     verify_password,
 )
-from app.infra.db.deps import get_db
+from app.infra.config import Settings, get_settings_dependency
 from app.infra.db.models import User, UserRole
+from app.infra.db.session import get_db_session
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+DBSession = Annotated[Session, Depends(get_db_session)]
+AppSettings = Annotated[Settings, Depends(get_settings_dependency)]
 
-_VN_PHONE_RE = re.compile(r"^(0|\+84)[3-9]\d{8}$")
-
-
-def _validate_phone(v: str) -> str:
-    if not _VN_PHONE_RE.match(v):
-        raise ValueError("invalid Vietnamese phone number")
-    return v
+# Verified against on login miss to equalize response time and prevent
+# timing-based account enumeration. The plaintext is arbitrary and never matches.
+_DUMMY_PASSWORD_HASH = hash_password("timing-equalizer-not-a-real-password")
 
 
-class RegisterIn(BaseModel):
-    full_name: str
-    phone_number: str
-    email: EmailStr | None = None
-    password: str
+class AuthUserDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
-    @field_validator("phone_number")
-    @classmethod
-    def check_phone(cls, v: str) -> str:
-        return _validate_phone(v)
-
-    @field_validator("password")
-    @classmethod
-    def check_password(cls, v: str) -> str:
-        if len(v) < 8:
-            raise ValueError("password must be at least 8 characters")
-        return v
-
-
-class LoginIn(BaseModel):
-    phone_number: str
-    password: str
-
-
-class ProfileOut(BaseModel):
     user_id: int
     full_name: str
     phone_number: str
-    email: str | None
-    role: str
-    current_points: int
-    membership_tier: str
-    is_locked: bool
-
-    model_config = {"from_attributes": True}
+    address: str | None
+    role: UserRole
 
 
-class ProfilePatchIn(BaseModel):
-    full_name: str | None = None
-    email: EmailStr | None = None
-    address: str | None = None
+class RegisterRequest(BaseModel):
+    full_name: str = Field(min_length=2, max_length=100)
+    phone_number: str = Field(min_length=8, max_length=15)
+    password: str = Field(min_length=8, max_length=72)
+    address: str | None = Field(default=None, max_length=255)
 
 
-@router.post("/register", response_model=ProfileOut, status_code=status.HTTP_201_CREATED)
-def register(body: RegisterIn, request: Request, db: Session = Depends(get_db)) -> ProfileOut:
-    existing = db.scalar(select(User).where(User.phone_number == body.phone_number))
-    if existing:
-        raise HTTPException(status_code=409, detail="CONFLICT")
-    if body.email:
-        if db.scalar(select(User).where(User.email == body.email)):
-            raise HTTPException(status_code=409, detail="CONFLICT")
+class RegisterResponse(BaseModel):
+    user: AuthUserDTO
 
-    user = User(
-        full_name=body.full_name,
-        phone_number=body.phone_number,
-        email=body.email,
-        password_hash=hash_password(body.password),
+
+class LoginRequest(BaseModel):
+    phone_number: str = Field(min_length=8, max_length=15)
+    password: str = Field(min_length=8, max_length=72)
+
+
+class LoginResponse(BaseModel):
+    user: AuthUserDTO
+    csrf_token: str
+
+
+class MeResponse(BaseModel):
+    user: AuthUserDTO
+    csrf_token: str
+
+
+class UpdateProfileRequest(BaseModel):
+    full_name: str | None = Field(default=None, min_length=2, max_length=100)
+    address: str | None = Field(default=None, max_length=255)
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+def _set_csrf_cookie(response: Response, settings: Settings, csrf_token: str) -> None:
+    response.set_cookie(
+        key=settings.csrf_cookie_name,
+        value=csrf_token,
+        max_age=settings.session_max_age_seconds,
+        secure=settings.session_https_only,
+        httponly=False,
+        samesite=settings.session_same_site,
+        path="/",
+    )
+
+
+@router.post(
+    "/register",
+    response_model=RegisterResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(enforce_auth_rate_limit)],
+)
+async def register(payload: RegisterRequest, db: DBSession) -> RegisterResponse:
+    new_user = User(
+        full_name=payload.full_name.strip(),
+        phone_number=payload.phone_number.strip(),
+        password_hash=hash_password(payload.password),
+        address=payload.address.strip() if payload.address else None,
         role=UserRole.CUSTOMER,
     )
-    db.add(user)
-    db.flush()
-    # Refresh so server-side defaults (current_points, membership_tier,
-    # is_locked) are populated before serializing ProfileOut.
-    db.refresh(user)
-    set_session(request, user)
-    return ProfileOut.model_validate(user)
+    db.add(new_user)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise APIError(
+            code="CONFLICT",
+            message="Phone number is already registered.",
+            status_code=status.HTTP_409_CONFLICT,
+        ) from None
+
+    db.refresh(new_user)
+    return RegisterResponse(user=AuthUserDTO.model_validate(new_user))
 
 
-@router.post("/login", response_model=ProfileOut)
-def login(body: LoginIn, request: Request, db: Session = Depends(get_db)) -> ProfileOut:
-    user: User | None = db.scalar(select(User).where(User.phone_number == body.phone_number))
-    if user is None or user.password_hash is None:
-        raise HTTPException(status_code=401, detail="UNAUTHENTICATED")
-    if not verify_password(body.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="UNAUTHENTICATED")
+@router.post(
+    "/login",
+    response_model=LoginResponse,
+    dependencies=[Depends(enforce_auth_rate_limit)],
+)
+async def login(
+    payload: LoginRequest,
+    request: Request,
+    response: Response,
+    db: DBSession,
+    settings: AppSettings,
+) -> LoginResponse:
+    user = db.scalar(select(User).where(User.phone_number == payload.phone_number.strip()))
+    if user and user.password_hash:
+        is_valid = verify_password(user.password_hash, payload.password)
+    else:
+        # Equalize timing against a constant hash so a missing account costs the
+        # same as a wrong password — prevents account enumeration via response time.
+        verify_password(_DUMMY_PASSWORD_HASH, payload.password)
+        is_valid = False
+    if not is_valid:
+        raise APIError(
+            code="UNAUTHENTICATED",
+            message="Invalid phone number or password.",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    assert user is not None
+    assert user.password_hash is not None
+
     if user.is_locked:
-        raise HTTPException(status_code=403, detail="FORBIDDEN")
-    set_session(request, user)
-    return ProfileOut.model_validate(user)
+        # A6 account lock: refuse to issue a session to a locked account.
+        raise APIError(
+            code="FORBIDDEN",
+            message="This account is locked.",
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+    if needs_rehash(user.password_hash):
+        user.password_hash = hash_password(payload.password)
+        db.add(user)
+        db.commit()
+
+    csrf_token = set_authenticated_session(request, user)
+    _set_csrf_cookie(response, settings, csrf_token)
+    return LoginResponse(user=AuthUserDTO.model_validate(user), csrf_token=csrf_token)
 
 
-@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-def logout(request: Request) -> None:
-    clear_session(request)
+@router.post("/logout", response_model=MessageResponse)
+async def logout(
+    request: Request,
+    response: Response,
+    _: Annotated[None, Depends(enforce_csrf)],
+    __: Annotated[User, Depends(get_current_user)],
+    settings: AppSettings,
+) -> MessageResponse:
+    clear_authenticated_session(request)
+    response.delete_cookie(key=settings.csrf_cookie_name, path="/")
+    return MessageResponse(message="Logged out")
 
 
-@router.get("/me", response_model=ProfileOut)
-def me(request: Request, db: Session = Depends(get_db)) -> ProfileOut:
-    user = get_current_user(request, db)
-    return ProfileOut.model_validate(user)
+@router.get("/me", response_model=MeResponse)
+async def me(
+    request: Request,
+    response: Response,
+    user: Annotated[User, Depends(get_current_user)],
+    settings: AppSettings,
+) -> MeResponse:
+    csrf_token = ensure_csrf_token(request)
+    _set_csrf_cookie(response, settings, csrf_token)
+    return MeResponse(user=AuthUserDTO.model_validate(user), csrf_token=csrf_token)
 
 
-@router.patch("/me", response_model=ProfileOut)
-def update_me(
-    body: ProfilePatchIn, request: Request, db: Session = Depends(get_db)
-) -> ProfileOut:
-    user = get_current_user(request, db)
-    if body.full_name is not None:
-        user.full_name = body.full_name
-    if body.email is not None:
-        if db.scalar(select(User).where(User.email == body.email, User.user_id != user.user_id)):
-            raise HTTPException(status_code=409, detail="CONFLICT")
-        user.email = body.email
-    if body.address is not None:
-        user.address = body.address
-    return ProfileOut.model_validate(user)
+@router.patch("/me", response_model=AuthUserDTO)
+async def update_me(
+    payload: UpdateProfileRequest,
+    _: Annotated[None, Depends(enforce_csrf)],
+    user: Annotated[User, Depends(get_current_user)],
+    db: DBSession,
+) -> AuthUserDTO:
+    has_changes = False
+    if payload.full_name is not None:
+        user.full_name = payload.full_name.strip()
+        has_changes = True
+    if payload.address is not None:
+        user.address = payload.address.strip() if payload.address else None
+        has_changes = True
+
+    if has_changes:
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    return AuthUserDTO.model_validate(user)

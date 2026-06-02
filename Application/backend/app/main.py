@@ -1,27 +1,25 @@
 from __future__ import annotations
 
-import logging
-import os
-
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+import ulid
+from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-
-logger = logging.getLogger("pizzahust")
-
-
-def _session_secret() -> str:
-    secret = os.environ.get("SESSION_SECRET")
-    if not secret:
-        # Fail closed: a missing secret would silently fall back to a known
-        # value, making session cookies forgeable.
-        raise RuntimeError("SESSION_SECRET must be set")
-    return secret
 
 from app.api.admin.customers import router as admin_customers_router
 from app.api.admin.orders import router as admin_orders_router
 from app.api.auth import router as auth_router
+from app.api.errors import (
+    APIError,
+    handle_api_error,
+    handle_http_exception,
+    handle_validation_error,
+)
+from app.api.loyalty import router as loyalty_router
 from app.api.webhooks import router as webhooks_router
+from app.infra.config import get_settings
+
+settings = get_settings()
 
 app = FastAPI(
     title="PizzaHUST API",
@@ -32,32 +30,41 @@ app = FastAPI(
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key=_session_secret(),
-    session_cookie="pizzahust_session",
-    https_only=os.environ.get("HTTPS_ONLY", "0") == "1",
-    same_site="lax",
+    secret_key=settings.session_secret,
+    session_cookie=settings.session_cookie_name,
+    max_age=settings.session_max_age_seconds,
+    same_site=settings.session_same_site,
+    https_only=settings.session_https_only,
+    path="/",
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.frontend_origin],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@app.exception_handler(Exception)
-async def generic_error_handler(request: Request, exc: Exception) -> JSONResponse:
-    # Log the detail server-side; never leak internal exception text to clients.
-    logger.exception("Unhandled error", exc_info=exc)
-    return JSONResponse(
-        status_code=500,
-        content={
-            "error": {"code": "INTERNAL_ERROR", "message": "Internal server error."},
-            "request_id": "",
-        },
-    )
+app.add_exception_handler(APIError, handle_api_error)
+app.add_exception_handler(HTTPException, handle_http_exception)
+app.add_exception_handler(RequestValidationError, handle_validation_error)
+app.include_router(auth_router)
+app.include_router(loyalty_router)
+app.include_router(admin_orders_router)
+app.include_router(admin_customers_router)
+app.include_router(webhooks_router)
+
+
+@app.middleware("http")
+async def add_request_id(request: Request, call_next) -> Response:
+    request_id = request.headers.get("X-Request-ID", str(ulid.ULID()))
+    request.state.request_id = request_id
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    return response
 
 
 @app.get("/healthz")
-def healthz() -> dict[str, str]:
+async def healthz() -> dict[str, str]:
     return {"status": "ok"}
-
-
-app.include_router(auth_router)
-app.include_router(admin_customers_router)
-app.include_router(admin_orders_router)
-app.include_router(webhooks_router)

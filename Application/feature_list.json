@@ -28,18 +28,18 @@
       "name": "Schema from ERD: dbml + initial Alembic migration",
       "description": "Translate Week 1/ERD.pdf into schema.dbml and the first Alembic migration. Includes kitchen_queue_view.",
       "depends_on": ["infra-002"],
-      "status": "in-progress",
+      "status": "done",
       "owner": "Hieu",
-      "evidence": ""
+      "evidence": "verify.sh green at 9bb0bb6, 2026-05-30T20:11:14+07:00"
     },
     {
       "id": "infra-004",
       "name": "Auth + role guards (cookie sessions)",
       "description": "Starlette session middleware, argon2 hashing, role guards, CSRF token, login/register/logout endpoints.",
       "depends_on": ["infra-003"],
-      "status": "todo",
+      "status": "done",
       "owner": "Minh",
-      "evidence": ""
+      "evidence": "verify.sh green at 9bb0bb6, 2026-05-30T20:11:14+07:00"
     },
     {
       "id": "infra-005",
