@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from secrets import compare_digest
 from typing import Annotated
 
 from fastapi import Depends, Request, status
@@ -25,7 +26,9 @@ async def enforce_csrf(
             status_code=status.HTTP_403_FORBIDDEN,
         )
 
-    if expected != provided_header or expected != cookie_value:
+    if not (
+        compare_digest(expected, provided_header) and compare_digest(expected, cookie_value)
+    ):
         raise APIError(
             code="FORBIDDEN",
             message="Invalid CSRF token.",

@@ -28,6 +28,10 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 DBSession = Annotated[Session, Depends(get_db_session)]
 AppSettings = Annotated[Settings, Depends(get_settings_dependency)]
 
+# Verified against on login miss to equalize response time and prevent
+# timing-based account enumeration. The plaintext is arbitrary and never matches.
+_DUMMY_PASSWORD_HASH = hash_password("timing-equalizer-not-a-real-password")
+
 
 class AuthUserDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -128,9 +132,13 @@ async def login(
     settings: AppSettings,
 ) -> LoginResponse:
     user = db.scalar(select(User).where(User.phone_number == payload.phone_number.strip()))
-    is_valid = bool(
-        user and user.password_hash and verify_password(user.password_hash, payload.password)
-    )
+    if user and user.password_hash:
+        is_valid = verify_password(user.password_hash, payload.password)
+    else:
+        # Equalize timing against a constant hash so a missing account costs the
+        # same as a wrong password — prevents account enumeration via response time.
+        verify_password(_DUMMY_PASSWORD_HASH, payload.password)
+        is_valid = False
     if not is_valid:
         raise APIError(
             code="UNAUTHENTICATED",
