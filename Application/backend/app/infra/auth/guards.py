@@ -14,7 +14,9 @@ from app.infra.db.session import get_db_session
 DBSession = Annotated[Session, Depends(get_db_session)]
 
 
-async def get_current_user(request: Request, db: DBSession) -> User:
+def get_current_user(request: Request, db: DBSession) -> User:
+    # Sync def on purpose: FastAPI runs sync dependencies in a threadpool, so the
+    # synchronous ORM query below does not block the event loop.
     session = read_session(request)
     user_id = session.user_id
     if user_id is None:
