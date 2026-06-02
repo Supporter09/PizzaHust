@@ -45,15 +45,17 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: mysql+pymysql://pizza:pizza@mysql:3306/pizzahust
-      SESSION_SECRET: dev-session-secret-change-me
+      # Secrets come from .env (init.sh creates it from .env.example) — never
+      # hardcode them here so each environment supplies its own.
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
       ADMIN_SEED_PHONE: "0900000001"
-      ADMIN_SEED_PASSWORD: admin123
+      ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD:?set ADMIN_SEED_PASSWORD in .env}
       KITCHEN_SEED_PHONE: "0900000002"
-      KITCHEN_SEED_PASSWORD: kitchen123
+      KITCHEN_SEED_PASSWORD: ${KITCHEN_SEED_PASSWORD:?set KITCHEN_SEED_PASSWORD in .env}
       DELIVERY_PROVIDER: mock
       DELIVERY_BASE_URL: http://delivery-mock:9000
-      DELIVERY_API_KEY: dev-api-key
-      DELIVERY_WEBHOOK_SECRET: dev-mock-secret-change-me
+      DELIVERY_API_KEY: ${DELIVERY_API_KEY:-dev-api-key}
+      DELIVERY_WEBHOOK_SECRET: ${DELIVERY_WEBHOOK_SECRET:?set DELIVERY_WEBHOOK_SECRET in .env}
       DELIVERY_FEE_VND: "22000"
       LOYALTY_ACCRUAL_RATE: "10000"
       LOYALTY_REDEEM_VALUE_VND: "1000"
@@ -71,13 +73,15 @@ services:
     build:
       context: ./frontend
       args:
-        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api
+        # Baked into the browser bundle at build time; keep it in sync with the
+        # runtime value below from the same env source.
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000/api}
     restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
     environment:
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000/api}
     ports:
       - "3000:3000"
 
