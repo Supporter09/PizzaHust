@@ -54,11 +54,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(response.user);
       setCsrfToken(response.csrf_token);
     } catch (error) {
-      if (!(error instanceof ApiClientError) || error.status !== 401) {
-        // Swallow all auth bootstrap failures in demo mode.
+      // Only a 401 means "not logged in" — clear session. Transient 5xx/network
+      // errors must NOT log the user out and bounce them to /login.
+      if (error instanceof ApiClientError && error.status === 401) {
+        setUser(null);
+        setCsrfToken(null);
       }
-      setUser(null);
-      setCsrfToken(null);
     } finally {
       setLoading(false);
     }

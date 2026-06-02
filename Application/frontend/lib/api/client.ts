@@ -35,7 +35,9 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   const headers = new Headers(init?.headers ?? {});
   const method = init?.method ?? "GET";
 
-  if (!headers.has("Content-Type") && init?.body) {
+  // Only default to JSON for string bodies. FormData/Blob/URLSearchParams set
+  // their own Content-Type (e.g. multipart boundary), which we must not clobber.
+  if (!headers.has("Content-Type") && typeof init?.body === "string") {
     headers.set("Content-Type", "application/json");
   }
 
