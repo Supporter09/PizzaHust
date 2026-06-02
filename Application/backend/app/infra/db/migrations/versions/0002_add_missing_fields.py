@@ -117,6 +117,18 @@ def downgrade() -> None:
 
     op.drop_table("webhook_events")
 
+    # Remap the removed 'DispatchPending' state before shrinking the enum.
+    # Without this the MODIFY COLUMN fails (or coerces rows to '') wherever a
+    # DispatchPending order exists. ReadyForDispatch is the nearest old state.
+    op.execute(
+        "UPDATE orders SET current_status = 'ReadyForDispatch' "
+        "WHERE current_status = 'DispatchPending'"
+    )
+    op.execute(
+        "UPDATE order_tracking SET status = 'ReadyForDispatch' "
+        "WHERE status = 'DispatchPending'"
+    )
+
     old_vals = _enum_values_sql(OLD_ORDER_STATUS_VALUES)
     op.execute(
         f"ALTER TABLE order_tracking MODIFY COLUMN status "
