@@ -1,0 +1,11 @@
+# Terraform - never commit state, plans, local vars, or backend config (repo is public)
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfplan
+*.tfvars
+!*.tfvars.example
+backend.hcl
+# downloaded credentials / service-account keys
+*.json
+!*.tfvars.example
