@@ -26,8 +26,13 @@ variable "repo_url" {
 
 variable "deploy_ref" {
   type        = string
-  description = "Git ref (branch, tag, or commit SHA) the VM checks out and deploys. Bumping this recreates the VM, which boots, builds, migrates, and seeds at the new code."
-  default     = "main"
+  description = "Immutable commit SHA the VM checks out and deploys. Bumping it recreates the VM, which boots, builds, migrates, and seeds at that commit. Must be a full SHA (not a branch/tag) so a reboot can never roll production forward outside a terraform apply."
+
+  # Full SHA only: a branch or movable tag would let an unattended reboot redeploy.
+  validation {
+    condition     = can(regex("^[0-9a-f]{40}$", var.deploy_ref))
+    error_message = "deploy_ref must be a full 40-character commit SHA. Branches and tags can move, which would let a VM reboot roll production forward outside terraform apply."
+  }
 }
 
 variable "machine_type" {

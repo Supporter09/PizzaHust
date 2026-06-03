@@ -8,7 +8,7 @@ echo "=== pizzahust startup $(date -u +%FT%TZ) ==="
 ROOT=/opt/pizzahust
 APP="$${ROOT}/Application"
 # Records the commit SHA last built+migrated+seeded, so a boot only rebuilds when
-# the deployed code actually changed (ref bump, or main advancing if deploy_ref=main).
+# the pinned commit actually changed (a deploy_ref bump). An unchanged reboot skips it.
 SENTINEL="$${ROOT}/.deployed-sha"
 
 # --- [0] base packages (don't assume git/curl/python3 exist on the image) ---
@@ -21,9 +21,10 @@ if ! command -v docker >/dev/null 2>&1; then
   curl -fsSL https://get.docker.com | sh
 fi
 
-# --- [2] clone repo + check out the pinned ref (branch, tag, or SHA) ---
-# Fetch the exact ref Terraform pinned and detach onto it - no implicit tracking
-# of whatever origin/main happens to be at boot. GitHub allows shallow fetch by SHA.
+# --- [2] clone repo + check out the pinned commit SHA ---
+# Fetch the exact immutable SHA Terraform pinned and detach onto it - no branch
+# tracking, so a reboot re-fetches the same commit and never rolls production
+# forward outside a terraform apply. GitHub allows shallow fetch by SHA.
 if [ ! -d "$${ROOT}/.git" ]; then
   git clone "${repo_url}" "$${ROOT}"
 fi

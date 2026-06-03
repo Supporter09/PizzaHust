@@ -2,6 +2,10 @@
 project_id = "your-project-id"
 domain     = "your.domain.example"
 
+# Full 40-char commit SHA to deploy (not a branch/tag). Bumping it recreates the
+# VM at that commit; a reboot re-deploys the same SHA, never rolling forward.
+deploy_ref = "0000000000000000000000000000000000000000"
+
 # Full IAM principals - NOT bare emails. These are PII; keep them only in the
 # gitignored terraform.tfvars, never in committed files.
 iap_allowed_members = [
@@ -13,6 +17,5 @@ iap_allowed_members = [
 # zone         = "asia-southeast1-a"
 # machine_type = "e2-medium"
 # repo_url     = "https://github.com/Supporter09/PizzaHust.git"
-# deploy_ref   = "main"   # branch, tag, or commit SHA; bumping it recreates the VM at that code
 # network_name = "mk8s-poc-net"
 # subnet_name  = "mk8s-poc-subnet"
