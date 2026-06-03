@@ -13,5 +13,6 @@ iap_allowed_members = [
 # zone         = "asia-southeast1-a"
 # machine_type = "e2-medium"
 # repo_url     = "https://github.com/Supporter09/PizzaHust.git"
+# deploy_ref   = "main"   # branch, tag, or commit SHA; bumping it recreates the VM at that code
 # network_name = "mk8s-poc-net"
 # subnet_name  = "mk8s-poc-subnet"

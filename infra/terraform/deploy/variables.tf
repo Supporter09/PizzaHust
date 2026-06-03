@@ -20,8 +20,14 @@ variable "domain" {
 
 variable "repo_url" {
   type        = string
-  description = "Public git URL the VM clones origin/main from."
+  description = "Public git URL the VM clones the app from."
   default     = "https://github.com/Supporter09/PizzaHust.git"
+}
+
+variable "deploy_ref" {
+  type        = string
+  description = "Git ref (branch, tag, or commit SHA) the VM checks out and deploys. Bumping this recreates the VM, which boots, builds, migrates, and seeds at the new code."
+  default     = "main"
 }
 
 variable "machine_type" {
@@ -45,11 +51,12 @@ variable "iap_allowed_members" {
   type        = list(string)
   description = "Full IAM principals granted roles/iap.httpsResourceAccessor (e.g. user:alice@example.com)."
 
+  # Non-empty: an empty list creates zero IAP bindings, locking everyone out.
   validation {
-    condition = alltrue([
+    condition = length(var.iap_allowed_members) > 0 && alltrue([
       for m in var.iap_allowed_members :
       can(regex("^(user|group|serviceAccount):", m))
     ])
-    error_message = "Each entry must be a full IAM principal: user:, group:, or serviceAccount:."
+    error_message = "Provide at least one full IAM principal: user:, group:, or serviceAccount:."
   }
 }

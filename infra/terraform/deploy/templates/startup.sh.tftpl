@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# Rendered by Terraform templatefile(): only repo_url/project_id/domain are template
-# vars; every shell/compose variable is escaped with a doubled dollar so it survives.
+# Rendered by Terraform templatefile(): only repo_url/project_id/domain/deploy_ref are
+# template vars; every shell/compose variable is escaped with a doubled dollar so it survives.
 set -euo pipefail
 exec > >(tee -a /var/log/pizzahust-startup.log) 2>&1
 echo "=== pizzahust startup $(date -u +%FT%TZ) ==="
 
 ROOT=/opt/pizzahust
 APP="$${ROOT}/Application"
-SENTINEL="$${ROOT}/.bootstrapped"
+# Records the commit SHA last built+migrated+seeded, so a boot only rebuilds when
+# the deployed code actually changed (ref bump, or main advancing if deploy_ref=main).
+SENTINEL="$${ROOT}/.deployed-sha"
 
 # --- [0] base packages (don't assume git/curl/python3 exist on the image) ---
 export DEBIAN_FRONTEND=noninteractive
@@ -19,13 +21,14 @@ if ! command -v docker >/dev/null 2>&1; then
   curl -fsSL https://get.docker.com | sh
 fi
 
-# --- [2] clone / update repo ---
-if [ -d "$${ROOT}/.git" ]; then
-  git -C "$${ROOT}" fetch --depth 1 origin main
-  git -C "$${ROOT}" reset --hard origin/main
-else
-  git clone --depth 1 "${repo_url}" "$${ROOT}"
+# --- [2] clone repo + check out the pinned ref (branch, tag, or SHA) ---
+# Fetch the exact ref Terraform pinned and detach onto it - no implicit tracking
+# of whatever origin/main happens to be at boot. GitHub allows shallow fetch by SHA.
+if [ ! -d "$${ROOT}/.git" ]; then
+  git clone "${repo_url}" "$${ROOT}"
 fi
+git -C "$${ROOT}" fetch --force --depth 1 origin "${deploy_ref}"
+git -C "$${ROOT}" checkout --force --detach FETCH_HEAD
 cd "$${APP}"
 
 # --- [3] fetch secrets from Secret Manager (metadata token + REST; no SDK) ---
@@ -159,16 +162,22 @@ EOF
 
 DC="docker compose -f docker-compose.yml -f docker-compose.prod.yml"
 
-# --- [7] first boot: build + migrate + seed; later boots: just bring up ---
-if [ ! -f "$${SENTINEL}" ]; then
-  echo "=== first boot: build + migrate + seed ==="
+# --- [7] (re)build + migrate + seed whenever the deployed commit changed ---
+# Keyed on the resolved HEAD SHA: a fresh VM (no sentinel) or any code change
+# triggers it; an unchanged reboot skips straight to bring-up. Both alembic
+# upgrade and the seed are idempotent, so re-running on a real change is safe.
+DEPLOYED_SHA="$(git -C "$${ROOT}" rev-parse HEAD)"
+if [ ! -f "$${SENTINEL}" ] || [ "$(cat "$${SENTINEL}" 2>/dev/null)" != "$${DEPLOYED_SHA}" ]; then
+  echo "=== deploying $${DEPLOYED_SHA}: build + migrate + seed ==="
   $${DC} build
-  $${DC} up -d mysql delivery-mock
+  # --wait: block until mysql + delivery-mock report healthy before migrating,
+  # rather than relying on `compose run` honoring depends_on health conditions.
+  $${DC} up -d --wait mysql delivery-mock
   # PYTHONPATH=/app: the image's editable install registers no packages
   # (pip -e runs before COPY), so alembic can't import `app` without it.
   $${DC} run --rm -e PYTHONPATH=/app backend alembic upgrade head
   $${DC} run --rm -e PYTHONPATH=/app backend python -m app.seeds.run
-  touch "$${SENTINEL}"
+  echo "$${DEPLOYED_SHA}" > "$${SENTINEL}"
 fi
 
 # --- [8] bring up the full stack (idempotent) ---

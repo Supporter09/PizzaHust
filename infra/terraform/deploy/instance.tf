@@ -23,13 +23,15 @@ resource "google_compute_instance" "vm" {
     scopes = ["cloud-platform"]
   }
 
-  metadata = {
-    startup-script = templatefile("${path.module}/templates/startup.sh.tftpl", {
-      repo_url   = var.repo_url
-      domain     = var.domain
-      project_id = var.project_id
-    })
-  }
+  # metadata_startup_script (not a metadata map key) is ForceNew: editing the
+  # rendered template recreates the VM so the new boot logic actually runs. A
+  # metadata-map startup-script updates in place and would never re-execute.
+  metadata_startup_script = templatefile("${path.module}/templates/startup.sh.tftpl", {
+    repo_url   = var.repo_url
+    domain     = var.domain
+    project_id = var.project_id
+    deploy_ref = var.deploy_ref
+  })
 
   allow_stopping_for_update = true
 
