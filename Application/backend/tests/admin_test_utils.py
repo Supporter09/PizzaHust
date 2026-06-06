@@ -7,6 +7,9 @@ routers), so the logged-in TestClient's cookie jar is sufficient for mutations.
 
 from __future__ import annotations
 
+import uuid
+from datetime import datetime
+
 from fastapi.testclient import TestClient
 
 from app.infra.auth import hash_password
@@ -14,6 +17,9 @@ from app.infra.db.models import (
     Category,
     Combo,
     ComboItem,
+    Order,
+    OrderItem,
+    OrderItemTopping,
     PizzaCrust,
     PizzaSize,
     Product,
@@ -119,3 +125,64 @@ def new_topping(name: str = "Cheese", *, price_vnd: int = 10_000) -> int:
         db.commit()
         db.refresh(t)
         return t.topping_id
+
+
+def _new_order_item(db, *, size_id: int | None = None, crust_id: int | None = None) -> OrderItem:
+    """Create a minimal valid order + order_item (with its own category/product) so
+    a size/crust/topping can be referenced by historical order data."""
+    suffix = uuid.uuid4().hex[:6]
+    cat = Category(name=f"cat-{suffix}", is_active=True)
+    db.add(cat)
+    db.flush()
+    prod = Product(
+        category_id=cat.category_id, name=f"prod-{suffix}", base_price_vnd=1, is_pizza=True
+    )
+    db.add(prod)
+    db.flush()
+    order = Order(
+        order_code=f"PIZZ-{suffix.upper()}",
+        recipient_name="R",
+        recipient_phone="0900000000",
+        delivery_address="addr",
+        total_amount_vnd=1,
+        promised_at=datetime(2026, 1, 1, 0, 0, 0),
+    )
+    db.add(order)
+    db.flush()
+    oi = OrderItem(
+        order_id=order.order_id,
+        product_id=prod.product_id,
+        size_id=size_id,
+        crust_id=crust_id,
+        quantity=1,
+        unit_price_vnd=1,
+    )
+    db.add(oi)
+    db.flush()
+    return oi
+
+
+def reference_size_in_order(size_id: int) -> None:
+    with create_session_factory()() as db:
+        _new_order_item(db, size_id=size_id)
+        db.commit()
+
+
+def reference_crust_in_order(crust_id: int) -> None:
+    with create_session_factory()() as db:
+        _new_order_item(db, crust_id=crust_id)
+        db.commit()
+
+
+def reference_topping_in_order(topping_id: int) -> None:
+    with create_session_factory()() as db:
+        oi = _new_order_item(db)
+        db.add(
+            OrderItemTopping(
+                order_item_id=oi.order_item_id,
+                topping_id=topping_id,
+                quantity=1,
+                price_at_time_vnd=1,
+            )
+        )
+        db.commit()
