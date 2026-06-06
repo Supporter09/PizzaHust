@@ -98,9 +98,15 @@ All under `/api/admin/`, role=`admin` required.
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET/POST/PATCH/DELETE | `/api/admin/items` | A1, A2 |
+| GET/POST/PATCH/DELETE | `/api/admin/items` | A1, A2 — pizzas + side dishes; GET filters `kind=pizza\|side`, `category_id`, `active` |
+| POST | `/api/admin/items/{id}/image` | A1 — multipart image upload (field `image`); returns `{ "image_url": string }` |
+| GET/POST/PATCH/DELETE | `/api/admin/sizes` | A2 — pizza sizes |
+| GET/POST/PATCH/DELETE | `/api/admin/crusts` | A2 — pizza crusts |
+| GET/POST/PATCH/DELETE | `/api/admin/toppings` | A2 — pizza toppings |
 | GET/POST/PATCH/DELETE | `/api/admin/categories` | A3 |
-| GET/POST/PATCH/DELETE | `/api/admin/combos` | A4 |
+| GET/POST/PATCH/DELETE | `/api/admin/combos` | A4 — response includes derived `status` |
+| POST | `/api/admin/import/pizzas` | A1 — CSV upsert (multipart field `file`) |
+| POST | `/api/admin/import/toppings` | A1 — CSV upsert (multipart field `file`) |
 | GET | `/api/admin/orders` | A5 list, query param `status` |
 | GET | `/api/admin/orders/{id}` | A5 get order detail |
 | POST | `/api/admin/orders/{id}/cancel` | A5 cancel order |
@@ -110,6 +116,37 @@ All under `/api/admin/`, role=`admin` required.
 | POST | `/api/admin/customers/{id}/lock` | A6 lock account, body `{ "reason": string \| null }` |
 | POST | `/api/admin/customers/{id}/unlock` | A6 unlock account |
 | GET | `/api/admin/reports/sales` | A7, query params: `from`, `to` |
+
+#### A1–A4 Catalog management — scope
+
+> ⚠️ **Contract change — pending Minh + Hung review** (per the versioning rule
+> at the bottom of this file). These admin catalog routes were added/extended
+> when integrating the A1–A4 work.
+
+- **A1/A2 items** (`/api/admin/items`): one unified surface for pizzas **and**
+  side dishes; bodies are JSON with `kind` (`pizza`/`side`, maps to `is_pizza`).
+  `category_id` on create/PATCH must reference an **existing, active** category
+  (else `VALIDATION_FAILED`). `DELETE` is a **soft-deactivate** (`is_active=false`);
+  if a pizza is still referenced by a combo it returns `409 CONFLICT` with
+  `error.details.combos` listing the blocking combo names.
+- **Image upload** (`POST /api/admin/items/{id}/image`): the documented exception
+  to JSON-only — `multipart/form-data`, field `image`. Extension allowlist
+  (`png`/`jpg`/`jpeg`/`webp`) + size cap (`IMAGE_MAX_BYTES`); returns `{ "image_url" }`
+  and sets the item's `image_url`. Files are served read-only at `IMAGE_BASE_URL`.
+- **A2 options** (`/api/admin/sizes|crusts|toppings`): full CRUD each. `DELETE`
+  is guarded against historical order data (a size/crust/topping referenced by an
+  existing order item → `409 CONFLICT`, never an FK/500).
+- **A4 combos** (`/api/admin/combos`): a combo needs **≥ 2 component items**, each
+  referencing an existing, active product. Response carries a derived `status`
+  (`Scheduled` / `Active` / `Expired`) computed from the validity window at
+  read-time. An **over-priced** combo (price > sum of parts) is **accepted** —
+  the frontend warns but the API does not reject. Validity rejects only
+  `validity_end < validity_start` (equality allowed).
+- **Bulk import** (`/api/admin/import/{pizzas,toppings}`): `multipart/form-data`,
+  field `file`. Upsert by name (re-import is idempotent). An unknown
+  `category_name` is reported as a per-row error and skipped — categories are
+  **never** auto-created. Pizzas CSV columns: `name, category_name,
+  base_price_vnd, is_pizza`. Toppings CSV columns: `name, price_vnd`.
 
 #### A5 Monitor Orders — scope
 - Lists all orders (any status). Client-side polling every 15s.
