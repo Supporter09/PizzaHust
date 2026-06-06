@@ -36,6 +36,8 @@ Table categories {
   category_id int [pk, increment]
   name varchar(50) [not null]
   description text
+  sort_order int [not null, default: 0]
+  is_active boolean [not null, default: true]
 }
 
 Table products {
@@ -44,6 +46,8 @@ Table products {
   name varchar(100) [not null]
   base_price_vnd int [not null]
   is_pizza boolean [not null, default: false]
+  image_url varchar(255)
+  is_active boolean [not null, default: true]
 }
 
 Table pizza_sizes {
@@ -68,7 +72,11 @@ Table combos {
   name varchar(100) [not null]
   description text
   combo_price_vnd int [not null]
-  target_people varchar(50)
+  target_group int
+  validity_start datetime
+  validity_end datetime
+
+  Note: 'CHECK ck_combos_validity_range: validity_start IS NULL OR validity_end IS NULL OR validity_start <= validity_end'
 }
 
 Table combo_items {
