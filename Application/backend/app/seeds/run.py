@@ -283,6 +283,7 @@ def _seed(db: Session, settings: Settings) -> None:
         if db.scalar(select(Order).where(Order.order_code == order_code)):
             continue
         items_total = sum(product.base_price_vnd * qty for product, qty in lines)
+        created_at = now - timedelta(days=days_ago)
         order = Order(
             order_code=order_code,
             user_id=user.user_id,
@@ -291,8 +292,8 @@ def _seed(db: Session, settings: Settings) -> None:
             delivery_address="123 Demo Street, Ba Đình, Hà Nội",
             total_amount_vnd=items_total + 22_000,
             current_status=status,
-            promised_at=now + timedelta(minutes=45),
-            created_at=now - timedelta(days=days_ago),
+            promised_at=created_at + timedelta(minutes=45),
+            created_at=created_at,
         )
         db.add(order)
         db.flush()

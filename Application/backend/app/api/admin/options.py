@@ -99,6 +99,11 @@ def patch_size(
         s.name = body.name
     if body.price_modifier_vnd is not None:
         s.price_modifier_vnd = body.price_modifier_vnd
+    try:
+        db.flush()
+    except IntegrityError as exc:
+        db.rollback()
+        raise _conflict("A size with this name already exists.") from exc
     return SizeOut.model_validate(s)
 
 
@@ -175,6 +180,11 @@ def patch_crust(
         ):
             raise _conflict("A crust with this name already exists.")
         c.name = body.name
+    try:
+        db.flush()
+    except IntegrityError as exc:
+        db.rollback()
+        raise _conflict("A crust with this name already exists.") from exc
     return CrustOut.model_validate(c)
 
 
@@ -258,6 +268,11 @@ def patch_topping(
         t.name = body.name
     if body.price_vnd is not None:
         t.price_vnd = body.price_vnd
+    try:
+        db.flush()
+    except IntegrityError as exc:
+        db.rollback()
+        raise _conflict("A topping with this name already exists.") from exc
     return ToppingOut.model_validate(t)
 
 
