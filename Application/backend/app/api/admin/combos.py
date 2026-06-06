@@ -110,6 +110,13 @@ def _validate_items(db: Session, items: list[ComboItemIn]) -> None:
             details={"field": "items"},
         )
     for it in items:
+        if it.quantity < 1:
+            raise APIError(
+                code="VALIDATION_FAILED",
+                message="Each combo item quantity must be at least 1.",
+                status_code=400,
+                details={"product_id": it.product_id, "field": "quantity"},
+            )
         prod = db.get(Product, it.product_id)
         if prod is None or not prod.is_active:
             raise APIError(
@@ -187,8 +194,10 @@ def patch_combo(
     if combo is None:
         raise APIError(code="NOT_FOUND", message="Combo not found.", status_code=404)
 
-    start = body.validity_start if body.validity_start is not None else combo.validity_start
-    end = body.validity_end if body.validity_end is not None else combo.validity_end
+    start = (
+        body.validity_start if "validity_start" in body.model_fields_set else combo.validity_start
+    )
+    end = body.validity_end if "validity_end" in body.model_fields_set else combo.validity_end
     _validate_range(start, end)
     if body.items is not None:
         _validate_items(db, body.items)
@@ -201,9 +210,8 @@ def patch_combo(
         "validity_start",
         "validity_end",
     ):
-        val = getattr(body, field)
-        if val is not None:
-            setattr(combo, field, val)
+        if field in body.model_fields_set:
+            setattr(combo, field, getattr(body, field))
 
     if body.items is not None:
         db.execute(delete(ComboItem).where(ComboItem.combo_id == combo_id))

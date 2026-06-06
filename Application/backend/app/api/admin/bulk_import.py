@@ -24,6 +24,7 @@ router = APIRouter(prefix="/api/admin/import", tags=["admin-import"])
 require_admin = require_role(UserRole.ADMIN)
 
 _TRUE_VALUES = {"1", "true", "yes", "y"}
+_FALSE_VALUES = {"0", "false", "no", "n"}
 
 
 class ImportSummary(BaseModel):
@@ -71,19 +72,27 @@ def import_pizzas(
         name = (row.get("name") or "").strip()
         category_name = (row.get("category_name") or "").strip()
         price = _parse_int(row.get("base_price_vnd"))
-        is_pizza = (row.get("is_pizza") or "true").strip().lower() in _TRUE_VALUES
+        raw_is_pizza = (row.get("is_pizza") or "true").strip().lower()
 
         if not name:
             errors.append(f"Row {i}: missing name — skipped")
             skipped += 1
             continue
         cat = cat_by_name.get(category_name.lower())
-        if cat is None:
-            errors.append(f"Row {i}: unknown category '{category_name}' — skipped")
+        if cat is None or not cat.is_active:
+            errors.append(f"Row {i}: unknown or inactive category '{category_name}' — skipped")
             skipped += 1
             continue
         if price is None:
             errors.append(f"Row {i}: invalid base_price_vnd for '{name}' — skipped")
+            skipped += 1
+            continue
+        if raw_is_pizza in _TRUE_VALUES:
+            is_pizza = True
+        elif raw_is_pizza in _FALSE_VALUES:
+            is_pizza = False
+        else:
+            errors.append(f"Row {i}: invalid is_pizza value for '{name}' — skipped")
             skipped += 1
             continue
 

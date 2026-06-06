@@ -147,7 +147,7 @@ class PizzaSize(Base):
     __tablename__ = "pizza_sizes"
 
     size_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(10), nullable=False)
+    name: Mapped[str] = mapped_column(String(10), nullable=False, unique=True)
     price_modifier_vnd: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
@@ -162,7 +162,7 @@ class PizzaCrust(Base):
     __tablename__ = "pizza_crusts"
 
     crust_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
 
     order_items: Mapped[list[OrderItem]] = relationship(back_populates="crust")
 
@@ -171,7 +171,7 @@ class Topping(Base):
     __tablename__ = "toppings"
 
     topping_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     price_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
 
     order_item_toppings: Mapped[list[OrderItemTopping]] = relationship(back_populates="topping")

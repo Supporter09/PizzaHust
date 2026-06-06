@@ -42,7 +42,9 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             );
             return;
           }
-          setCustomer(await r.json());
+          const data = await r.json();
+          if (!active) return;
+          setCustomer(data);
         })
         .catch(() => active && setError("Failed to load customer"))
         .finally(() => active && setLoading(false));

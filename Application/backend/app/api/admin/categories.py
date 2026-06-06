@@ -104,9 +104,8 @@ def patch_category(
             code="CONFLICT", message="A category with this name already exists.", status_code=409
         )
     for field in ("name", "description", "sort_order", "is_active"):
-        val = getattr(body, field)
-        if val is not None:
-            setattr(cat, field, val)
+        if field in body.model_fields_set:
+            setattr(cat, field, getattr(body, field))
     return CategoryOut.model_validate(cat)
 
 

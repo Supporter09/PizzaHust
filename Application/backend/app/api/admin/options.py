@@ -10,6 +10,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.errors import APIError
@@ -72,7 +73,11 @@ def create_size(
         raise _conflict("A size with this name already exists.")
     s = PizzaSize(name=body.name, price_modifier_vnd=body.price_modifier_vnd)
     db.add(s)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError as exc:
+        db.rollback()
+        raise _conflict("A size with this name already exists.") from exc
     return SizeOut.model_validate(s)
 
 
@@ -106,7 +111,12 @@ def delete_size(
         raise _not_found("Size not found.")
     if db.scalar(select(OrderItem.order_item_id).where(OrderItem.size_id == size_id).limit(1)):
         raise _conflict("Size is used by existing orders and cannot be removed.")
-    db.delete(s)
+    try:
+        db.delete(s)
+        db.flush()
+    except IntegrityError as exc:
+        db.rollback()
+        raise _conflict("Size is used by existing orders and cannot be removed.") from exc
 
 
 # ── Crusts ─────────────────────────────────────────────────────────────────
@@ -141,7 +151,11 @@ def create_crust(
         raise _conflict("A crust with this name already exists.")
     c = PizzaCrust(name=body.name)
     db.add(c)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError as exc:
+        db.rollback()
+        raise _conflict("A crust with this name already exists.") from exc
     return CrustOut.model_validate(c)
 
 
@@ -173,7 +187,12 @@ def delete_crust(
         raise _not_found("Crust not found.")
     if db.scalar(select(OrderItem.order_item_id).where(OrderItem.crust_id == crust_id).limit(1)):
         raise _conflict("Crust is used by existing orders and cannot be removed.")
-    db.delete(c)
+    try:
+        db.delete(c)
+        db.flush()
+    except IntegrityError as exc:
+        db.rollback()
+        raise _conflict("Crust is used by existing orders and cannot be removed.") from exc
 
 
 # ── Toppings ───────────────────────────────────────────────────────────────
@@ -213,7 +232,11 @@ def create_topping(
         raise _conflict("A topping with this name already exists.")
     t = Topping(name=body.name, price_vnd=body.price_vnd)
     db.add(t)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError as exc:
+        db.rollback()
+        raise _conflict("A topping with this name already exists.") from exc
     return ToppingOut.model_validate(t)
 
 
@@ -249,4 +272,9 @@ def delete_topping(
         select(OrderItemTopping.id).where(OrderItemTopping.topping_id == topping_id).limit(1)
     ):
         raise _conflict("Topping is used by existing orders and cannot be removed.")
-    db.delete(t)
+    try:
+        db.delete(t)
+        db.flush()
+    except IntegrityError as exc:
+        db.rollback()
+        raise _conflict("Topping is used by existing orders and cannot be removed.") from exc

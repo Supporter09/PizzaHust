@@ -133,7 +133,8 @@ All under `/api/admin/`, role=`admin` required.
   to JSON-only — `multipart/form-data`, field `image`. Extension allowlist
   (`png`/`jpg`/`jpeg`/`webp`) + size cap (`IMAGE_MAX_BYTES`); returns `{ "image_url" }`
   and sets the item's `image_url`. Files are served read-only at `IMAGE_BASE_URL`.
-- **A2 options** (`/api/admin/sizes|crusts|toppings`): full CRUD each. `DELETE`
+- **A2 options** (`/api/admin/sizes|crusts|toppings`): full CRUD each. Each `name`
+  is **unique** (DB-enforced); a duplicate on create/rename → `409 CONFLICT`. `DELETE`
   is guarded against historical order data (a size/crust/topping referenced by an
   existing order item → `409 CONFLICT`, never an FK/500).
 - **A4 combos** (`/api/admin/combos`): a combo needs **≥ 2 component items**, each
@@ -143,9 +144,9 @@ All under `/api/admin/`, role=`admin` required.
   the frontend warns but the API does not reject. Validity rejects only
   `validity_end < validity_start` (equality allowed).
 - **Bulk import** (`/api/admin/import/{pizzas,toppings}`): `multipart/form-data`,
-  field `file`. Upsert by name (re-import is idempotent). An unknown
+  field `file`. Upsert by name (re-import is idempotent). An unknown **or inactive**
   `category_name` is reported as a per-row error and skipped — categories are
-  **never** auto-created. Pizzas CSV columns: `name, category_name,
+  **never** auto-created. A non-boolean `is_pizza` value is likewise a per-row error. Pizzas CSV columns: `name, category_name,
   base_price_vnd, is_pizza`. Toppings CSV columns: `name, price_vnd`.
 
 #### A5 Monitor Orders — scope

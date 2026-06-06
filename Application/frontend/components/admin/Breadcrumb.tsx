@@ -13,7 +13,7 @@ export default function Breadcrumb({ items }: { items: Crumb[] }) {
         {items.map((item, i) => {
           const last = i === items.length - 1;
           return (
-            <li key={item.label} className="flex items-center gap-1.5">
+            <li key={`${item.label}-${item.href ?? i}`} className="flex items-center gap-1.5">
               {item.href && !last ? (
                 <Link href={item.href} className="hover:text-[#C73E1D]">
                   {item.label}

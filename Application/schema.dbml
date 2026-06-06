@@ -52,18 +52,18 @@ Table products {
 
 Table pizza_sizes {
   size_id int [pk, increment]
-  name varchar(10) [not null]
+  name varchar(10) [not null, unique]
   price_modifier_vnd int [not null, default: 0]
 }
 
 Table pizza_crusts {
   crust_id int [pk, increment]
-  name varchar(50) [not null]
+  name varchar(50) [not null, unique]
 }
 
 Table toppings {
   topping_id int [pk, increment]
-  name varchar(100) [not null]
+  name varchar(100) [not null, unique]
   price_vnd int [not null]
 }
 
@@ -76,7 +76,7 @@ Table combos {
   validity_start datetime
   validity_end datetime
 
-  Note: 'CHECK ck_combos_validity_range: validity_start IS NULL OR validity_end IS NULL OR validity_start <= validity_end'
+  Note: 'CHECK validity_range: validity_start IS NULL OR validity_end IS NULL OR validity_start <= validity_end'
 }
 
 Table combo_items {

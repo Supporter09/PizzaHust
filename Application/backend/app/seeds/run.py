@@ -29,6 +29,23 @@ from app.infra.db.session import create_session_factory
 # Non-privileged demo customer password — QA fixtures only, never a real account.
 DEMO_CUSTOMER_PASSWORD = "demo1234"
 
+# Crockford base32 alphabet (excludes I, L, O, U), per the ORDER_CODE_FORMAT contract.
+_CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+
+
+def _seed_order_code(user_id: int, days_ago: int) -> str:
+    """Deterministic ``PIZZ-`` + 6 Crockford-base32 chars from (user_id, days_ago).
+
+    Stable per (user, day) so re-seeding stays a no-op, while matching the
+    documented order-code shape instead of the non-conformant ``PIZZ-SEED…`` form.
+    """
+    n = user_id * 1000 + days_ago
+    chars = []
+    for _ in range(6):
+        chars.append(_CROCKFORD[n % 32])
+        n //= 32
+    return "PIZZ-" + "".join(reversed(chars))
+
 
 def _upsert_user(db: Session, phone: str, **kwargs) -> User:
     user = db.scalar(select(User).where(User.phone_number == phone))
@@ -262,7 +279,7 @@ def _seed(db: Session, settings: Settings) -> None:
         user = db.scalar(select(User).where(User.phone_number == phone))
         if user is None:
             continue
-        order_code = f"PIZZ-SEED{user.user_id:02d}{days_ago:02d}"
+        order_code = _seed_order_code(user.user_id, days_ago)
         if db.scalar(select(Order).where(Order.order_code == order_code)):
             continue
         items_total = sum(product.base_price_vnd * qty for product, qty in lines)

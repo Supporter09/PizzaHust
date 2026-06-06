@@ -61,6 +61,7 @@ export default function CombosPage() {
     } catch (e) {
       setError(msg(e));
       setCombos([]);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
