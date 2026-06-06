@@ -25,22 +25,31 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
-    setError("");
-    fetch(`/api/admin/customers/${id}`, { credentials: "include" })
-      .then(async (r) => {
-        if (!active) return;
-        if (!r.ok) {
-          // Never store an error envelope as if it were a customer.
-          setError(r.status === 404 ? "Customer not found" : `Failed to load customer (HTTP ${r.status})`);
-          return;
-        }
-        setCustomer(await r.json());
-      })
-      .catch(() => active && setError("Failed to load customer"))
-      .finally(() => active && setLoading(false));
+    // Defer to a macrotask so setState is not called synchronously within the
+    // effect body (react-hooks/set-state-in-effect).
+    const t = setTimeout(() => {
+      setLoading(true);
+      setError("");
+      fetch(`/api/admin/customers/${id}`, { credentials: "include" })
+        .then(async (r) => {
+          if (!active) return;
+          if (!r.ok) {
+            // Never store an error envelope as if it were a customer.
+            setError(
+              r.status === 404
+                ? "Customer not found"
+                : `Failed to load customer (HTTP ${r.status})`,
+            );
+            return;
+          }
+          setCustomer(await r.json());
+        })
+        .catch(() => active && setError("Failed to load customer"))
+        .finally(() => active && setLoading(false));
+    }, 0);
     return () => {
       active = false;
+      clearTimeout(t);
     };
   }, [id]);
 
