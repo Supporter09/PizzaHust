@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.admin.customers import router as admin_customers_router
+from app.api.admin.items import router as admin_items_router
 from app.api.admin.orders import router as admin_orders_router
 from app.api.auth import router as auth_router
 from app.api.errors import (
@@ -53,6 +54,7 @@ app.include_router(auth_router)
 app.include_router(loyalty_router)
 app.include_router(admin_orders_router)
 app.include_router(admin_customers_router)
+app.include_router(admin_items_router)
 app.include_router(webhooks_router)
 
 
