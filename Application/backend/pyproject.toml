@@ -36,6 +36,20 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP"]
 
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI evaluates these markers at function-definition time on purpose, so
+# B008 (function call in argument default) does not apply to them.
+extend-immutable-calls = [
+  "fastapi.Depends",
+  "fastapi.Query",
+  "fastapi.Path",
+  "fastapi.Body",
+  "fastapi.Header",
+  "fastapi.Cookie",
+  "fastapi.Form",
+  "fastapi.File",
+]
+
 [tool.mypy]
 strict = true
 files = ["app/domain"]

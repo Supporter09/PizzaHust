@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
-from functools import lru_cache
+from functools import cache
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
@@ -23,7 +23,7 @@ def create_db_engine(database_url: str | None = None) -> Engine:
     )
 
 
-@lru_cache(maxsize=None)
+@cache
 def _session_factory(database_url: str) -> sessionmaker[Session]:
     # Cached per resolved URL: the Engine (and its connection pool) is created
     # once per process and reused, instead of a fresh pool on every request.
