@@ -11,6 +11,7 @@ import uuid
 from datetime import datetime
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from app.infra.auth import hash_password
 from app.infra.db.models import (
@@ -55,6 +56,11 @@ def admin_client(db_slug: str) -> TestClient:
     )
     assert resp.status_code == 200, resp.text
     return client
+
+
+def count_categories() -> int:
+    with create_session_factory()() as db:
+        return len(db.scalars(select(Category)).all())
 
 
 def new_category(name: str = "Pizza", *, is_active: bool = True) -> int:

@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
+from app.api.admin.bulk_import import router as admin_import_router
 from app.api.admin.combos import router as admin_combos_router
 from app.api.admin.customers import router as admin_customers_router
 from app.api.admin.items import router as admin_items_router
@@ -60,6 +61,7 @@ app.include_router(admin_customers_router)
 app.include_router(admin_items_router)
 app.include_router(admin_options_router)
 app.include_router(admin_combos_router)
+app.include_router(admin_import_router)
 
 # Serve uploaded product images. check_dir=False so the app boots before the
 # upload dir exists (created lazily on first upload / by the compose volume).
