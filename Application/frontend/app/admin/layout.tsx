@@ -4,11 +4,14 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 
-// Only routes that are actually wired. Pizzas/Combos/Reports (A1–A4, A7) are
-// not implemented yet, so they are intentionally omitted to avoid dead 404 links.
 const NAV = [
   { href: "/admin/orders", label: "Monitor Orders" },
   { href: "/admin/customers", label: "Customers" },
+  { href: "/admin/items", label: "Menu Items" },
+  { href: "/admin/pizza-options", label: "Pizza Options" },
+  { href: "/admin/categories", label: "Categories" },
+  { href: "/admin/combos", label: "Combos" },
+  { href: "/admin/import", label: "Bulk Import" },
 ];
 
 type AuthState = "checking" | "authorized" | "denied";
