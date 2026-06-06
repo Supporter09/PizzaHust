@@ -26,6 +26,15 @@ class Settings(BaseSettings):
     # ge=1: a limit of 0 would reject every auth request.
     auth_rate_limit_per_minute: int = Field(default=5, ge=1, alias="AUTH_RATE_LIMIT_PER_MINUTE")
 
+    # Image upload (A1 product images). Files persist outside the container via a
+    # mounted volume; served read-only by a StaticFiles mount at image_base_url.
+    image_upload_dir: str = Field(default="/data/images", alias="IMAGE_UPLOAD_DIR")
+    image_base_url: str = Field(default="/images", alias="IMAGE_BASE_URL")
+    image_max_bytes: int = Field(default=5 * 1024 * 1024, gt=0, alias="IMAGE_MAX_BYTES")
+
+    # Upper bound on an uploaded CSV (A1 bulk import); rejected with 400 if exceeded.
+    csv_import_max_bytes: int = Field(default=2 * 1024 * 1024, gt=0, alias="CSV_IMPORT_MAX_BYTES")
+
     admin_seed_phone: str = Field(default="0900000001", alias="ADMIN_SEED_PHONE")
     kitchen_seed_phone: str = Field(default="0900000002", alias="KITCHEN_SEED_PHONE")
     # No defaults: privileged seed passwords must come from the environment so no

@@ -4,9 +4,15 @@ import ulid
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
+from app.api.admin.bulk_import import router as admin_import_router
+from app.api.admin.categories import router as admin_categories_router
+from app.api.admin.combos import router as admin_combos_router
 from app.api.admin.customers import router as admin_customers_router
+from app.api.admin.items import router as admin_items_router
+from app.api.admin.options import router as admin_options_router
 from app.api.admin.orders import router as admin_orders_router
 from app.api.auth import router as auth_router
 from app.api.errors import (
@@ -53,6 +59,19 @@ app.include_router(auth_router)
 app.include_router(loyalty_router)
 app.include_router(admin_orders_router)
 app.include_router(admin_customers_router)
+app.include_router(admin_items_router)
+app.include_router(admin_categories_router)
+app.include_router(admin_options_router)
+app.include_router(admin_combos_router)
+app.include_router(admin_import_router)
+
+# Serve uploaded product images. check_dir=False so the app boots before the
+# upload dir exists (created lazily on first upload / by the compose volume).
+app.mount(
+    settings.image_base_url,
+    StaticFiles(directory=settings.image_upload_dir, check_dir=False),
+    name="images",
+)
 app.include_router(webhooks_router)
 
 

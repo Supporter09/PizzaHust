@@ -79,13 +79,20 @@ export default function MonitorOrdersPage() {
   }, []);
 
   useEffect(() => {
-    void fetchOrders();
-    void fetchDispatchPendingCount();
+    // Defer the initial load to a macrotask so its setState is not called
+    // synchronously within the effect body (react-hooks/set-state-in-effect).
+    const kick = setTimeout(() => {
+      void fetchOrders();
+      void fetchDispatchPendingCount();
+    }, 0);
     const id = setInterval(() => {
       void fetchOrders(true);
       void fetchDispatchPendingCount();
     }, 15_000);
-    return () => clearInterval(id);
+    return () => {
+      clearTimeout(kick);
+      clearInterval(id);
+    };
   }, [fetchOrders, fetchDispatchPendingCount]);
 
   async function retryDispatch(orderId: number) {

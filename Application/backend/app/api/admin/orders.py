@@ -81,12 +81,14 @@ def cancel_order(
     if order.current_status in (OrderStatus.DELIVERED, OrderStatus.CANCELLED):
         raise HTTPException(status_code=409, detail="CONFLICT")
     order.current_status = OrderStatus.CANCELLED
-    db.add(OrderTracking(
-        order_id=order.order_id,
-        updated_by=admin.user_id,
-        status=OrderStatus.CANCELLED,
-        note=body.reason,
-    ))
+    db.add(
+        OrderTracking(
+            order_id=order.order_id,
+            updated_by=admin.user_id,
+            status=OrderStatus.CANCELLED,
+            note=body.reason,
+        )
+    )
 
 
 @router.post("/{order_id}/retry-dispatch", status_code=204)
@@ -102,9 +104,11 @@ def retry_dispatch(
     if order.current_status != OrderStatus.DISPATCH_PENDING:
         raise HTTPException(status_code=409, detail="CONFLICT")
     order.current_status = OrderStatus.READY_FOR_DISPATCH
-    db.add(OrderTracking(
-        order_id=order.order_id,
-        updated_by=admin.user_id,
-        status=OrderStatus.READY_FOR_DISPATCH,
-        note="Admin retry dispatch",
-    ))
+    db.add(
+        OrderTracking(
+            order_id=order.order_id,
+            updated_by=admin.user_id,
+            status=OrderStatus.READY_FOR_DISPATCH,
+            note="Admin retry dispatch",
+        )
+    )

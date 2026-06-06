@@ -92,9 +92,11 @@ async def delivery_webhook(
         return
 
     order.current_status = new_status
-    db.add(OrderTracking(
-        order_id=order.order_id,
-        updated_by=None,
-        status=new_status,
-        note=f"delivery webhook: {event.state}",
-    ))
+    db.add(
+        OrderTracking(
+            order_id=order.order_id,
+            updated_by=None,
+            status=new_status,
+            note=f"delivery webhook: {event.state}",
+        )
+    )

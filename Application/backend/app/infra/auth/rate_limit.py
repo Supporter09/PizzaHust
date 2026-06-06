@@ -10,7 +10,6 @@ from fastapi import Depends, Request, status
 from app.core.errors import APIError
 from app.infra.config import Settings, get_settings_dependency
 
-
 # When the key map grows past this many buckets, sweep fully-expired buckets.
 # Bounds memory against one-off keys (e.g. spoofed IPs) that never revisit.
 _SWEEP_THRESHOLD = 1024

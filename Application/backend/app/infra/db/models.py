@@ -114,6 +114,10 @@ class Category(Base):
     category_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="1"
+    )
 
     products: Mapped[list[Product]] = relationship(back_populates="category")
 
@@ -129,6 +133,10 @@ class Product(Base):
     is_pizza: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="0"
     )
+    image_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="1"
+    )
 
     category: Mapped[Category] = relationship(back_populates="products")
     combo_items: Mapped[list[ComboItem]] = relationship(back_populates="product")
@@ -139,7 +147,7 @@ class PizzaSize(Base):
     __tablename__ = "pizza_sizes"
 
     size_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(10), nullable=False)
+    name: Mapped[str] = mapped_column(String(10), nullable=False, unique=True)
     price_modifier_vnd: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
@@ -154,7 +162,7 @@ class PizzaCrust(Base):
     __tablename__ = "pizza_crusts"
 
     crust_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
 
     order_items: Mapped[list[OrderItem]] = relationship(back_populates="crust")
 
@@ -163,7 +171,7 @@ class Topping(Base):
     __tablename__ = "toppings"
 
     topping_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     price_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
 
     order_item_toppings: Mapped[list[OrderItemTopping]] = relationship(back_populates="topping")
@@ -171,12 +179,17 @@ class Topping(Base):
 
 class Combo(Base):
     __tablename__ = "combos"
+    __table_args__ = (
+        CheckConstraint(
+            "validity_start IS NULL OR validity_end IS NULL OR validity_start <= validity_end",
+            name="validity_range",
+        ),
+    )
 
     combo_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     combo_price_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
-    target_people: Mapped[str | None] = mapped_column(String(50), nullable=True)
     target_group: Mapped[int | None] = mapped_column(Integer, nullable=True)
     validity_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
     validity_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)

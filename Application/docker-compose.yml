@@ -62,6 +62,10 @@ services:
       LOYALTY_REDEEM_VALUE_VND: "1000"
       LOYALTY_MAX_REDEEM_PCT: "0.5"
       ORDER_PROMISED_TIME_DEFAULT_MIN: "45"
+      IMAGE_UPLOAD_DIR: /data/images
+      IMAGE_BASE_URL: /images
+    volumes:
+      - images_data:/data/images
     ports:
       - "8000:8000"
     healthcheck:
@@ -88,3 +92,4 @@ services:
 
 volumes:
   mysql_data: {}
+  images_data: {}

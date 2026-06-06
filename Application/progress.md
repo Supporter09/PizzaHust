@@ -117,3 +117,24 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 **Next**
 - Start `infra-005` (delivery port + mock service hardening) or `infra-007` (OpenAPI export/CI drift pipeline) based on team assignment.
+
+---
+
+## 2026-06-06 — A1–A4 admin catalog integrated (PR #9)
+
+**Done**
+- Re-integrated #8 admin catalog into `Application/` on `feat/admin-catalog-a1-a4`; opened PR #9 → `main` (refs #8). 16 commits.
+- `domain/combos.py` (derived status + price helper); migration `0003` (products `image_url`/`is_active`, categories `sort_order`/`is_active`, drop `combos.target_people`, validity CHECK).
+- Routers: `/api/admin/items` (+`/{id}/image` upload), `/sizes|crusts|toppings`, `/categories`, `/combos`, `/import/{pizzas,toppings}` — soft-delete + combo/FK guards, warn-not-reject combo pricing, derived status (no scheduler), no silent category auto-create.
+- Frontend admin pages (items, categories, combos, pizza-options, import) + Breadcrumb/SearchBar on generated types + `{error:{message}}` envelope; layout nav updated.
+- Seeds: catalog/combos/demo orders, idempotent order codes. `CONTRACTS.md` + `openapi.json` + `types.ts` regenerated (contract change flagged for Minh+Hung). `feature_list` A1–A4 → `done`.
+- Fixed pre-existing `react-hooks/set-state-in-effect` lint **error** (react-hooks@7.1.1) in `admin/orders` + `customers/[id]` — `main`'s lint gate was already red without this.
+
+**Verified**
+- Backend ruff/mypy/import-linter green, **70 passed / 1 skipped**, `alembic check` clean, OpenAPI drift clean. Frontend `tsc`/`eslint`/`vitest`/`next build` green. Validated at `bbf4679`, `2026-06-06T16:43:05+07:00`.
+
+**Blockers**
+- `verify.sh` red ONLY on 6 **pre-existing, out-of-scope** e2e (specs byte-identical to `main`): 4 hit unbuilt public pages `/menu`//`track`/item-detail/register (U1/U2/U4); 2 admin specs' `loginAsAdmin` POST to `:3000/api` (frontend origin, no `/api` proxy → 404; API is `:8000`). `verify.sh` also never seeds before e2e.
+
+**Next**
+- Merge PR #9 after Minh+Hung contract review. Separate ticket: fix e2e harness (seed before e2e + point `loginAsAdmin` at `:8000`) and pin `eslint-plugin-react-hooks`.
