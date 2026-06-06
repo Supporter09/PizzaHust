@@ -6,20 +6,26 @@ derived. Delete is a soft-deactivate so historical order_items never orphan.
 
 from __future__ import annotations
 
+import os
+import uuid
 from typing import Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.errors import APIError
 from app.infra.auth import require_role
+from app.infra.config import get_settings
 from app.infra.db.deps import get_db
 from app.infra.db.models import Category, Combo, ComboItem, Product, User, UserRole
 
 router = APIRouter(prefix="/api/admin/items", tags=["admin-items"])
 require_admin = require_role(UserRole.ADMIN)
+
+# A1 product images: extension allowlist only (no re-encoding/Pillow in MVP).
+_ALLOWED_IMAGE_EXT = {"png", "jpg", "jpeg", "webp"}
 
 
 class ItemOut(BaseModel):
@@ -164,3 +170,33 @@ def delete_item(
             details={"combos": [c.name for c in combos]},
         )
     p.is_active = False
+
+
+@router.post("/{product_id}/image")
+def upload_item_image(
+    product_id: int,
+    image: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    _a: User = Depends(require_admin),
+) -> dict[str, str]:
+    p = db.get(Product, product_id)
+    if p is None:
+        raise APIError(code="NOT_FOUND", message="Item not found.", status_code=404)
+    settings = get_settings()
+    ext = (image.filename or "").rsplit(".", 1)[-1].lower()
+    if ext not in _ALLOWED_IMAGE_EXT:
+        raise APIError(
+            code="VALIDATION_FAILED",
+            message="Unsupported image type. Allowed: png, jpg, jpeg, webp.",
+            status_code=400,
+        )
+    # Read at most max+1 bytes, then check — bounds memory regardless of upload size.
+    data = image.file.read(settings.image_max_bytes + 1)
+    if len(data) > settings.image_max_bytes:
+        raise APIError(code="VALIDATION_FAILED", message="Image too large.", status_code=400)
+    os.makedirs(settings.image_upload_dir, exist_ok=True)
+    fname = f"{uuid.uuid4().hex}.{ext}"
+    with open(os.path.join(settings.image_upload_dir, fname), "wb") as f:
+        f.write(data)
+    p.image_url = f"{settings.image_base_url}/{fname}"
+    return {"image_url": p.image_url}
