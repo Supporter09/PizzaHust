@@ -26,9 +26,7 @@ async def enforce_csrf(
             status_code=status.HTTP_403_FORBIDDEN,
         )
 
-    if not (
-        compare_digest(expected, provided_header) and compare_digest(expected, cookie_value)
-    ):
+    if not (compare_digest(expected, provided_header) and compare_digest(expected, cookie_value)):
         raise APIError(
             code="FORBIDDEN",
             message="Invalid CSRF token.",

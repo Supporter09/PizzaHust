@@ -57,10 +57,7 @@ def upgrade() -> None:
         f"ALTER TABLE orders MODIFY COLUMN current_status "
         f"ENUM({new_vals}) NOT NULL DEFAULT 'Received'"
     )
-    op.execute(
-        f"ALTER TABLE order_tracking MODIFY COLUMN status "
-        f"ENUM({new_vals}) NOT NULL"
-    )
+    op.execute(f"ALTER TABLE order_tracking MODIFY COLUMN status ENUM({new_vals}) NOT NULL")
 
     op.create_table(
         "webhook_events",
@@ -125,15 +122,11 @@ def downgrade() -> None:
         "WHERE current_status = 'DispatchPending'"
     )
     op.execute(
-        "UPDATE order_tracking SET status = 'ReadyForDispatch' "
-        "WHERE status = 'DispatchPending'"
+        "UPDATE order_tracking SET status = 'ReadyForDispatch' WHERE status = 'DispatchPending'"
     )
 
     old_vals = _enum_values_sql(OLD_ORDER_STATUS_VALUES)
-    op.execute(
-        f"ALTER TABLE order_tracking MODIFY COLUMN status "
-        f"ENUM({old_vals}) NOT NULL"
-    )
+    op.execute(f"ALTER TABLE order_tracking MODIFY COLUMN status ENUM({old_vals}) NOT NULL")
     op.execute(
         f"ALTER TABLE orders MODIFY COLUMN current_status "
         f"ENUM({old_vals}) NOT NULL DEFAULT 'Received'"

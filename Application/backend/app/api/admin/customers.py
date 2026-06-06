@@ -45,12 +45,15 @@ def list_customers(
     db: Session = Depends(get_db),
     _admin: User = Depends(require_admin),
 ) -> list[CustomerOut]:
-    stmt = select(
-        User,
-        func.count(Order.order_id).label("order_count"),
-    ).outerjoin(Order, Order.user_id == User.user_id).where(
-        User.role == UserRole.CUSTOMER
-    ).group_by(User.user_id)
+    stmt = (
+        select(
+            User,
+            func.count(Order.order_id).label("order_count"),
+        )
+        .outerjoin(Order, Order.user_id == User.user_id)
+        .where(User.role == UserRole.CUSTOMER)
+        .group_by(User.user_id)
+    )
 
     if q:
         pattern = f"%{q}%"
@@ -68,10 +71,12 @@ def list_customers(
 
     result = []
     for user, order_count in rows:
-        out = CustomerOut.model_validate({
-            **{c.key: getattr(user, c.key) for c in User.__table__.columns},
-            "order_count": order_count,
-        })
+        out = CustomerOut.model_validate(
+            {
+                **{c.key: getattr(user, c.key) for c in User.__table__.columns},
+                "order_count": order_count,
+            }
+        )
         result.append(out)
     return result
 
@@ -91,10 +96,12 @@ def get_customer(
     if row is None:
         raise HTTPException(status_code=404, detail="NOT_FOUND")
     user, order_count = row
-    return CustomerDetailOut.model_validate({
-        **{c.key: getattr(user, c.key) for c in User.__table__.columns},
-        "order_count": order_count,
-    })
+    return CustomerDetailOut.model_validate(
+        {
+            **{c.key: getattr(user, c.key) for c in User.__table__.columns},
+            "order_count": order_count,
+        }
+    )
 
 
 @router.post("/{user_id}/lock", status_code=status.HTTP_204_NO_CONTENT)
