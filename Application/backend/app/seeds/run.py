@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -13,6 +13,10 @@ from app.infra.db.models import (
     Category,
     Combo,
     ComboItem,
+    Order,
+    OrderItem,
+    OrderStatus,
+    OrderTracking,
     PizzaCrust,
     PizzaSize,
     Product,
@@ -35,10 +39,10 @@ def _upsert_user(db: Session, phone: str, **kwargs) -> User:
     return user
 
 
-def _upsert_category(db: Session, name: str, description: str) -> Category:
+def _upsert_category(db: Session, name: str, description: str, sort_order: int = 0) -> Category:
     cat = db.scalar(select(Category).where(Category.name == name))
     if cat is None:
-        cat = Category(name=name, description=description)
+        cat = Category(name=name, description=description, sort_order=sort_order)
         db.add(cat)
         db.flush()
     return cat
@@ -140,9 +144,9 @@ def _seed(db: Session, settings: Settings) -> None:
         )
 
     # ── Categories ─────────────────────────────────────────────────
-    cat_pizza = _upsert_category(db, "Pizza", "Handcrafted stone-oven pizzas")
-    cat_side = _upsert_category(db, "Side Dishes", "Wings, fries, and more")
-    _upsert_category(db, "Drinks", "Soft drinks and juices")
+    cat_pizza = _upsert_category(db, "Pizza", "Handcrafted stone-oven pizzas", sort_order=1)
+    cat_side = _upsert_category(db, "Side Dishes", "Wings, fries, and more", sort_order=2)
+    _upsert_category(db, "Drinks", "Soft drinks and juices", sort_order=3)
 
     # ── Sizes ──────────────────────────────────────────────────────
     _upsert_size(db, "S", 0)
@@ -202,7 +206,8 @@ def _seed(db: Session, settings: Settings) -> None:
     ]
 
     # ── Combos ─────────────────────────────────────────────────────
-    now = datetime.utcnow()
+    # naive UTC to match the DateTime(timezone=False) columns (utcnow() is deprecated).
+    now = datetime.now(UTC).replace(tzinfo=None)
 
     combo1 = db.scalar(select(Combo).where(Combo.name == "Lunch Duo for 2"))
     if combo1 is None:
@@ -216,8 +221,12 @@ def _seed(db: Session, settings: Settings) -> None:
         )
         db.add(combo1)
         db.flush()
-        db.add(ComboItem(combo_id=combo1.combo_id, product_id=pizza_products[0].product_id, quantity=2))
-        db.add(ComboItem(combo_id=combo1.combo_id, product_id=side_products[0].product_id, quantity=2))
+        db.add(
+            ComboItem(combo_id=combo1.combo_id, product_id=pizza_products[0].product_id, quantity=2)
+        )
+        db.add(
+            ComboItem(combo_id=combo1.combo_id, product_id=side_products[0].product_id, quantity=2)
+        )
 
     combo2 = db.scalar(select(Combo).where(Combo.name == "Family Feast 4"))
     if combo2 is None:
@@ -231,9 +240,55 @@ def _seed(db: Session, settings: Settings) -> None:
         )
         db.add(combo2)
         db.flush()
-        db.add(ComboItem(combo_id=combo2.combo_id, product_id=pizza_products[1].product_id, quantity=2))
-        db.add(ComboItem(combo_id=combo2.combo_id, product_id=side_products[1].product_id, quantity=1))
-        db.add(ComboItem(combo_id=combo2.combo_id, product_id=side_products[2].product_id, quantity=1))
+        db.add(
+            ComboItem(combo_id=combo2.combo_id, product_id=pizza_products[1].product_id, quantity=2)
+        )
+        db.add(
+            ComboItem(combo_id=combo2.combo_id, product_id=side_products[1].product_id, quantity=1)
+        )
+        db.add(
+            ComboItem(combo_id=combo2.combo_id, product_id=side_products[2].product_id, quantity=1)
+        )
+
+    # ── Demo orders ────────────────────────────────────────────────
+    # Deterministic order codes keyed by (user_id, days_ago) so re-seeding is a
+    # no-op (no duplicate orders) — unlike a random/ULID code that re-randomizes.
+    demo_orders = [
+        ("0901234567", 1, OrderStatus.DELIVERED, [(pizza_products[0], 1), (side_products[0], 1)]),
+        ("0912345678", 2, OrderStatus.PREPARING, [(pizza_products[1], 2)]),
+        ("0923456789", 0, OrderStatus.RECEIVED, [(pizza_products[4], 1), (side_products[1], 1)]),
+    ]
+    for phone, days_ago, status, lines in demo_orders:
+        user = db.scalar(select(User).where(User.phone_number == phone))
+        if user is None:
+            continue
+        order_code = f"PIZZ-SEED{user.user_id:02d}{days_ago:02d}"
+        if db.scalar(select(Order).where(Order.order_code == order_code)):
+            continue
+        items_total = sum(product.base_price_vnd * qty for product, qty in lines)
+        order = Order(
+            order_code=order_code,
+            user_id=user.user_id,
+            recipient_name=user.full_name,
+            recipient_phone=phone,
+            delivery_address="123 Demo Street, Ba Đình, Hà Nội",
+            total_amount_vnd=items_total + 22_000,
+            current_status=status,
+            promised_at=now + timedelta(minutes=45),
+            created_at=now - timedelta(days=days_ago),
+        )
+        db.add(order)
+        db.flush()
+        for product, qty in lines:
+            db.add(
+                OrderItem(
+                    order_id=order.order_id,
+                    product_id=product.product_id,
+                    quantity=qty,
+                    unit_price_vnd=product.base_price_vnd,
+                )
+            )
+        db.add(OrderTracking(order_id=order.order_id, status=status))
 
 
 if __name__ == "__main__":
