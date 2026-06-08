@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    env:
+      # app.openapi() builds the schema from routes without a live DB. Settings only
+      # requires DATABASE_URL + SESSION_SECRET to import; both are dummies here and are
+      # never connected to or used to sign anything.
+      DATABASE_URL: mysql+pymysql://ci:ci@localhost:3306/ci
+      SESSION_SECRET: ci-dummy-session-secret-unused-1234567890
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend deps
+        working-directory: Application/backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: OpenAPI drift
+        working-directory: Application/backend
+        run: |
+          python -m app.tools.dump_openapi > /tmp/openapi.generated.json
+          if ! cmp -s /tmp/openapi.generated.json ../openapi.json; then
+            echo "::error::openapi.json drift — run 'python -m app.tools.dump_openapi > openapi.json' and commit"
+            diff ../openapi.json /tmp/openapi.generated.json || true
+            exit 1
+          fi
+
+      - name: Backend lint, types, import boundaries
+        working-directory: Application/backend
+        run: |
+          ruff check app tests
+          ruff format --check app tests
+          mypy app/domain
+          lint-imports
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: Application/frontend/package-lock.json
+
+      - name: Install frontend deps
+        working-directory: Application/frontend
+        run: npm ci
+
+      - name: Frontend types drift
+        working-directory: Application/frontend
+        run: |
+          cp lib/api/types.ts /tmp/types.before.ts
+          npm run -s gen:types
+          if ! cmp -s /tmp/types.before.ts lib/api/types.ts; then
+            echo "::error::types.ts drift — run 'npm run gen:types' and commit"
+            git --no-pager diff -- lib/api/types.ts || true
+            exit 1
+          fi
+
+      - name: Frontend type check + lint
+        working-directory: Application/frontend
+        run: |
+          npx tsc --noEmit
+          npx eslint .
