@@ -123,7 +123,7 @@ def test_retry_dispatch_missing_order_404() -> None:
 
 def test_cancel_order_rejects_terminal_delivery_failed() -> None:
     client = admin_client("cancel-terminal-failed")
-    order_id = _new_order(OrderStatus.DELIVERY_FAILED, "PIZZ-CANFL1")
+    order_id = _new_order(OrderStatus.DELIVERY_FAILED, "PIZZ-CANFK1")
 
     resp = client.post(f"/api/admin/orders/{order_id}/cancel", json={"reason": "late"})
 

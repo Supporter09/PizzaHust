@@ -16,6 +16,7 @@ def test_is_inner_hanoi_accepts_accents_and_case() -> None:
     assert is_inner_hanoi("Ba Đình")
     assert is_inner_hanoi("hoàn kiếm")
     assert is_inner_hanoi("DONG DA")
+    assert is_inner_hanoi("Văn Miếu-Quốc Tử Giám")
 
 
 def test_is_inner_hanoi_rejects_non_ward_or_unknown_units() -> None:
