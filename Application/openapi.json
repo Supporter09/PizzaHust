@@ -670,6 +670,27 @@
         "title": "CustomerOut",
         "type": "object"
       },
+      "DeliveryConfigOut": {
+        "properties": {
+          "fee_vnd": {
+            "title": "Fee Vnd",
+            "type": "integer"
+          },
+          "service_area": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Service Area",
+            "type": "array"
+          }
+        },
+        "required": [
+          "fee_vnd",
+          "service_area"
+        ],
+        "title": "DeliveryConfigOut",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -899,6 +920,29 @@
           "csrf_token"
         ],
         "title": "LoginResponse",
+        "type": "object"
+      },
+      "LoyaltyConfigOut": {
+        "properties": {
+          "accrual_rate": {
+            "title": "Accrual Rate",
+            "type": "integer"
+          },
+          "max_redeem_pct": {
+            "title": "Max Redeem Pct",
+            "type": "number"
+          },
+          "redeem_value_vnd": {
+            "title": "Redeem Value Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "accrual_rate",
+          "redeem_value_vnd",
+          "max_redeem_pct"
+        ],
+        "title": "LoyaltyConfigOut",
         "type": "object"
       },
       "LoyaltyMeResponse": {
@@ -3079,6 +3123,48 @@
         "summary": "Register",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/config/delivery": {
+      "get": {
+        "operationId": "delivery_config_api_config_delivery_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryConfigOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Delivery Config",
+        "tags": [
+          "config"
+        ]
+      }
+    },
+    "/api/config/loyalty": {
+      "get": {
+        "operationId": "loyalty_config_api_config_loyalty_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoyaltyConfigOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Loyalty Config",
+        "tags": [
+          "config"
         ]
       }
     },

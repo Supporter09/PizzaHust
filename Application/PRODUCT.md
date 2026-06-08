@@ -97,17 +97,15 @@ These values live in `backend/app/domain/pricing.py` and `backend/app/domain/loy
 | Key | Value | Source |
 |---|---|---|
 | `DELIVERY_FEE_VND` | `22000` | section3_analysis U6 |
-| `SERVICE_AREA` | `inner-Hanoi` (city-district whitelist; see ARCHITECTURE) | section3_analysis U6 |
-| `LOYALTY_ACCRUAL_RATE` | 1 point per `10_000` VND of subtotal (placeholder — confirm) | feasibility doc |
-| `LOYALTY_REDEEM_VALUE_VND` | 1 point = `1_000` VND discount (placeholder — confirm) | feasibility doc |
-| `LOYALTY_MAX_REDEEM_PCT` | 50% of subtotal (placeholder — confirm) | feasibility doc |
+| `SERVICE_AREA` | `inner-Hanoi` (2025 post-reorganization ward whitelist; see ARCHITECTURE) | section3_analysis U6 + Nghị quyết 1656/NQ-UBTVQH15 |
+| `LOYALTY_ACCRUAL_RATE` | 1 point per `10_000` VND of subtotal | feasibility doc + team confirmation |
+| `LOYALTY_REDEEM_VALUE_VND` | 1 point = `1_000` VND discount | feasibility doc + team confirmation |
+| `LOYALTY_MAX_REDEEM_PCT` | 50% of subtotal | feasibility doc + team confirmation |
 | `LOYALTY_ACCRUAL_TRIGGER` | on `Delivered` only | harness decision |
 | `LOYALTY_REFUND_ON_CANCEL` | true | harness decision |
 | `ORDER_CODE_FORMAT` | `PIZZ-` + 6 Crockford base32 chars (exclude I/L/O/U) | harness decision |
 | `ORDER_CODE_LOOKUP_RATE_LIMIT` | 5 req / minute / IP | harness decision |
 | `ORDER_PROMISED_TIME_DEFAULT_MIN` | 45 minutes from creation (confirm) | harness decision |
-
-Placeholders must be replaced with team-confirmed numbers before `U13` and `infra-loyalty` start.
 
 ## Order State Machine
 
@@ -115,13 +113,13 @@ Defined in `ARCHITECTURE.md`. Summary:
 
 ```
 Received → Preparing → Ready for Dispatch → Delivering → Delivered
-            ↘ DispatchPending ↗
+            ↘ DispatchPending → Delivering
             ↘ Cancelled       ↘ Delivery Failed
 ```
 
 Only transitions in this graph are valid. Any other transition raises a domain error.
 
-## Loyalty Rules (placeholder — confirm before U13)
+## Loyalty Rules
 
 - Accrual: `floor(subtotal_after_discount / LOYALTY_ACCRUAL_RATE)` points, credited only when order reaches `Delivered`.
 - Redemption: customer chooses `n` points at checkout; discount = `n * LOYALTY_REDEEM_VALUE_VND`, capped at `LOYALTY_MAX_REDEEM_PCT * subtotal`.
@@ -129,7 +127,7 @@ Only transitions in this graph are valid. Any other transition raises a domain e
 
 ## Delivery Service Area
 
-Inner Hanoi only. Whitelist of districts in `backend/app/domain/service_area.py`. Checkout rejects any address whose district is not in the whitelist. Frontend disables submit until address validates.
+Inner Hanoi only. Hanoi's 2025 reorganization ended district-level operations and created 126 commune-level units: 51 wards and 75 communes. The MVP delivery area is the 51 new wards in `backend/app/domain/service_area.py`. Checkout rejects any address whose administrative unit is not in the whitelist. Frontend disables submit until address validates.
 
 ## Tracking & Privacy
 

@@ -164,3 +164,16 @@ def test_terminal_order_not_modified(monkeypatch: pytest.MonkeyPatch) -> None:
     assert resp.status_code == 204
     assert _order_status(order_id) == OrderStatus.CANCELLED
     assert _tracking_count(order_id) == 0
+
+
+def test_webhook_illegal_transition_is_noop(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = build_test_app("wh-illegal")
+    monkeypatch.setenv("DELIVERY_WEBHOOK_SECRET", SECRET)
+    order_id = _new_order("mock-illegal", OrderStatus.READY_FOR_DISPATCH)
+    client = TestClient(app)
+
+    resp = _post_event(client, {"reference": "mock-illegal", "state": "Failed"})
+
+    assert resp.status_code == 204
+    assert _order_status(order_id) == OrderStatus.READY_FOR_DISPATCH
+    assert _tracking_count(order_id) == 0

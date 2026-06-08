@@ -119,3 +119,23 @@ def test_retry_dispatch_missing_order_404() -> None:
     resp = client.post("/api/admin/orders/999999/retry-dispatch")
 
     assert resp.status_code == 404
+
+
+def test_cancel_order_rejects_terminal_delivery_failed() -> None:
+    client = admin_client("cancel-terminal-failed")
+    order_id = _new_order(OrderStatus.DELIVERY_FAILED, "PIZZ-CANFL1")
+
+    resp = client.post(f"/api/admin/orders/{order_id}/cancel", json={"reason": "late"})
+
+    assert resp.status_code == 409
+    assert _get_order(order_id).current_status == OrderStatus.DELIVERY_FAILED
+
+
+def test_cancel_order_rejects_terminal_cancelled() -> None:
+    client = admin_client("cancel-terminal-cancelled")
+    order_id = _new_order(OrderStatus.CANCELLED, "PIZZ-CANCA1")
+
+    resp = client.post(f"/api/admin/orders/{order_id}/cancel", json={"reason": "duplicate"})
+
+    assert resp.status_code == 409
+    assert _get_order(order_id).current_status == OrderStatus.CANCELLED

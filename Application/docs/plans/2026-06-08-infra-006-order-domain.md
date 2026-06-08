@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add the order state machine, pricing, loyalty, and service-area domain modules, then route existing status mutations through the state machine.
+**Goal:** Add the order state machine, pricing, loyalty, and 2025 Hanoi ward service-area domain modules, then route existing status mutations through the state machine.
 
 **Architecture:** Domain modules remain pure and import no `app.api` or `app.infra` modules. API routes convert persisted `OrderStatus` values to strings, call the domain transition functions, then convert the returned status back to `OrderStatus` for storage and tracking rows.
 
@@ -71,7 +71,7 @@ Expected: fail because modules do not exist.
 Add dataclasses and functions:
 - `loyalty.compute_accrual_points`
 - `loyalty.compute_redemption`
-- `service_area.is_inner_hanoi`
+- `service_area.is_inner_hanoi` against the 51 post-2025 Hanoi wards
 - `pricing.compute_order_total`
 
 **Step 4: Run green tests**

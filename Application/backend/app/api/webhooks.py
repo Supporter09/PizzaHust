@@ -13,20 +13,18 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.domain.order_state import (
+    OrderTransitionError,
+    is_terminal,
+    status_for_delivery_event,
+    transition,
+)
 from app.infra.db.deps import get_db
 from app.infra.db.models import Order, OrderStatus, OrderTracking, WebhookEvent
 
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
 
 DeliveryState = Literal["Accepted", "PickedUp", "Delivering", "Delivered", "Failed"]
-
-_STATE_TO_ORDER_STATUS: dict[str, OrderStatus] = {
-    "Accepted": OrderStatus.DELIVERING,
-    "PickedUp": OrderStatus.DELIVERING,
-    "Delivering": OrderStatus.DELIVERING,
-    "Delivered": OrderStatus.DELIVERED,
-    "Failed": OrderStatus.DELIVERY_FAILED,
-}
 
 
 class DeliveryEvent(BaseModel):
@@ -84,11 +82,15 @@ async def delivery_webhook(
     if order is None:
         return
 
-    new_status = _STATE_TO_ORDER_STATUS.get(event.state)
-    if new_status is None:
+    if is_terminal(order.current_status.value):
         return
 
-    if order.current_status in (OrderStatus.DELIVERED, OrderStatus.CANCELLED):
+    try:
+        target_status_value = status_for_delivery_event(event.state)
+        if order.current_status.value == target_status_value:
+            return
+        new_status = OrderStatus(transition(order.current_status.value, target_status_value))
+    except OrderTransitionError:
         return
 
     order.current_status = new_status

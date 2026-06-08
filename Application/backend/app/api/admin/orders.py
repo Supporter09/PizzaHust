@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.domain.order_state import OrderTransitionError, transition
 from app.infra.auth import require_role
 from app.infra.config import Settings, get_settings_dependency
 from app.infra.db.deps import get_db
@@ -81,14 +82,18 @@ def cancel_order(
     order: Order | None = db.get(Order, order_id)
     if order is None:
         raise HTTPException(status_code=404, detail="NOT_FOUND")
-    if order.current_status in (OrderStatus.DELIVERED, OrderStatus.CANCELLED):
-        raise HTTPException(status_code=409, detail="CONFLICT")
-    order.current_status = OrderStatus.CANCELLED
+    try:
+        new_status = OrderStatus(
+            transition(order.current_status.value, OrderStatus.CANCELLED.value)
+        )
+    except OrderTransitionError:
+        raise HTTPException(status_code=409, detail="CONFLICT") from None
+    order.current_status = new_status
     db.add(
         OrderTracking(
             order_id=order.order_id,
             updated_by=admin.user_id,
-            status=OrderStatus.CANCELLED,
+            status=new_status,
             note=body.reason,
         )
     )
@@ -128,12 +133,18 @@ def retry_dispatch(
     except DeliveryError as exc:
         raise HTTPException(status_code=502, detail="DELIVERY_UPSTREAM_ERROR") from exc
     order.delivery_reference = ref.reference
-    order.current_status = OrderStatus.DELIVERING
+    try:
+        new_status = OrderStatus(
+            transition(order.current_status.value, OrderStatus.DELIVERING.value)
+        )
+    except OrderTransitionError:
+        raise HTTPException(status_code=409, detail="CONFLICT") from None
+    order.current_status = new_status
     db.add(
         OrderTracking(
             order_id=order.order_id,
             updated_by=admin.user_id,
-            status=OrderStatus.DELIVERING,
+            status=new_status,
             note=f"Dispatched to delivery: {ref.reference}",
         )
     )
