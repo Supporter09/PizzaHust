@@ -55,9 +55,9 @@
       "name": "Order state machine + pricing + loyalty domain",
       "description": "Pure domain modules with tests. Order transitions, pricing pipeline, loyalty rules, service-area whitelist.",
       "depends_on": ["infra-003"],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "verify.sh green at 656479f, 2026-06-08T16:42:16+07:00 (backend 140 passed / 1 skipped; e2e 5 passed / 4 skipped)"
     },
     {
       "id": "infra-007",

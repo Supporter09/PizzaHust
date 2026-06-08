@@ -485,6 +485,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/config/delivery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Delivery Config */
+        get: operations["delivery_config_api_config_delivery_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/config/loyalty": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Loyalty Config */
+        get: operations["loyalty_config_api_config_loyalty_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/loyalty/me": {
         parameters: {
             query?: never;
@@ -746,6 +780,13 @@ export interface components {
             /** User Id */
             user_id: number;
         };
+        /** DeliveryConfigOut */
+        DeliveryConfigOut: {
+            /** Fee Vnd */
+            fee_vnd: number;
+            /** Service Area */
+            service_area: string[];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -824,6 +865,15 @@ export interface components {
             /** Csrf Token */
             csrf_token: string;
             user: components["schemas"]["AuthUserDTO"];
+        };
+        /** LoyaltyConfigOut */
+        LoyaltyConfigOut: {
+            /** Accrual Rate */
+            accrual_rate: number;
+            /** Max Redeem Pct */
+            max_redeem_pct: number;
+            /** Redeem Value Vnd */
+            redeem_value_vnd: number;
         };
         /** LoyaltyMeResponse */
         LoyaltyMeResponse: {
@@ -2268,6 +2318,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delivery_config_api_config_delivery_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeliveryConfigOut"];
+                };
+            };
+        };
+    };
+    loyalty_config_api_config_loyalty_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyConfigOut"];
                 };
             };
         };

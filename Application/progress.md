@@ -171,3 +171,19 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 **Admin layout guard bug — now FIXED (was flagged out-of-scope above)**
 - `app/admin/layout.tsx` now consumes the shared `useAuth()` session instead of a local raw `fetch("/api/auth/me")`: fixes the relative-URL 404 (split-origin dev) and the wrong field read (`profile.role` → the response is `{user:{role}}`), which had bounced authenticated admins to /login. Also inherits the provider's 401-only logout semantics.
 - Re-enabled the two admin e2e (A5/A6 render) — `verify.sh` e2e now 5 passed / 4 deferred (only U1/U2/U4 + register remain). Green at `2026-06-08T16:13:44+07:00`.
+
+---
+
+## 2026-06-08 — infra-006 order domain completed
+
+**Done**
+- Added pure domain modules: `order_state.py`, `pricing.py`, `loyalty.py`, `service_area.py`; domain imports remain clean.
+- Reconciled admin cancel/retry-dispatch and delivery webhook status writes through the state machine; illegal webhook transitions are no-ops.
+- Added `/api/config/delivery` and `/api/config/loyalty`; regenerated `openapi.json` and frontend API types.
+- Updated service area to Hanoi's 2025 post-reorganization 51 ward units (126 total commune-level units citywide).
+
+**Verified**
+- `./verify.sh` exits `0` at `656479f`, `2026-06-08T16:42:16+07:00`; backend 140 passed / 1 skipped; Playwright 5 passed / 4 skipped.
+
+**Next**
+- `infra-007` is the next unblocked board feature. `U1` remains blocked on `infra-008`; `U6` remains blocked on `U5`.

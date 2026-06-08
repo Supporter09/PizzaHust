@@ -19,7 +19,7 @@ Before writing code, in this order:
 - **One feature in-progress at a time.** Only one entry in `feature_list.json` may have `status: "in-progress"`.
 - **MVP boundary is non-negotiable.** Reject any change touching online payments, internal shipper portal, AI recommendation, native mobile, multi-branch, or BI dashboards.
 - **Mock-first delivery.** All delivery calls go through `backend/app/infra/delivery/port.py`. The mock is the default. Real provider is a separate adapter.
-- **Single-source business constants.** Delivery fee, loyalty rules, service area come from backend config and are exposed via `/api/config/*`. Frontend never hardcodes values.
+- **Single-source business constants.** Delivery fee, loyalty rules, and the 2025 Hanoi ward service area come from backend domain/config surfaces and are exposed via `/api/config/*`. Frontend never hardcodes values.
 - **Order state machine is enforced in `backend/app/domain/order_state.py`.** No router or service mutates status outside it.
 - **Contract parity.** When backend routes change, regenerate types into `frontend/lib/api/types.ts` from the OpenAPI export. CI fails on drift.
 - **Verification before claiming done.** `./verify.sh` must exit 0 and the timestamp + commit hash must be recorded in `feature_list.json` evidence.
@@ -65,7 +65,7 @@ In this order:
 ## Non-Negotiables (matches PRODUCT.md)
 
 - COD only. No payment gateway code.
-- Inner-Hanoi service area only. Reject other addresses at checkout.
+- Inner-Hanoi service area only, using the 2025 post-reorganization Hanoi ward whitelist. Reject other addresses at checkout.
 - Delivery fee constant `DELIVERY_FEE_VND` lives in `backend/app/domain/pricing.py`.
 - Order codes use format `PIZZ-` + 6 Crockford base32 chars (exclude I/L/O/U). Tracking endpoint is rate-limited.
 - Auth = httpOnly signed-cookie sessions, role claim inside session. No JWT.

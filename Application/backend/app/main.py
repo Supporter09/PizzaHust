@@ -15,6 +15,7 @@ from app.api.admin.items import router as admin_items_router
 from app.api.admin.options import router as admin_options_router
 from app.api.admin.orders import router as admin_orders_router
 from app.api.auth import router as auth_router
+from app.api.config import router as config_router
 from app.api.errors import (
     APIError,
     handle_api_error,
@@ -55,6 +56,7 @@ app.add_middleware(
 app.add_exception_handler(APIError, handle_api_error)
 app.add_exception_handler(HTTPException, handle_http_exception)
 app.add_exception_handler(RequestValidationError, handle_validation_error)
+app.include_router(config_router)
 app.include_router(auth_router)
 app.include_router(loyalty_router)
 app.include_router(admin_orders_router)

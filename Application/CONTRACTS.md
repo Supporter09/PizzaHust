@@ -48,7 +48,7 @@ Error codes (closed set, extend in this doc only):
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/api/config/delivery` | Returns `{ fee_vnd, service_area: ["Ba Đình", ...] }` |
+| GET | `/api/config/delivery` | Returns `{ fee_vnd, service_area: ["Ba Dinh", ...] }` for the 51 post-2025 Hanoi wards |
 | GET | `/api/config/loyalty` | Returns `{ accrual_rate, redeem_value_vnd, max_redeem_pct }` |
 
 ### Catalog (U1, U2, U4)
@@ -214,7 +214,7 @@ All under `/api/kitchen/`, role=`kitchen` required.
     { "kind": "side", "item_id": 21, "quantity": 2 },
     { "kind": "combo", "combo_id": 4, "quantity": 1 }
   ],
-  "address": { "district": "Ba Đình", "ward": "...", "street": "..." },
+  "address": { "administrative_unit": "Ba Đình", "street": "..." },
   "redeem_points": 10
 }
 ```

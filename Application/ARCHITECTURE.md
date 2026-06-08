@@ -57,7 +57,7 @@ Allowed transitions:
 | `Preparing` | `ReadyForDispatch` | K3 + T1 success (kitchen mark ready) |
 | `Preparing` | `DispatchPending` | K3 + T1 timeout/fail |
 | `Preparing` | `Cancelled` | A5 |
-| `DispatchPending` | `ReadyForDispatch` | A5 retry delivery (T1 success) |
+| `DispatchPending` | `Delivering` | A5 retry delivery (T1 success) |
 | `DispatchPending` | `Cancelled` | A5 |
 | `ReadyForDispatch` | `Delivering` | T2 webhook (`Accepted` / `PickedUp`) |
 | `Delivering` | `Delivered` | T2 webhook (`Delivered`) |
@@ -126,7 +126,7 @@ Order of operations:
 1. Sum line subtotals (pizza base + size delta + crust delta + topping deltas, or side dish price, or combo bundle price).
 2. Apply combo discounts (if any).
 3. Apply loyalty redemption discount (cap at `LOYALTY_MAX_REDEEM_PCT * subtotal_after_combo`).
-4. Add `DELIVERY_FEE_VND` (only if address passes `service_area.is_inner_hanoi(addr)`).
+4. Add `DELIVERY_FEE_VND` (only if address passes `service_area.is_inner_hanoi(addr)` against the 2025 Hanoi ward whitelist).
 5. Total = max(0, sum).
 
 Frontend never recomputes — it calls `POST /api/cart/quote` and renders the response.
@@ -148,10 +148,6 @@ DELIVERY_PROVIDER=mock
 DELIVERY_BASE_URL=http://delivery-mock:9000
 DELIVERY_API_KEY=...
 DELIVERY_WEBHOOK_SECRET=...
-DELIVERY_FEE_VND=22000
-LOYALTY_ACCRUAL_RATE=10000
-LOYALTY_REDEEM_VALUE_VND=1000
-LOYALTY_MAX_REDEEM_PCT=0.5
 ORDER_PROMISED_TIME_DEFAULT_MIN=45
 ```
 
