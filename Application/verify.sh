@@ -73,9 +73,12 @@ step "Frontend: build"
 popd >/dev/null
 
 step "Smoke: pytest + httpx end-to-end (place COD → kitchen → mock callback → tracking Delivered)"
-docker compose up -d backend frontend
+docker compose up -d backend frontend delivery-mock
 pushd backend >/dev/null
   source .venv/bin/activate
+  # Seed before the browser e2e so admin login + catalog pages have data.
+  # (compose `depends_on: mysql healthy` means MySQL is reachable here.)
+  python -m app.seeds.run
   pytest -q tests/smoke
   deactivate
 popd >/dev/null
