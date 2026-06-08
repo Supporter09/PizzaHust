@@ -70,7 +70,7 @@ def _tracking_count(order_id: int) -> int:
 
 def test_retry_dispatch_hands_off_and_advances_to_delivering() -> None:
     client = admin_client("dispatch-ok")
-    order_id = _new_order(OrderStatus.DISPATCH_PENDING, "PIZZ-DISOK1")
+    order_id = _new_order(OrderStatus.DISPATCH_PENDING, "PIZZ-D1S5K1")
     fake = _FakePort("mock-HANDOFF")
     client.app.dependency_overrides[get_delivery_port] = lambda: fake
 
@@ -81,7 +81,7 @@ def test_retry_dispatch_hands_off_and_advances_to_delivering() -> None:
     assert order.current_status == OrderStatus.DELIVERING
     assert order.delivery_reference == "mock-HANDOFF"
     assert fake.seen is not None
-    assert fake.seen.order_code == "PIZZ-DISOK1"
+    assert fake.seen.order_code == "PIZZ-D1S5K1"
     assert fake.seen.cod_amount_vnd == 250_000
     assert fake.seen.pickup_address  # sourced from config, non-empty
     assert _tracking_count(order_id) == 1
@@ -89,7 +89,7 @@ def test_retry_dispatch_hands_off_and_advances_to_delivering() -> None:
 
 def test_retry_dispatch_provider_failure_keeps_order_retryable() -> None:
     client = admin_client("dispatch-fail")
-    order_id = _new_order(OrderStatus.DISPATCH_PENDING, "PIZZ-DISFL1")
+    order_id = _new_order(OrderStatus.DISPATCH_PENDING, "PIZZ-D2SFK1")
     client.app.dependency_overrides[get_delivery_port] = lambda: _FailingPort()
 
     resp = client.post(f"/api/admin/orders/{order_id}/retry-dispatch")
@@ -104,7 +104,7 @@ def test_retry_dispatch_provider_failure_keeps_order_retryable() -> None:
 
 def test_retry_dispatch_rejects_wrong_state() -> None:
     client = admin_client("dispatch-state")
-    order_id = _new_order(OrderStatus.DELIVERED, "PIZZ-DISST1")
+    order_id = _new_order(OrderStatus.DELIVERED, "PIZZ-D3SST1")
     client.app.dependency_overrides[get_delivery_port] = lambda: _FakePort()
 
     resp = client.post(f"/api/admin/orders/{order_id}/retry-dispatch")
