@@ -110,7 +110,7 @@ All under `/api/admin/`, role=`admin` required.
 | GET | `/api/admin/orders` | A5 list, query param `status` |
 | GET | `/api/admin/orders/{id}` | A5 get order detail |
 | POST | `/api/admin/orders/{id}/cancel` | A5 cancel order |
-| POST | `/api/admin/orders/{id}/retry-dispatch` | infra-005 — hand a `DispatchPending` order to the delivery provider. Success → stores `delivery_reference`, status → `Delivering`, 204. Wrong state → 409. Provider unreachable → 502 `DELIVERY_UNAVAILABLE`, order stays `DispatchPending` (retryable) |
+| POST | `/api/admin/orders/{id}/retry-dispatch` | infra-005 — hand a `DispatchPending` order to the delivery provider. Success → stores `delivery_reference`, status → `Delivering`, 204. Wrong state → 409. Provider failure → 502 `DELIVERY_UPSTREAM_ERROR`, order stays `DispatchPending` (retryable) |
 | GET | `/api/admin/customers` | A6 list, query params: `q` (search), `page`, `page_size` |
 | GET | `/api/admin/customers/{id}` | A6 customer detail |
 | POST | `/api/admin/customers/{id}/lock` | A6 lock account, body `{ "reason": string \| null }` |
@@ -153,7 +153,7 @@ All under `/api/admin/`, role=`admin` required.
 - Lists all orders (any status). Client-side polling every 15s.
 - Filter by `status` enum value (including `DispatchPending`).
 - Alert banner when `DispatchPending` count > 0.
-- Retry dispatch sets order back to `ReadyForDispatch` for Kitchen to re-handoff.
+- Retry dispatch re-attempts the provider handoff for a `DispatchPending` order (see endpoint row above): success advances to `Delivering`, provider failure 502s and leaves it `DispatchPending` to retry.
 - AI Recommendation Service (`U10`) is **out-of-scope** for this sprint.
 
 #### A6 Customer Accounts — scope

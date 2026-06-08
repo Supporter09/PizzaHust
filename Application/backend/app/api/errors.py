@@ -23,6 +23,7 @@ _STATUS_TO_CODE: dict[int, tuple[str, str]] = {
     status.HTTP_404_NOT_FOUND: ("NOT_FOUND", "Resource not found."),
     status.HTTP_409_CONFLICT: ("CONFLICT", "Request conflicts with current state."),
     status.HTTP_429_TOO_MANY_REQUESTS: ("RATE_LIMITED", "Too many requests."),
+    status.HTTP_502_BAD_GATEWAY: ("DELIVERY_UPSTREAM_ERROR", "Delivery provider failed."),
 }
 
 

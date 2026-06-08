@@ -39,7 +39,9 @@ def _post_event(client: TestClient, payload: dict, *, signature: str | None = No
 def _new_order(reference: str | None, status: OrderStatus) -> int:
     with create_session_factory()() as db:
         order = Order(
-            order_code=f"PIZZ-{(reference or 'NONE')[-6:].upper()}",
+            # Contract format: PIZZ- + 6 Crockford base32 chars (no I/L/O/U). Each
+            # test builds its own fresh DB, so one row needs no unique suffix.
+            order_code="PIZZ-TEST01",
             recipient_name="Webhook",
             recipient_phone="0901234567",
             delivery_address="1 Test St",

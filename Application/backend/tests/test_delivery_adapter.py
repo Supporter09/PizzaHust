@@ -73,6 +73,30 @@ def test_request_raises_delivery_error_on_transport_failure() -> None:
         _adapter(handler).request(ORDER)
 
 
+def test_request_raises_delivery_error_on_missing_reference_field() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"unexpected": "shape"})
+
+    with pytest.raises(DeliveryError):
+        _adapter(handler).request(ORDER)
+
+
+def test_request_raises_delivery_error_on_non_json_body() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text="not json")
+
+    with pytest.raises(DeliveryError):
+        _adapter(handler).request(ORDER)
+
+
+def test_status_raises_delivery_error_on_missing_state_field() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"order_code": "PIZZ-ABC123"})
+
+    with pytest.raises(DeliveryError):
+        _adapter(handler).status("mock-xyz")
+
+
 def test_status_returns_state_for_reference() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.method == "GET"

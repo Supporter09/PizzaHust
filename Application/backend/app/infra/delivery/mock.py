@@ -36,15 +36,18 @@ class MockDeliveryAdapter:
         try:
             resp = self._client.post("/deliveries", json=asdict(order))
             resp.raise_for_status()
-        except httpx.HTTPError as exc:
+            return DeliveryReference(reference=resp.json()["reference"])
+        except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
+            # ValueError covers JSON decode errors; KeyError/TypeError cover a
+            # well-formed body that is missing/malformed fields. All are provider
+            # faults that must surface as a retryable DeliveryError, not a 500.
             raise DeliveryError(str(exc)) from exc
-        return DeliveryReference(reference=resp.json()["reference"])
 
     def status(self, reference: str) -> DeliveryStatus:
         try:
             resp = self._client.get(f"/deliveries/{reference}")
             resp.raise_for_status()
-        except httpx.HTTPError as exc:
+            body = resp.json()
+            return DeliveryStatus(reference=reference, state=body["state"], raw=body)
+        except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
             raise DeliveryError(str(exc)) from exc
-        body = resp.json()
-        return DeliveryStatus(reference=reference, state=body["state"], raw=body)

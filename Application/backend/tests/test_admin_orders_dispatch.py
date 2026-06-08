@@ -95,6 +95,7 @@ def test_retry_dispatch_provider_failure_keeps_order_retryable() -> None:
     resp = client.post(f"/api/admin/orders/{order_id}/retry-dispatch")
 
     assert resp.status_code == 502
+    assert "DELIVERY_UPSTREAM_ERROR" in resp.text  # canonical closed-set code
     order = _get_order(order_id)
     assert order.current_status == OrderStatus.DISPATCH_PENDING
     assert order.delivery_reference is None

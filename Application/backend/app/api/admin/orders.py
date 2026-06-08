@@ -107,7 +107,9 @@ def retry_dispatch(
     On success: store the reference and advance to Delivering. On provider
     failure: leave the order in DispatchPending so the admin can retry, and 502.
     """
-    order: Order | None = db.get(Order, order_id)
+    # Lock the row so two concurrent retries can't both pass the status check and
+    # double-dispatch: the second blocks here, then sees Delivering and 409s.
+    order: Order | None = db.get(Order, order_id, with_for_update=True)
     if order is None:
         raise HTTPException(status_code=404, detail="NOT_FOUND")
     if order.current_status != OrderStatus.DISPATCH_PENDING:
@@ -124,7 +126,7 @@ def retry_dispatch(
             )
         )
     except DeliveryError as exc:
-        raise HTTPException(status_code=502, detail="DELIVERY_UNAVAILABLE") from exc
+        raise HTTPException(status_code=502, detail="DELIVERY_UPSTREAM_ERROR") from exc
     order.delivery_reference = ref.reference
     order.current_status = OrderStatus.DELIVERING
     db.add(
