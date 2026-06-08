@@ -35,6 +35,16 @@ class Settings(BaseSettings):
     # Upper bound on an uploaded CSV (A1 bulk import); rejected with 400 if exceeded.
     csv_import_max_bytes: int = Field(default=2 * 1024 * 1024, gt=0, alias="CSV_IMPORT_MAX_BYTES")
 
+    # Delivery port (infra-005). The mock is the default provider; the real
+    # provider would be a sibling adapter selected by delivery_provider.
+    delivery_provider: str = Field(default="mock", alias="DELIVERY_PROVIDER")
+    delivery_base_url: str = Field(default="http://delivery-mock:9000", alias="DELIVERY_BASE_URL")
+    delivery_timeout_seconds: float = Field(default=5.0, gt=0, alias="DELIVERY_TIMEOUT_SECONDS")
+    # Single-source pickup address handed to the provider; not hardcoded in routers.
+    delivery_pickup_address: str = Field(
+        default="PizzaHUST, Hoan Kiem, Ha Noi", alias="DELIVERY_PICKUP_ADDRESS"
+    )
+
     admin_seed_phone: str = Field(default="0900000001", alias="ADMIN_SEED_PHONE")
     kitchen_seed_phone: str = Field(default="0900000002", alias="KITCHEN_SEED_PHONE")
     # No defaults: privileged seed passwords must come from the environment so no

@@ -2587,7 +2587,7 @@
     },
     "/api/admin/orders/{order_id}/retry-dispatch": {
       "post": {
-        "description": "Re-attempt delivery handoff for a DispatchPending order.",
+        "description": "Hand a DispatchPending order to the delivery provider.\n\nOn success: store the reference and advance to Delivering. On provider\nfailure: leave the order in DispatchPending so the admin can retry, and 502.",
         "operationId": "retry_dispatch_api_admin_orders__order_id__retry_dispatch_post",
         "parameters": [
           {

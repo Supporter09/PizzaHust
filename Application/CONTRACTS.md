@@ -110,7 +110,7 @@ All under `/api/admin/`, role=`admin` required.
 | GET | `/api/admin/orders` | A5 list, query param `status` |
 | GET | `/api/admin/orders/{id}` | A5 get order detail |
 | POST | `/api/admin/orders/{id}/cancel` | A5 cancel order |
-| POST | `/api/admin/orders/{id}/retry-dispatch` | A5 retry delivery for `DispatchPending` orders |
+| POST | `/api/admin/orders/{id}/retry-dispatch` | infra-005 — hand a `DispatchPending` order to the delivery provider. Success → stores `delivery_reference`, status → `Delivering`, 204. Wrong state → 409. Provider unreachable → 502 `DELIVERY_UNAVAILABLE`, order stays `DispatchPending` (retryable) |
 | GET | `/api/admin/customers` | A6 list, query params: `q` (search), `page`, `page_size` |
 | GET | `/api/admin/customers/{id}` | A6 customer detail |
 | POST | `/api/admin/customers/{id}/lock` | A6 lock account, body `{ "reason": string \| null }` |
@@ -190,6 +190,11 @@ All under `/api/kitchen/`, role=`kitchen` required.
 - `X-Signature` header: `hmac-sha256(body, DELIVERY_WEBHOOK_SECRET)` hex digest.
 - Idempotent: duplicate `event_id` (or `reference:state` if no `event_id`) is silently ignored.
 - State → order status mapping: `Accepted/PickedUp/Delivering → Delivering`, `Delivered → Delivered`, `Failed → DeliveryFailed`.
+- An unset/empty `DELIVERY_WEBHOOK_SECRET` fails closed (rejects every callback).
+
+#### Delivery provider (infra-005)
+- Outbound handoff goes through `DeliveryPort` (`backend/app/infra/delivery/port.py`); `get_delivery_port()` selects the adapter by `DELIVERY_PROVIDER` (`mock` is the default and only MVP provider). Config: `DELIVERY_BASE_URL`, `DELIVERY_TIMEOUT_SECONDS`, `DELIVERY_PICKUP_ADDRESS`.
+- Adapters raise `DeliveryError` on an unreachable/erroring provider; callers map it to a retryable `502`.
 
 ## Schema Examples
 

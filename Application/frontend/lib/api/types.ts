@@ -332,7 +332,10 @@ export interface paths {
         put?: never;
         /**
          * Retry Dispatch
-         * @description Re-attempt delivery handoff for a DispatchPending order.
+         * @description Hand a DispatchPending order to the delivery provider.
+         *
+         *     On success: store the reference and advance to Delivering. On provider
+         *     failure: leave the order in DispatchPending so the admin can retry, and 502.
          */
         post: operations["retry_dispatch_api_admin_orders__order_id__retry_dispatch_post"];
         delete?: never;

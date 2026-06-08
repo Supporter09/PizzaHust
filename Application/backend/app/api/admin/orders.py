@@ -10,8 +10,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.infra.auth import require_role
+from app.infra.config import Settings, get_settings_dependency
 from app.infra.db.deps import get_db
 from app.infra.db.models import Order, OrderStatus, OrderTracking, User, UserRole
+from app.infra.delivery import get_delivery_port
+from app.infra.delivery.port import DeliveryError, DeliveryPort, OrderForDispatch
 
 router = APIRouter(prefix="/api/admin/orders", tags=["admin-orders"])
 
@@ -96,19 +99,39 @@ def retry_dispatch(
     order_id: int,
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
+    port: DeliveryPort = Depends(get_delivery_port),
+    settings: Settings = Depends(get_settings_dependency),
 ) -> None:
-    """Re-attempt delivery handoff for a DispatchPending order."""
+    """Hand a DispatchPending order to the delivery provider.
+
+    On success: store the reference and advance to Delivering. On provider
+    failure: leave the order in DispatchPending so the admin can retry, and 502.
+    """
     order: Order | None = db.get(Order, order_id)
     if order is None:
         raise HTTPException(status_code=404, detail="NOT_FOUND")
     if order.current_status != OrderStatus.DISPATCH_PENDING:
         raise HTTPException(status_code=409, detail="CONFLICT")
-    order.current_status = OrderStatus.READY_FOR_DISPATCH
+    try:
+        ref = port.request(
+            OrderForDispatch(
+                order_code=order.order_code,
+                recipient_name=order.recipient_name,
+                recipient_phone=order.recipient_phone,
+                address=order.delivery_address,
+                cod_amount_vnd=order.total_amount_vnd,
+                pickup_address=settings.delivery_pickup_address,
+            )
+        )
+    except DeliveryError as exc:
+        raise HTTPException(status_code=502, detail="DELIVERY_UNAVAILABLE") from exc
+    order.delivery_reference = ref.reference
+    order.current_status = OrderStatus.DELIVERING
     db.add(
         OrderTracking(
             order_id=order.order_id,
             updated_by=admin.user_id,
-            status=OrderStatus.READY_FOR_DISPATCH,
-            note="Admin retry dispatch",
+            status=OrderStatus.DELIVERING,
+            note=f"Dispatched to delivery: {ref.reference}",
         )
     )
