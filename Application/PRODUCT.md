@@ -122,7 +122,7 @@ Only transitions in this graph are valid. Any other transition raises a domain e
 ## Loyalty Rules
 
 - Accrual: `floor(subtotal_after_discount / LOYALTY_ACCRUAL_RATE)` points, credited only when order reaches `Delivered`.
-- Redemption: customer chooses `n` points at checkout; discount = `n * LOYALTY_REDEEM_VALUE_VND`, capped at `LOYALTY_MAX_REDEEM_PCT * subtotal`.
+- Redemption: customer chooses `n` points at checkout; discount = `n * LOYALTY_REDEEM_VALUE_VND`, capped at `LOYALTY_MAX_REDEEM_PCT * subtotal_after_combo`.
 - Reservation: redeemed points are held until order reaches `Delivered` (consumed) or `Cancelled` / `Delivery Failed` (released).
 
 ## Delivery Service Area
