@@ -159,3 +159,11 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 **Next**
 - A5/A6: fix the admin layout guard (above) to re-enable the deferred admin e2e.
 - Remaining infra: `infra-006/007/008`. Or customer flow `U1/U2/U4` to re-enable the deferred happy-path e2e.
+
+**CodeRabbit PR #10 review (addressed, all valid)**
+- mock adapter: invalid/missing provider payload → DeliveryError (was 500).
+- get_delivery_port lru_cached (per-request httpx.Client leak).
+- retry-dispatch: SELECT ... FOR UPDATE row lock (double-dispatch race).
+- 502 now emits closed-set `DELIVERY_UPSTREAM_ERROR` (added status→code map); CONTRACTS reconciled (dropped stale ReadyForDispatch line).
+- quoted `DELIVERY_PICKUP_ADDRESS` in .env.example; Crockford order_code in webhook test.
+- Re-verified: `verify.sh` green at `f03f3bb`, `2026-06-08T16:04:04+07:00`.

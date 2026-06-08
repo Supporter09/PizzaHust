@@ -48,7 +48,7 @@
       "depends_on": ["infra-002"],
       "status": "done",
       "owner": "Hung",
-      "evidence": "verify.sh green at 5bd7417, 2026-06-08T15:38:11+07:00 (e2e 3 passed / 6 deferred via test.fixme)"
+      "evidence": "verify.sh green at f03f3bb, 2026-06-08T16:04:04+07:00 (e2e 3 passed / 6 deferred via test.fixme; CodeRabbit PR #10 review addressed)"
     },
     {
       "id": "infra-006",
