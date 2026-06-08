@@ -138,3 +138,24 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 **Next**
 - Merge PR #9 after Minh+Hung contract review. Separate ticket: fix e2e harness (seed before e2e + point `loginAsAdmin` at `:8000`) and pin `eslint-plugin-react-hooks`.
+
+---
+
+## 2026-06-08 — infra-005 delivery port + open items
+
+**Done**
+- infra-005: `MockDeliveryAdapter` (DeliveryPort over httpx → delivery-mock), `get_delivery_port()` selector keyed on `DELIVERY_PROVIDER`, delivery config (`DELIVERY_BASE_URL/TIMEOUT_SECONDS/PICKUP_ADDRESS`). `DeliveryError` moved to `port.py`.
+- Wired admin `retry-dispatch`: DispatchPending → `port.request()` → store `delivery_reference`, → Delivering; provider failure → 502, order stays retryable. No OpenAPI schema change (docstring-only → regenerated openapi.json + types.ts).
+- Tests (new): adapter (MockTransport), selector, **previously-untested T2 webhook** (HMAC/fail-closed/idempotency/status-map/terminal-state), retry-dispatch. 88 backend tests green.
+- Open items: pinned `eslint-plugin-react-hooks@7.1.1` (direct devDep); gitignored `.deploy/`, `*.egg-info/`, `CLAUDE.md`; e2e harness — verify.sh seeds + brings up delivery-mock before Playwright, `loginAsAdmin` → `E2E_API_URL` (:8000).
+- CONTRACTS.md: retry-dispatch behavior + 502 + delivery provider note. Smoke skip reason corrected (blocked on U6/kitchen/tracking, not infra).
+
+**Verified**
+- `./verify.sh` exits 0 at `5bd7417`, `2026-06-08T15:38:11+07:00`. e2e: 3 passed, 6 deferred (test.fixme).
+
+**Out-of-scope bugs found (NOT fixed — surgical scope; for A5/A6 owner)**
+- Admin layout guard (`app/admin/layout.tsx`) redirects an authenticated admin to /login: it reads `profile.role` but `GET /api/auth/me` returns `{user:{role}}`, and fetches a relative `/api/auth/me` that 404s in split-origin dev. Blocks A5/A6 admin pages + their e2e (deferred via `test.fixme`).
+
+**Next**
+- A5/A6: fix the admin layout guard (above) to re-enable the deferred admin e2e.
+- Remaining infra: `infra-006/007/008`. Or customer flow `U1/U2/U4` to re-enable the deferred happy-path e2e.
