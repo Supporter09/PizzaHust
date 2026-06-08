@@ -1,3 +1,8 @@
 # Superpowers brainstorming/planning artifacts — local only, never commit (repo is public)
 docs/superpowers/specs/
 docs/superpowers/plans/
+
+# Local-only / generated artifacts
+/.deploy/
+*.egg-info/
+/CLAUDE.md
