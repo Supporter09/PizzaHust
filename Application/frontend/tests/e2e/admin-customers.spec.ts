@@ -28,11 +28,7 @@ test.describe("A6 – Admin Customer Accounts", () => {
     await loginAsAdmin(page);
   });
 
-  // FUTURE(A6): the admin layout guard is broken independent of this harness — it
-  // reads profile.role but GET /api/auth/me returns { user: { role } }, and fetches
-  // a relative "/api/auth/me" that 404s in split-origin dev. Both redirect an
-  // authenticated admin to /login. Enable when A5/A6 wire the admin shell.
-  test.fixme("customers page renders table", async ({ page }) => {
+  test("customers page renders table", async ({ page }) => {
     await page.goto(`${BASE}/admin/customers`);
     await expect(page.getByRole("heading", { name: "Customer Accounts" })).toBeVisible();
     await expect(page.getByPlaceholder(/search/i)).toBeVisible();
@@ -44,8 +40,7 @@ test.describe("A5 – Monitor Orders", () => {
     await loginAsAdmin(page);
   });
 
-  // FUTURE(A5): same broken admin layout guard as the customers test above.
-  test.fixme("orders page renders with status filter chips", async ({ page }) => {
+  test("orders page renders with status filter chips", async ({ page }) => {
     await page.goto(`${BASE}/admin/orders`);
     await expect(page.getByRole("heading", { name: "Monitor Orders" })).toBeVisible();
     await expect(page.getByRole("button", { name: /all/i })).toBeVisible();
