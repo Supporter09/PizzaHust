@@ -13,8 +13,8 @@ cd Application && ./init.sh && ./verify.sh
 - infra-005: `MockDeliveryAdapter` + `get_delivery_port()` selector (`DELIVERY_PROVIDER`) + delivery config; admin `retry-dispatch` now actually dispatches (→ Delivering, or 502 + retryable on provider failure); tests for adapter, selector, the previously-untested T2 webhook, and retry-dispatch.
 - Open items: e2e harness (verify.sh seeds + starts delivery-mock; `loginAsAdmin` → `E2E_API_URL` :8000), `eslint-plugin-react-hooks@7.1.1` pinned, `.deploy/`/`*.egg-info/`/`CLAUDE.md` gitignored.
 
-**Top blocker (next session):** the 6 deferred e2e are blocked on *other* features, not infra-005:
+**Top blocker (next session):** the 4 remaining deferred e2e are blocked on *unbuilt pages*, not infra-005:
 - happy-path menu/item-detail/track → `U1`/`U2`/`U4` pages unbuilt; register → no auto-login flow.
-- admin customers/orders render → **admin layout guard bug** (`app/admin/layout.tsx`): reads `profile.role` but `GET /api/auth/me` returns `{user:{role}}`, and fetches a relative `/api/auth/me` (404 in split-origin dev) → redirects authed admins to /login. Fix belongs to `A5`/`A6`.
+- (Fixed this session: the admin layout guard bug that bounced authed admins to /login — `app/admin/layout.tsx` now uses the shared `useAuth()` session. A5/A6 render e2e re-enabled.)
 
 **Next feature:** push branch + open PR → `main`. Then `A5`/`A6` (fix the admin layout guard, re-enable admin e2e) or `infra-006`/`infra-007` per team assignment.

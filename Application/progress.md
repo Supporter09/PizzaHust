@@ -167,3 +167,7 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 - 502 now emits closed-set `DELIVERY_UPSTREAM_ERROR` (added status→code map); CONTRACTS reconciled (dropped stale ReadyForDispatch line).
 - quoted `DELIVERY_PICKUP_ADDRESS` in .env.example; Crockford order_code in webhook test.
 - Re-verified: `verify.sh` green at `f03f3bb`, `2026-06-08T16:04:04+07:00`.
+
+**Admin layout guard bug — now FIXED (was flagged out-of-scope above)**
+- `app/admin/layout.tsx` now consumes the shared `useAuth()` session instead of a local raw `fetch("/api/auth/me")`: fixes the relative-URL 404 (split-origin dev) and the wrong field read (`profile.role` → the response is `{user:{role}}`), which had bounced authenticated admins to /login. Also inherits the provider's 401-only logout semantics.
+- Re-enabled the two admin e2e (A5/A6 render) — `verify.sh` e2e now 5 passed / 4 deferred (only U1/U2/U4 + register remain). Green at `2026-06-08T16:13:44+07:00`.
