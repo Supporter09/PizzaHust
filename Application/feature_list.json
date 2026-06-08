@@ -46,9 +46,9 @@
       "name": "Delivery port + mock service",
       "description": "DeliveryPort protocol, mock adapter, delivery-mock standalone FastAPI service with HMAC-signed webhooks.",
       "depends_on": ["infra-002"],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "verify.sh green at 2026-06-08T16:13:44+07:00 (e2e 5 passed / 4 deferred; CodeRabbit PR #10 addressed; admin layout guard fixed)"
     },
     {
       "id": "infra-006",

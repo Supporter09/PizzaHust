@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+
+import { useAuth } from "@/components/auth-provider";
 
 const NAV = [
   { href: "/admin/orders", label: "Monitor Orders" },
@@ -14,40 +16,26 @@ const NAV = [
   { href: "/admin/import", label: "Bulk Import" },
 ];
 
-type AuthState = "checking" | "authorized" | "denied";
-
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [state, setState] = useState<AuthState>("checking");
+  // Reuse the shared session (apiFetch → configured API base, reads user.role,
+  // and only treats a 401 as logged-out). A local fetch here previously hit a
+  // relative /api on the frontend origin and read the wrong field, bouncing
+  // authenticated admins to /login.
+  const { user, loading } = useAuth();
+  const authorized = !loading && user?.role === "admin";
 
   useEffect(() => {
-    let active = true;
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((profile) => {
-        if (!active) return;
-        if (profile?.role === "admin") {
-          setState("authorized");
-        } else {
-          setState("denied");
-          router.replace("/login");
-        }
-      })
-      .catch(() => {
-        if (!active) return;
-        setState("denied");
-        router.replace("/login");
-      });
-    return () => {
-      active = false;
-    };
-  }, [router]);
+    if (!loading && user?.role !== "admin") {
+      router.replace("/login");
+    }
+  }, [loading, user, router]);
 
-  if (state !== "authorized") {
+  if (!authorized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 text-sm text-gray-400">
-        {state === "checking" ? "Checking access…" : "Redirecting to sign in…"}
+        {loading ? "Checking access…" : "Redirecting to sign in…"}
       </div>
     );
   }

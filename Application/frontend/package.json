@@ -27,6 +27,7 @@
     "@types/react-dom": "19.2.3",
     "eslint": "9.39.1",
     "eslint-config-next": "16.2.4",
+    "eslint-plugin-react-hooks": "7.1.1",
     "openapi-typescript": "7.13.0",
     "postcss": "8.5.12",
     "tailwindcss": "4.2.4",

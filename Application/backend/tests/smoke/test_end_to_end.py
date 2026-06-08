@@ -4,8 +4,9 @@ Asserts the canonical happy path: place COD order → kitchen accepts → kitche
 marks ready (triggers T1) → delivery-mock fires T2 webhook → tracking endpoint
 reports Delivered.
 
-Currently a placeholder until infra-002 through infra-005 land. Skipped so
-verify.sh stays green on the empty skeleton.
+Infra is now in place (delivery port + mock landed in infra-005). The full path
+still needs the use-case endpoints that don't exist yet: order placement (U6),
+kitchen accept/ready (K1–K3), and the tracking endpoint. Skipped until those land.
 """
 
 from __future__ import annotations
@@ -13,6 +14,6 @@ from __future__ import annotations
 import pytest
 
 
-@pytest.mark.skip(reason="enable once infra-002..infra-005 land")
+@pytest.mark.skip(reason="needs U6 order placement + kitchen (K1-K3) + tracking endpoint")
 def test_place_cod_order_through_to_delivered() -> None:
     raise NotImplementedError
