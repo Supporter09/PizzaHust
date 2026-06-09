@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 
 import { CategoryFilter } from "@/components/menu/category-filter";
 import { PizzaCard } from "@/components/menu/pizza-card";
@@ -72,13 +73,19 @@ export default function MenuPage() {
       {status === "ready" && visible.length > 0 ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((item) => (
-            <PizzaCard
+            <Link
               key={item.product_id}
-              name={item.name}
-              basePriceVnd={item.base_price_vnd}
-              isPizza={item.is_pizza}
-              imageUrl={item.image_url ?? null}
-            />
+              href={`/menu/${item.product_id}`}
+              aria-label={item.name}
+              className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              <PizzaCard
+                name={item.name}
+                basePriceVnd={item.base_price_vnd}
+                isPizza={item.is_pizza}
+                imageUrl={item.image_url ?? null}
+              />
+            </Link>
           ))}
         </div>
       ) : null}

@@ -553,6 +553,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/items/{product_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Item */
+        get: operations["get_item_api_items__product_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/loyalty/me": {
         parameters: {
             query?: never;
@@ -931,6 +948,43 @@ export interface components {
             /** Sort Order */
             sort_order: number;
         };
+        /** MenuCrustOut */
+        MenuCrustOut: {
+            /** Crust Id */
+            crust_id: number;
+            /** Name */
+            name: string;
+        };
+        /** MenuItemDetailOut */
+        MenuItemDetailOut: {
+            /** Base Price Vnd */
+            base_price_vnd: number;
+            /** Category Id */
+            category_id: number;
+            /**
+             * Crusts
+             * @default []
+             */
+            crusts: components["schemas"]["MenuCrustOut"][];
+            /** Image Url */
+            image_url?: string | null;
+            /** Is Pizza */
+            is_pizza: boolean;
+            /** Name */
+            name: string;
+            /** Product Id */
+            product_id: number;
+            /**
+             * Sizes
+             * @default []
+             */
+            sizes: components["schemas"]["MenuSizeOut"][];
+            /**
+             * Toppings
+             * @default []
+             */
+            toppings: components["schemas"]["MenuToppingOut"][];
+        };
         /** MenuItemOut */
         MenuItemOut: {
             /** Base Price Vnd */
@@ -945,6 +999,24 @@ export interface components {
             name: string;
             /** Product Id */
             product_id: number;
+        };
+        /** MenuSizeOut */
+        MenuSizeOut: {
+            /** Name */
+            name: string;
+            /** Price Modifier Vnd */
+            price_modifier_vnd: number;
+            /** Size Id */
+            size_id: number;
+        };
+        /** MenuToppingOut */
+        MenuToppingOut: {
+            /** Name */
+            name: string;
+            /** Price Vnd */
+            price_vnd: number;
+            /** Topping Id */
+            topping_id: number;
         };
         /** MessageResponse */
         MessageResponse: {
@@ -2458,6 +2530,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MenuItemOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_item_api_items__product_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuItemDetailOut"];
                 };
             };
             /** @description Validation Error */

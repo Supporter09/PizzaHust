@@ -1003,6 +1003,92 @@
         "title": "MenuCategoryOut",
         "type": "object"
       },
+      "MenuCrustOut": {
+        "properties": {
+          "crust_id": {
+            "title": "Crust Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "crust_id",
+          "name"
+        ],
+        "title": "MenuCrustOut",
+        "type": "object"
+      },
+      "MenuItemDetailOut": {
+        "properties": {
+          "base_price_vnd": {
+            "title": "Base Price Vnd",
+            "type": "integer"
+          },
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "crusts": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/MenuCrustOut"
+            },
+            "title": "Crusts",
+            "type": "array"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "is_pizza": {
+            "title": "Is Pizza",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "integer"
+          },
+          "sizes": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/MenuSizeOut"
+            },
+            "title": "Sizes",
+            "type": "array"
+          },
+          "toppings": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/MenuToppingOut"
+            },
+            "title": "Toppings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "product_id",
+          "category_id",
+          "name",
+          "base_price_vnd",
+          "is_pizza"
+        ],
+        "title": "MenuItemDetailOut",
+        "type": "object"
+      },
       "MenuItemOut": {
         "properties": {
           "base_price_vnd": {
@@ -1045,6 +1131,52 @@
           "is_pizza"
         ],
         "title": "MenuItemOut",
+        "type": "object"
+      },
+      "MenuSizeOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price_modifier_vnd": {
+            "title": "Price Modifier Vnd",
+            "type": "integer"
+          },
+          "size_id": {
+            "title": "Size Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "size_id",
+          "name",
+          "price_modifier_vnd"
+        ],
+        "title": "MenuSizeOut",
+        "type": "object"
+      },
+      "MenuToppingOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price_vnd": {
+            "title": "Price Vnd",
+            "type": "integer"
+          },
+          "topping_id": {
+            "title": "Topping Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "topping_id",
+          "name",
+          "price_vnd"
+        ],
+        "title": "MenuToppingOut",
         "type": "object"
       },
       "MessageResponse": {
@@ -3308,6 +3440,48 @@
           }
         },
         "summary": "List Items",
+        "tags": [
+          "menu"
+        ]
+      }
+    },
+    "/api/items/{product_id}": {
+      "get": {
+        "operationId": "get_item_api_items__product_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "title": "Product Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuItemDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Item",
         "tags": [
           "menu"
         ]
