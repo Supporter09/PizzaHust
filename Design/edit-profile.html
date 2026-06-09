@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust — Edit Profile</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .ep-wrap { max-width: 620px; margin: 0 auto; padding-block: 36px 80px; }
+  .ep { padding: 32px; }
+  .ava-row { display: flex; align-items: center; gap: 20px; padding-bottom: 24px; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+  .avatar { width: 76px; height: 76px; border-radius: var(--pill); background: var(--brand-50); color: var(--brand-600); display: flex; align-items: center; justify-content: center; flex: none; }
+  .avatar svg { width: 36px; height: 36px; }
+  .ava-row .hint { font-size: 13px; color: var(--ink-400); margin-top: 8px; }
+  .form-grid { display: grid; gap: 18px; }
+  .sec-t { font-size: 16px; font-weight: 700; color: var(--ink-900); margin: 10px 0 0; }
+  .sec-s { font-size: 13px; color: var(--ink-400); margin-top: 2px; }
+  .ep-foot { display: flex; gap: 12px; justify-content: flex-end; margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="page" data-screen-label="Edit Profile">
+  <header id="nav"></header>
+  <main class="page-body">
+    <div class="container ep-wrap">
+      <a class="back" href="account.html" style="margin-bottom:18px"><span id="i-back"></span> Back to Account</a>
+      <h1 class="h1" style="margin-bottom:26px">Edit Profile</h1>
+
+      <div class="card ep">
+        <div class="ava-row">
+          <span class="avatar" id="i-user"></span>
+          <div>
+            <div style="display:flex;gap:10px"><button class="btn btn-outline btn-sm"><span id="i-up"></span> Upload photo</button><button class="btn btn-ghost btn-sm" style="color:var(--brand-600)">Remove</button></div>
+            <div class="hint">JPG or PNG, square works best.</div>
+          </div>
+        </div>
+
+        <form class="form-grid" onsubmit="return false">
+          <div class="field"><label>Full Name</label><input type="text" value="John Doe"></div>
+          <div class="field">
+            <label>Phone Number</label>
+            <input type="tel" value="(555) 123-4567" disabled style="opacity:.65;cursor:not-allowed">
+            <p class="muted" style="font-size:12.5px;margin-top:7px">Your phone number is used for sign-in and can't be changed here — contact support to update it.</p>
+          </div>
+          <div class="field"><label>Address</label><input type="text" value="123 Main Street, Apt 4B, New York, NY 10001"></div>
+
+          <div>
+            <div class="sec-t">Change password</div>
+            <div class="sec-s">Leave blank to keep your current password.</div>
+          </div>
+          <div class="field"><label>Current Password</label><input type="password" placeholder="••••••••"></div>
+          <div class="field"><label>New Password</label><input type="password" placeholder="At least 8 characters"></div>
+
+          <div class="ep-foot">
+            <a class="btn btn-outline" href="account.html">Cancel</a>
+            <a class="btn btn-primary" href="account.html">Save Changes</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+</div>
+<script src="assets/chrome.js"></script>
+<script>
+  mountNav('Account', { cart: 0, points: 150 });
+  mountFooter();
+  document.getElementById('i-back').innerHTML = PH_ICON('back', 2);
+  document.getElementById('i-user').innerHTML = PH_ICON('user');
+  document.getElementById('i-up').innerHTML = PH_ICON('upload', 2);
+</script>
+</body>
+</html>

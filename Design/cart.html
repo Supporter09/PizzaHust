@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust — Your Cart</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="page" data-screen-label="Cart">
+  <header id="nav"></header>
+  <main class="page-body">
+    <div class="container" style="padding-block:40px 80px">
+      <h1 class="h1" style="margin-bottom:28px">Your Cart</h1>
+      <div class="order-layout">
+        <div>
+          <div class="card cart-item">
+            <div class="img-ph cart-thumb" data-label=""></div>
+            <div>
+              <div class="name">Margherita Classic</div>
+              <div class="opts">Size: M · Crust: Regular · Toppings: Extra Cheese</div>
+              <div class="inote">Note: Well-done bake</div>
+              <div class="ctrl">
+                <div class="stepper"><button type="button">−</button><span class="q">2</span><button type="button">+</button></div>
+              </div>
+            </div>
+            <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:14px">
+              <span class="line-price tnum">$28.98</span>
+              <button class="trash-btn" id="t1" aria-label="Remove"></button>
+            </div>
+          </div>
+
+          <div class="card cart-item">
+            <div class="img-ph cart-thumb" data-label=""></div>
+            <div>
+              <div class="name">Pepperoni Passion</div>
+              <div class="opts">Size: L · Crust: Stuffed Crust</div>
+              <div class="ctrl">
+                <div class="stepper"><button type="button">−</button><span class="q">1</span><button type="button">+</button></div>
+              </div>
+            </div>
+            <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:14px">
+              <span class="line-price tnum">$22.47</span>
+              <button class="trash-btn" id="t2" aria-label="Remove"></button>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="card summary">
+          <h3>Order Summary</h3>
+          <div class="loyalty-box">
+            <div><div class="lt">Use Loyalty Points</div><div class="ls">150 pts available · $15.00 off</div></div>
+            <div class="toggle" id="loyalty"></div>
+          </div>
+          <div class="sum-row"><span>Subtotal</span><span class="v">$51.45</span></div>
+          <div class="sum-row"><span>Tax (8%)</span><span class="v">$4.12</span></div>
+          <div class="sum-row"><span>Delivery Fee</span><span class="v free">FREE</span></div>
+          <div class="sum-row total"><span>Total</span><span class="v tnum">$55.57</span></div>
+          <a class="btn btn-primary btn-block btn-lg" href="checkout.html" style="margin-top:22px">Proceed to Checkout <span id="i-arr"></span></a>
+          <a class="btn btn-outline btn-block" href="menu.html" style="margin-top:12px">Continue Shopping</a>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+</div>
+
+<script src="assets/chrome.js"></script>
+<script>
+  mountNav('Menu', { cart: 2, points: 150 });
+  mountFooter();
+  document.getElementById('t1').innerHTML = PH_ICON('trash', 2);
+  document.getElementById('t2').innerHTML = PH_ICON('trash', 2);
+  document.getElementById('i-arr').innerHTML = PH_ICON('arrow', 2);
+  document.getElementById('loyalty').addEventListener('click', e => e.currentTarget.classList.toggle('on'));
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust Admin — Customer Detail</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .cd-grid { display: grid; grid-template-columns: 1fr 360px; gap: 22px; align-items: start; }
+  .cd-prof { padding: 26px; }
+  .cd-top { display: flex; align-items: center; gap: 18px; }
+  .avatar { width: 64px; height: 64px; border-radius: var(--pill); background: var(--brand-50); color: var(--brand-600); display: flex; align-items: center; justify-content: center; flex: none; }
+  .avatar svg { width: 30px; height: 30px; }
+  .cd-top h2 { font-size: 23px; display: flex; align-items: center; gap: 12px; }
+  .cd-top .since { color: var(--ink-400); font-size: 13.5px; margin-top: 4px; }
+  .contact { display: grid; gap: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+  .contact .c { display: flex; align-items: center; gap: 11px; color: var(--ink-700); font-size: 14.5px; }
+  .contact .c svg { width: 18px; height: 18px; color: var(--ink-400); flex: none; }
+  .cd-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 22px; }
+  .cd-stat { border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; background: var(--bg); }
+  .cd-stat .k { font-size: 12.5px; color: var(--ink-400); }
+  .cd-stat .v { font-size: 22px; font-weight: 800; color: var(--ink-900); margin-top: 4px; }
+  .danger { padding: 22px 24px; border-color: var(--brand-200); }
+  .danger h3 { font-size: 16px; display: flex; align-items: center; gap: 9px; }
+  .danger h3 svg { width: 19px; height: 19px; color: var(--brand-600); }
+  .danger p { font-size: 13.5px; color: var(--ink-500); margin: 10px 0 16px; }
+  .locked-note { display: none; }
+  body.is-locked .locked-note { display: flex; }
+</style>
+</head>
+<body>
+<div class="admin" data-screen-label="Admin Customer Detail">
+  <aside id="sidebar"></aside>
+  <main class="admin-main">
+    <a class="back" href="admin-customers.html" style="margin-bottom:18px"><span id="i-back"></span> Back to Customers</a>
+    <div class="admin-head" style="margin-top:10px">
+      <div><h1 class="h1">Customer Detail</h1><p>Profile, activity, and account controls.</p></div>
+    </div>
+
+    <div class="alert-banner locked-note">
+      <span class="ic" id="i-alert"></span>
+      <div><div class="t">This account is locked</div><div class="s">John can't sign in or place orders until the account is unlocked.</div></div>
+    </div>
+
+    <div class="cd-grid">
+      <div>
+        <div class="card cd-prof">
+          <div class="cd-top">
+            <span class="avatar" id="i-user"></span>
+            <div>
+              <h2>John Doe <span class="badge badge-done" id="status-badge">Active</span></h2>
+              <div class="since">Customer since 8/15/2025 · ID #C-1042</div>
+            </div>
+          </div>
+          <div class="contact">
+            <div class="c"><span id="i-mail"></span> john.doe@example.com</div>
+            <div class="c"><span id="i-phone"></span> (555) 123-4567</div>
+            <div class="c"><span id="i-pin"></span> 123 Main Street, Apt 4B, New York, NY 10001</div>
+          </div>
+          <div class="cd-stats">
+            <div class="cd-stat"><div class="k">Total Orders</div><div class="v">24</div></div>
+            <div class="cd-stat"><div class="k">Total Spent</div><div class="v tnum" style="color:var(--brand-600)">$847.50</div></div>
+            <div class="cd-stat"><div class="k">Loyalty Points</div><div class="v tnum">150</div></div>
+          </div>
+        </div>
+
+        <div class="card card-pad" style="margin-top:22px">
+          <h3 class="h3" style="margin-bottom:6px">Recent Orders</h3>
+          <table class="tbl">
+            <thead><tr><th>Order</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+            <tbody id="orders"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card danger">
+        <h3><span id="i-lock"></span> Account Access</h3>
+        <p id="lock-copy">Locking prevents this customer from signing in or placing orders. Their history and loyalty balance are preserved.</p>
+        <button class="btn btn-outline btn-block" id="lock-btn" style="color:var(--brand-600);border-color:var(--brand-200)">Lock Account</button>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/chrome.js"></script>
+<script>
+(function(){
+  mountSidebar('Customers');
+  const S=(id,n,sw)=>{const e=document.getElementById(id);if(e)e.innerHTML=PH_ICON(n,sw);};
+  S('i-back','back',2);S('i-user','user');S('i-mail','mail');S('i-phone','phone');S('i-pin','pin');S('i-lock','lock');S('i-alert','alert');
+  document.getElementById('orders').innerHTML = [
+    ['ORD1712345678','Apr 5, 2026','3 items','$51.45','<span class="badge badge-done">Delivered</span>'],
+    ['ORD1712233445','Apr 2, 2026','2 items','$24.98','<span class="badge badge-done">Delivered</span>'],
+    ['ORD1711998877','Mar 28, 2026','2 items','$31.98','<span class="badge badge-done">Delivered</span>'],
+    ['ORD1711776655','Mar 20, 2026','1 item','$16.99','<span class="badge badge-soft">Cancelled</span>'],
+  ].map(r=>`<tr><td class="strong">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td class="price tnum">${r[3]}</td><td>${r[4]}</td></tr>`).join('');
+
+  const btn = document.getElementById('lock-btn');
+  btn.addEventListener('click', () => {
+    const locked = document.body.classList.toggle('is-locked');
+    document.getElementById('status-badge').outerHTML = locked
+      ? '<span class="badge badge-fail" id="status-badge">Locked</span>'
+      : '<span class="badge badge-done" id="status-badge">Active</span>';
+    btn.textContent = locked ? 'Unlock Account' : 'Lock Account';
+    document.getElementById('lock-copy').textContent = locked
+      ? 'This account is locked. Unlocking restores sign-in and ordering immediately.'
+      : 'Locking prevents this customer from signing in or placing orders. Their history and loyalty balance are preserved.';
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust — Order History</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .oh-wrap { max-width: 860px; margin: 0 auto; padding-block: 36px 80px; }
+  .order-row { padding: 24px; margin-bottom: 18px; }
+  .order-row .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+  .order-row .head .oid { font-size: 17px; font-weight: 700; color: var(--ink-900); }
+  .order-row .head .date { color: var(--ink-400); font-size: 13.5px; margin-top: 3px; }
+  .order-row .items { margin: 16px 0; color: var(--ink-600,var(--ink-700)); font-size: 14.5px; display: grid; gap: 5px; }
+  .order-row .foot { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid var(--line); }
+  .order-row .foot .total { font-size: 22px; font-weight: 800; color: var(--brand-600); }
+  .order-row .acts { display: flex; gap: 10px; }
+  .order-row .acts .btn svg { width: 16px; height: 16px; }
+</style>
+</head>
+<body>
+<div class="page" data-screen-label="Order History">
+  <header id="nav"></header>
+  <main class="page-body">
+    <div class="container oh-wrap">
+      <a class="back" href="account.html" style="display:inline-flex;margin-bottom:18px"><span id="i-back"></span> Back to Account</a>
+      <h1 class="h1" style="margin-bottom:26px">Order History</h1>
+      <div id="orders"></div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+</div>
+<script src="assets/chrome.js"></script>
+<script>
+  mountNav('Account', { cart: 0, points: 150 });
+  mountFooter();
+  document.getElementById('i-back').innerHTML = PH_ICON('back', 2);
+  const orders = [
+    ['ORD1712345678','April 5, 2026',['2× Margherita Classic (M)','1× Pepperoni Passion (L)'],'$51.45'],
+    ['ORD1712233445','April 2, 2026',['1× BBQ Chicken (L)','1× Garlic Bread'],'$24.98'],
+    ['ORD1711998877','March 28, 2026',['2× Veggie Supreme (M)'],'$31.98'],
+  ];
+  document.getElementById('orders').innerHTML = orders.map(([id,date,items,total]) => `
+    <div class="card order-row">
+      <div class="head">
+        <div><div class="oid">Order #${id}</div><div class="date">${date}</div></div>
+        <span class="badge badge-done">${PH_ICON('check',3)} Delivered</span>
+      </div>
+      <div class="items">${items.map(i=>`<div>${i}</div>`).join('')}</div>
+      <div class="foot">
+        <span class="total tnum">${total}</span>
+        <div class="acts">
+          <button class="btn btn-outline btn-sm">${PH_ICON('refresh',2)} Reorder</button>
+          <button class="btn btn-outline btn-sm">View Details</button>
+        </div>
+      </div>
+    </div>`).join('');
+</script>
+</body>
+</html>

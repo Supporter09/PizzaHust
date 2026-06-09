@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust Admin — Orders</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .toolbar { padding: 18px; display: flex; gap: 14px; align-items: center; margin-bottom: 22px; flex-wrap: wrap; }
+  .search { flex: 1; min-width: 240px; position: relative; }
+  .search svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 19px; height: 19px; color: var(--ink-300); }
+  .search input { width: 100%; padding: 12px 16px 12px 44px; border-radius: var(--pill); border: 1.5px solid var(--line-2); background: var(--bg); font-family: inherit; font-size: 14.5px; }
+  .search input:focus { outline: none; border-color: var(--brand-400); background: var(--surface); }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filters .chip { padding: 9px 16px; font-size: 13.5px; }
+  .view-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: var(--r-sm); border: 1.5px solid var(--line-2); background: var(--surface); font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink-700); cursor: pointer; }
+  .view-btn:hover { border-color: var(--brand-300); color: var(--brand-600); }
+  .view-btn svg { width: 16px; height: 16px; }
+  .tbl th, .tbl td { white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="admin" data-screen-label="Admin Orders">
+  <aside id="sidebar"></aside>
+  <main class="admin-main">
+    <div class="admin-head"><div><h1 class="h1">Order Management</h1><p>View and manage all customer orders.</p></div></div>
+
+    <div class="alert-banner">
+      <span class="ic" id="i-alert"></span>
+      <div><div class="t">1 order needs attention — dispatch failed</div><div class="s">PIZZ-345682 couldn't be handed to the delivery provider. Retry now or cancel the order.</div></div>
+      <button class="btn btn-primary btn-sm act" id="retry-top">Retry Dispatch</button>
+    </div>
+
+    <div class="card toolbar">
+      <div class="search"><span id="i-search"></span><input type="text" placeholder="Search by order ID or customer name…"></div>
+      <div class="filters">
+        <button class="chip is-active">All</button>
+        <button class="chip">Received</button>
+        <button class="chip">Preparing</button>
+        <button class="chip">Ready</button>
+        <button class="chip">Dispatch Pending</button>
+        <button class="chip">Delivering</button>
+        <button class="chip">Delivered</button>
+        <button class="chip">Failed</button>
+        <button class="chip">Cancelled</button>
+      </div>
+    </div>
+
+    <div class="card" style="overflow:hidden">
+      <table class="tbl">
+        <thead><tr><th>Order ID</th><th>Customer</th><th>Date &amp; Time</th><th>Items</th><th>Total</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="assets/chrome.js"></script>
+<script>
+  mountSidebar('Orders');
+  document.getElementById('i-search').innerHTML = PH_ICON('search');
+  document.getElementById('i-alert').innerHTML = PH_ICON('alert', 2);
+  const rows = [
+    ['PIZZ-345682','Chris Evans','2026-04-06 10:42 AM','2 items','$42.50','DispatchPending','badge-amber', 'retry'],
+    ['ORD1712345678','John Doe','2026-04-06 10:30 AM','3 items','$51.45','Preparing','badge-prep', ''],
+    ['ORD1712345679','Jane Smith','2026-04-06 10:15 AM','2 items','$38.90','Received','badge-blue', ''],
+    ['ORD1712345680','Bob Johnson','2026-04-06 9:45 AM','4 items','$67.20','Delivering','badge-violet', ''],
+    ['ORD1712345677','Dana White','2026-04-06 9:35 AM','1 item','$14.99','ReadyForDispatch','badge-cyan', ''],
+    ['ORD1712345681','Alice Williams','2026-04-06 9:20 AM','2 items','$29.99','Delivered','badge-done', ''],
+    ['ORD1712345674','Sam Lee','2026-04-06 8:50 AM','3 items','$44.25','DeliveryFailed','badge-fail', ''],
+    ['ORD1712345670','Pat Brown','2026-04-06 8:10 AM','1 item','$12.99','Cancelled','badge-soft', ''],
+  ];
+  const label = s => ({DispatchPending:'Dispatch Pending', ReadyForDispatch:'Ready for Dispatch', DeliveryFailed:'Delivery Failed'}[s] || s);
+  document.getElementById('rows').innerHTML = rows.map(([id,who,dt,it,tot,st,cl,act]) => `
+    <tr>
+      <td class="strong">${id}</td><td>${who}</td><td>${dt}</td><td>${it}</td>
+      <td class="price tnum">${tot}</td>
+      <td><span class="badge ${cl}">${label(st)}</span></td>
+      <td style="text-align:right"><div style="display:inline-flex;gap:8px">${act==='retry' ? `<button class="view-btn" style="color:var(--amber-700);border-color:var(--cream-200)">${PH_ICON('refresh',2)} Retry</button>` : ''}<button class="view-btn">${PH_ICON('eye',2)} View</button></div></td>
+    </tr>`).join('');
+</script>
+</body>
+</html>

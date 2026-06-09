@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust — Menu</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .menu-head { background: linear-gradient(180deg, var(--brand-50), var(--bg)); padding-block: 48px 0; }
+  .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+  .menu-section { padding-block: 40px 80px; }
+  .empty-cat { display: none; text-align: center; color: var(--ink-400); padding: 60px 0; }
+</style>
+</head>
+<body>
+<div class="page" data-screen-label="Menu">
+  <header id="nav"></header>
+  <main class="page-body">
+    <section class="menu-head">
+      <div class="container">
+        <h1 class="h1">Our Menu</h1>
+        <p class="lead" style="margin-top:8px">Explore our delicious selection of pizzas, sides, and drinks.</p>
+        <div class="filters" id="filters">
+          <button class="chip is-active" data-cat="All">All Items</button>
+          <button class="chip" data-cat="Pizzas">Pizzas</button>
+          <button class="chip" data-cat="Sides">Sides</button>
+          <button class="chip" data-cat="Drinks">Drinks</button>
+        </div>
+      </div>
+    </section>
+    <section class="menu-section">
+      <div class="container">
+        <div class="p-grid cols-4" id="grid"></div>
+      </div>
+    </section>
+  </main>
+  <footer id="footer"></footer>
+</div>
+
+<script src="assets/chrome.js"></script>
+<script src="assets/data.js"></script>
+<script>
+  mountNav('Menu', { cart: 0 });
+  mountFooter();
+  const grid = document.getElementById('grid');
+  function render(cat) {
+    const items = cat === 'All' ? PH_MENU : PH_MENU.filter(m => m.cat === cat);
+    grid.innerHTML = items.map(productCard).join('');
+  }
+  render('All');
+  document.getElementById('filters').addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    document.querySelectorAll('#filters .chip').forEach(c => c.classList.toggle('is-active', c === b));
+    render(b.dataset.cat);
+  });
+</script>
+</body>
+</html>

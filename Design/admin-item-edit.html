@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust Admin — Edit Dish</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .ed-grid { display: grid; grid-template-columns: 1fr 340px; gap: 22px; align-items: start; }
+  .field select { width:100%; font-family:inherit; font-size:15px; color:var(--ink-900); padding:13px 16px; border-radius:var(--r); border:1.5px solid var(--line-2); background:var(--bg); }
+  .form-grid { display: grid; gap: 18px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .gal { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .gal-item { position: relative; aspect-ratio: 1; }
+  .gal-item .img-ph { width: 100%; height: 100%; border-radius: var(--r); }
+  .cover-badge { position: absolute; left: 8px; bottom: 8px; }
+  .gal-act { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; }
+  .gal-btn { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-500); cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: var(--sh-xs); transition: all .14s ease; }
+  .gal-btn svg { width: 14px; height: 14px; }
+  .gal-btn:hover { color: var(--brand-600); border-color: var(--brand-300); }
+  .gal-add { aspect-ratio: 1; border: 2px dashed var(--line-2); border-radius: var(--r); background: transparent; cursor: pointer; display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; color: var(--ink-400); font-size: 12.5px; font-weight: 600; font-family: inherit; transition: all .15s ease; }
+  .gal-add:hover { border-color: var(--brand-300); color: var(--brand-600); background: var(--brand-50); }
+  .gal-add svg { width: 20px; height: 20px; }
+  .gal-hint { font-size: 13px; color: var(--ink-400); margin-top: 10px; }
+  .line-preview { margin-top: 20px; border-top: 1px dashed var(--line-2); padding-top: 16px; }
+  .lp-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-300); margin-bottom: 10px; }
+  .lp-card { border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); padding: 13px 16px; max-width: 420px; }
+  .lp-note { display: inline-block; font-size: 12px; font-weight: 600; color: var(--amber-700); background: var(--cream-50); border: 1px solid var(--cream-200); border-radius: var(--pill); padding: 3px 10px; margin-top: 7px; }
+  .tog-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+  .tog-row:last-child { border-bottom: none; }
+  .tog-row .t { font-weight: 600; font-size: 14.5px; color: var(--ink-900); }
+  .tog-row .s { font-size: 12.5px; color: var(--ink-400); margin-top: 2px; }
+  .opt-note { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--ink-500); background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px 14px; margin-bottom: 18px; }
+  .opt-note svg { width: 17px; height: 17px; color: var(--amber-700); flex: none; }
+
+  /* Options editor */
+  .ocat { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); margin-bottom: 16px; overflow: hidden; }
+  .ocat-head { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .cat-input { font-weight: 700; font-size: 15.5px; color: var(--ink-900); font-family: inherit; border: 1px solid transparent; background: transparent; padding: 6px 9px; border-radius: 7px; width: 200px; min-width: 0; }
+  .cat-input:hover { border-color: var(--line-2); }
+  .cat-input:focus { outline: none; border-color: var(--brand-400); background: var(--surface); }
+  .ocat-head .count { font-size: 12.5px; color: var(--ink-400); margin-right: auto; white-space: nowrap; }
+  .ohead { display: grid; grid-template-columns: 44px 1.1fr 1.5fr 96px 34px; gap: 10px; padding: 9px 14px 3px; font-size: 10.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-300); }
+  .orow2 { display: grid; grid-template-columns: 44px 1.1fr 1.5fr 96px 34px; gap: 10px; align-items: center; padding: 3px 14px; }
+  .orow2 + .orow2 { border-top: 1px solid var(--line); }
+  .cell-in { width: 100%; font-family: inherit; font-size: 14px; color: var(--ink-900); border: 1px solid transparent; background: transparent; padding: 8px 9px; border-radius: 7px; min-width: 0; }
+  .cell-in::placeholder { color: var(--ink-300); }
+  .cell-in:hover { border-color: var(--line-2); }
+  .cell-in:focus { outline: none; border-color: var(--brand-400); background: var(--bg); }
+  .cell-in.desc { color: var(--ink-400); font-size: 13.5px; }
+  .cell-in.price { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .orow2.off .cell-in { color: var(--ink-300); }
+  .toggle.sm { width: 38px; height: 22px; }
+  .toggle.sm::after { width: 16px; height: 16px; }
+  .toggle.sm.on::after { left: 19px; }
+  .row-del { width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; color: var(--ink-300); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all .15s ease; }
+  .row-del:hover { background: var(--brand-50); color: var(--brand-600); }
+  .row-del svg { width: 16px; height: 16px; }
+  .add-opt-btn { margin: 8px 14px 12px; }
+  @media (max-width: 920px) { .ed-grid, .two { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="admin" data-screen-label="Admin Dish Editor">
+  <aside id="sidebar"></aside>
+  <main class="admin-main">
+    <a class="back" href="admin-menu.html" style="margin-bottom:18px"><span id="i-back"></span> Back to Menu Management</a>
+    <div class="admin-head" style="margin-top:10px">
+      <div><h1 class="h1">Edit Dish</h1><p>Margherita Classic · Pizzas</p></div>
+      <div style="display:flex;gap:12px"><a class="btn btn-outline" href="admin-menu.html">Cancel</a><a class="btn btn-primary" href="admin-menu.html">Save Changes</a></div>
+    </div>
+
+    <div class="ed-grid">
+      <div class="stack" style="gap:22px">
+        <div class="card card-pad">
+          <h3 class="h3" style="margin-bottom:18px">Basics</h3>
+          <div class="form-grid">
+            <div class="two">
+              <div class="field"><label>Name *</label><input type="text" value="Margherita Classic"></div>
+              <div class="field"><label>Category *</label><select><option selected>Pizzas</option><option>Sides</option><option>Drinks</option><option>Desserts</option></select></div>
+            </div>
+            <div class="two">
+              <div class="field"><label>Base Price *</label><input type="text" value="$12.99"></div>
+              <div class="field"><label>Prep time (mins)</label><input type="number" value="14"></div>
+            </div>
+            <div class="field"><label>Description</label><textarea rows="2">Fresh mozzarella, tomato sauce, and basil</textarea></div>
+            <div>
+              <label style="display:block;font-size:14px;font-weight:600;margin-bottom:10px">Images</label>
+              <div class="gal" id="gal"></div>
+              <p class="gal-hint">Up to 8 images. The <b>cover</b> shows on menu cards; the others appear in the customizer's photo gallery.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-pad" id="dish-options">
+          <div class="row between" style="margin-bottom:14px">
+            <h3 class="h3">Options</h3>
+            <button class="btn btn-outline btn-sm" id="add-cat"><span id="i-addcat"></span> Add Category</button>
+          </div>
+          <div class="opt-note"><span id="i-info"></span><span>Group options into categories (Sizes, Crusts, Toppings, …) — rename or add categories anytime. Each option has a name, price, and description; the toggle enables or disables it in the customizer.</span></div>
+          <div id="ocats"></div>
+          <div class="line-preview">
+            <div class="lp-label">How it appears in cart &amp; kitchen</div>
+            <div class="lp-card">
+              <div style="font-weight:700;font-size:14.5px;color:var(--ink-900)">1× Margherita Classic (M)</div>
+              <div style="font-size:13px;color:var(--ink-400);margin-top:2px">Regular crust · Extra Cheese</div>
+              <div class="lp-note">Note: Well-done bake</div>
+            </div>
+            <p style="font-size:12.5px;color:var(--ink-400);margin-top:10px">The line text is composed automatically from the customer's <b>option choices</b> above. The yellow note is typed by the <b>customer</b> when customizing this dish — it travels with the line to the cart and the kitchen queue.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack" style="gap:22px">
+        <div class="card card-pad">
+          <h3 class="h3" style="margin-bottom:8px">Visibility</h3>
+          <div class="tog-row"><div><div class="t">Available on menu</div><div class="s">Customers can see and order this dish</div></div><span class="toggle on" onclick="this.classList.toggle('on')"></span></div>
+          <div class="tog-row"><div><div class="t">Featured on home</div><div class="s">Shows in the Featured Pizzas section</div></div><span class="toggle on" onclick="this.classList.toggle('on')"></span></div>
+        </div>
+        <div class="card card-pad" style="border-color:var(--brand-200)">
+          <h3 class="h3" style="margin-bottom:8px">Danger Zone</h3>
+          <p class="muted" style="font-size:13.5px;margin-bottom:14px">Deleting removes this dish from the menu and all combos that reference it.</p>
+          <button class="btn btn-outline btn-block" style="color:var(--brand-600);border-color:var(--brand-200)"><span id="i-del"></span> Delete Dish</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/chrome.js"></script>
+<script>
+(function(){
+  mountSidebar('Menu Management');
+  const S=(id,n,sw)=>{const e=document.getElementById(id);if(e)e.innerHTML=PH_ICON(n,sw);};
+  S('i-back','back',2);S('i-del','trash',2);S('i-info','alert',2);S('i-addcat','plus',2.4);
+
+  /* ---- Image gallery ---- */
+  let imgs = [
+    { label: 'margherita — front', cover: true },
+    { label: 'close-up' },
+    { label: 'slice pull' },
+  ];
+  const gal = document.getElementById('gal');
+  function renderGal() {
+    gal.innerHTML = imgs.map((im, i) => `
+      <div class="gal-item">
+        <div class="img-ph" data-label="${im.label}"></div>
+        ${im.cover ? '<span class="badge badge-red cover-badge">Cover</span>' : ''}
+        <div class="gal-act">
+          ${im.cover ? '' : `<button class="gal-btn" data-i="${i}" data-act="cover" title="Set as cover">${PH_ICON('star',2)}</button>`}
+          <button class="gal-btn" data-i="${i}" data-act="del" title="Remove">${PH_ICON('trash',2)}</button>
+        </div>
+      </div>`).join('') + (imgs.length < 8 ? `<button class="gal-add" data-act="add">${PH_ICON('plus',2)}<span>Add image</span></button>` : '');
+  }
+  gal.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const a = b.dataset.act, i = +b.dataset.i;
+    if (a === 'add') imgs.push({ label: 'new photo' });
+    else if (a === 'del') { const wasCover = imgs[i].cover; imgs.splice(i, 1); if (wasCover && imgs[0]) imgs[0].cover = true; }
+    else if (a === 'cover') { imgs.forEach(x => x.cover = false); imgs[i].cover = true; }
+    renderGal();
+  });
+  renderGal();
+
+  const data = [
+    ['Sizes', [
+      ['Small','10" — serves 1','+$0.00',true],
+      ['Medium','12" — serves 2','+$2.00',true],
+      ['Large','14" — serves 3–4','+$4.00',true],
+    ]],
+    ['Crusts', [
+      ['Thin Crust','Light & crispy','+$0.00',true],
+      ['Regular','Our classic hand-tossed','+$0.00',true],
+      ['Thick Crust','Extra dough, extra chew','+$1.50',true],
+      ['Stuffed Crust','Mozzarella-filled edge','+$3.00',true],
+    ]],
+    ['Toppings', [
+      ['Extra Cheese','','+$1.50',true],
+      ['Pepperoni','','+$2.00',true],
+      ['Mushrooms','','+$1.00',true],
+      ['Olives','','+$1.00',true],
+      ['Bell Peppers','','+$1.00',true],
+      ['Onions','','+$0.75',true],
+      ['Sausage','','+$2.00',false],
+      ['Bacon','','+$2.50',false],
+    ]],
+  ];
+
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+
+  const rowHtml = ([n,d,p,on]) => `
+    <div class="orow2 ${on?'':'off'}">
+      <span class="toggle sm ${on?'on':''}" data-act="toggle" title="Enable / disable"></span>
+      <input class="cell-in" value="${esc(n)}" placeholder="Option name">
+      <input class="cell-in desc" value="${esc(d)}" placeholder="Description (optional)">
+      <input class="cell-in price" value="${esc(p)}" placeholder="+$0.00">
+      <button class="row-del" data-act="del-row" title="Delete option">${PH_ICON('trash',2)}</button>
+    </div>`;
+
+  const catHtml = (name, opts) => `
+    <div class="ocat">
+      <div class="ocat-head">
+        <input class="cat-input" value="${esc(name)}" placeholder="Category name" title="Click to rename">
+        <span class="count">${opts.length} option${opts.length===1?'':'s'}</span>
+        <button class="btn btn-ghost btn-sm" data-act="add-row" style="color:var(--brand-600)">+ Add Option</button>
+        <button class="row-del" data-act="del-cat" title="Delete category">${PH_ICON('trash',2)}</button>
+      </div>
+      <div class="ohead"><span></span><span>Name</span><span>Description</span><span style="text-align:right">Price</span><span></span></div>
+      <div class="rows">${opts.map(rowHtml).join('')}</div>
+    </div>`;
+
+  const wrap = document.getElementById('ocats');
+  wrap.innerHTML = data.map(([n,o]) => catHtml(n,o)).join('');
+
+  document.getElementById('add-cat').addEventListener('click', () => {
+    wrap.insertAdjacentHTML('beforeend', catHtml('New Category', []));
+    const inp = wrap.lastElementChild.querySelector('.cat-input');
+    inp.focus(); inp.select();
+  });
+
+  wrap.addEventListener('click', e => {
+    const act = e.target.closest('[data-act]'); if (!act) return;
+    const a = act.dataset.act;
+    if (a === 'toggle') {
+      act.classList.toggle('on');
+      act.closest('.orow2').classList.toggle('off', !act.classList.contains('on'));
+    } else if (a === 'del-row') {
+      const cat = act.closest('.ocat');
+      act.closest('.orow2').remove();
+      recount(cat);
+    } else if (a === 'del-cat') {
+      act.closest('.ocat').remove();
+    } else if (a === 'add-row') {
+      const cat = act.closest('.ocat');
+      cat.querySelector('.rows').insertAdjacentHTML('beforeend', rowHtml(['','','',true]));
+      cat.querySelector('.rows').lastElementChild.querySelector('.cell-in').focus();
+      recount(cat);
+    }
+  });
+
+  function recount(cat) {
+    const n = cat.querySelectorAll('.orow2').length;
+    cat.querySelector('.count').textContent = n + ' option' + (n===1?'':'s');
+  }
+})();
+</script>
+</body>
+</html>

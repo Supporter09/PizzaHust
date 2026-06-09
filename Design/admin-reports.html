@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust Admin — Reports</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .range { display: flex; gap: 10px; }
+  .range .chip { padding: 9px 16px; font-size: 13.5px; }
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 24px; }
+  .chart-card { padding: 24px; }
+  .chart-card h3 { font-size: 18px; margin-bottom: 18px; }
+  .chart svg { width: 100%; height: auto; display: block; }
+  .axis { font-size: 11px; fill: var(--ink-400); font-family: 'Poppins',sans-serif; }
+  .rank { width: 34px; height: 34px; border-radius: 50%; background: var(--brand-50); color: var(--brand-600); font-weight: 700; font-size: 13.5px; display: inline-flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+<div class="admin" data-screen-label="Admin Reports">
+  <aside id="sidebar"></aside>
+  <main class="admin-main">
+    <div class="admin-head">
+      <div><h1 class="h1">Reports &amp; Analytics</h1><p>Track your business performance.</p></div>
+      <div class="range"><button class="chip is-active">Last 7 Days</button><button class="chip">Last 30 Days</button><button class="chip">Custom Range</button></div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="card stat"><div class="k">Total Revenue</div><div class="v tnum">$12,847</div><div class="d up">+15% vs last week</div></div>
+      <div class="card stat"><div class="k">Total Orders</div><div class="v">369</div><div class="d up">+8% vs last week</div></div>
+      <div class="card stat"><div class="k">Avg Order Value</div><div class="v tnum">$34.82</div><div class="d up">+4% vs last week</div></div>
+      <div class="card stat"><div class="k">Active Customers</div><div class="v">156</div><div class="d up">+12% vs last week</div></div>
+    </div>
+
+    <div class="charts">
+      <div class="card chart-card"><h3>Daily Revenue</h3><div class="chart" id="line"></div></div>
+      <div class="card chart-card"><h3>Daily Orders</h3><div class="chart" id="bars"></div></div>
+    </div>
+
+    <div class="card card-pad" style="margin-top:22px">
+      <h3 class="h3" style="margin-bottom:6px">Top Selling Items</h3>
+      <table class="tbl">
+        <thead><tr><th style="width:90px">Rank</th><th>Item Name</th><th>Orders</th><th style="text-align:right">Revenue</th></tr></thead>
+        <tbody id="top"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="assets/chrome.js"></script>
+<script>
+(function(){
+  mountSidebar('Reports');
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  // Line chart — Daily Revenue
+  (function(){
+    const data = [1280,1620,1420,1820,2150,2600,1920];
+    const W=580,H=260,pl=52,pr=16,pt=16,pb=34, maxY=2600;
+    const iw=W-pl-pr, ih=H-pt-pb;
+    const x=i=>pl+iw*i/(data.length-1);
+    const y=v=>pt+ih*(1-v/maxY);
+    let grid='', ylab='';
+    [0,650,1300,1950,2600].forEach(v=>{const yy=y(v);grid+=`<line x1="${pl}" y1="${yy}" x2="${W-pr}" y2="${yy}" style="stroke:var(--line)" stroke-width="1"/>`;ylab+=`<text class="axis" x="${pl-10}" y="${yy+4}" text-anchor="end">${v}</text>`;});
+    const pts=data.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+    const area=`${pl},${y(0)} ${pts} ${x(data.length-1)},${y(0)}`;
+    const dots=data.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="4.5" fill="#D62A2A" style="stroke:var(--surface)" stroke-width="2"/>`).join('');
+    const xlab=days.map((d,i)=>`<text class="axis" x="${x(i)}" y="${H-12}" text-anchor="middle">${d}</text>`).join('');
+    document.getElementById('line').innerHTML=`<svg viewBox="0 0 ${W} ${H}"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D62A2A" stop-opacity=".18"/><stop offset="1" stop-color="#D62A2A" stop-opacity="0"/></linearGradient></defs>${grid}<polygon points="${area}" fill="url(#ag)"/><polyline points="${pts}" fill="none" stroke="#D62A2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}${ylab}${xlab}</svg>`;
+  })();
+
+  // Bar chart — Daily Orders
+  (function(){
+    const data = [37,45,41,52,61,74,58];
+    const W=580,H=260,pl=42,pr=16,pt=16,pb=34, maxY=80;
+    const iw=W-pl-pr, ih=H-pt-pb;
+    const bw=iw/data.length*0.55;
+    const y=v=>pt+ih*(1-v/maxY);
+    let grid='', ylab='';
+    [0,20,40,60,80].forEach(v=>{const yy=y(v);grid+=`<line x1="${pl}" y1="${yy}" x2="${W-pr}" y2="${yy}" style="stroke:var(--line)" stroke-width="1"/>`;ylab+=`<text class="axis" x="${pl-10}" y="${yy+4}" text-anchor="end">${v}</text>`;});
+    const bars=data.map((v,i)=>{const cx=pl+iw*(i+0.5)/data.length;return `<rect x="${cx-bw/2}" y="${y(v)}" width="${bw}" height="${y(0)-y(v)}" rx="5" fill="#D62A2A"/>`;}).join('');
+    const xlab=days.map((d,i)=>{const cx=pl+iw*(i+0.5)/data.length;return `<text class="axis" x="${cx}" y="${H-12}" text-anchor="middle">${d}</text>`;}).join('');
+    document.getElementById('bars').innerHTML=`<svg viewBox="0 0 ${W} ${H}">${grid}${bars}${ylab}${xlab}</svg>`;
+  })();
+
+  const topItems = [
+    ['1','Pepperoni Passion','124 orders','$1,859.76'],
+    ['2','Margherita Classic','98 orders','$1,271.02'],
+    ['3','BBQ Chicken','87 orders','$1,391.13'],
+    ['4','Veggie Supreme','76 orders','$1,063.24'],
+    ['5','Meat Lovers','65 orders','$1,103.35'],
+  ];
+  document.getElementById('top').innerHTML = topItems.map(([r,n,o,rev]) => `
+    <tr><td><span class="rank">#${r}</span></td><td class="strong">${n}</td><td>${o}</td><td style="text-align:right" class="price tnum">${rev}</td></tr>`).join('');
+})();
+</script>
+</body>
+</html>

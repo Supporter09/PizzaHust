@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust Admin — Combos</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .combo-admin-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; align-items: start; }
+  .ca { overflow: hidden; }
+  .ca-img { aspect-ratio: 16/7; position: relative; }
+  .ca-img .badge { position: absolute; top: 14px; right: 14px; }
+  .ca-body { padding: 22px 24px; }
+  .ca-body h3 { font-size: 21px; }
+  .ca-body .desc { color: var(--ink-500); font-size: 14.5px; margin-top: 6px; }
+  .ca-price { display: flex; align-items: baseline; gap: 12px; margin: 14px 0 6px; }
+  .ca-price .old { color: var(--ink-300); text-decoration: line-through; font-size: 16px; }
+  .ca-price .new { font-size: 28px; font-weight: 800; color: var(--brand-600); }
+  .ca-meta { display: flex; align-items: center; gap: 8px; color: var(--ink-400); font-size: 13.5px; }
+  .ca-meta svg { width: 16px; height: 16px; }
+  .ca-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+  .ca-acts .btn svg { width: 16px; height: 16px; }
+  .create-combo { border: 2px dashed var(--line-2); border-radius: var(--r-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 48px 24px; cursor: pointer; transition: all .16s ease; background: var(--surface); min-height: 280px; }
+  .create-combo:hover { border-color: var(--brand-300); background: var(--brand-50); }
+  .create-combo .plus { width: 64px; height: 64px; border-radius: 50%; background: var(--brand-50); color: var(--brand-600); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+  .create-combo .plus svg { width: 30px; height: 30px; }
+  .create-combo h3 { font-size: 19px; }
+  .create-combo p { color: var(--ink-400); font-size: 14px; margin-top: 6px; max-width: 280px; }
+</style>
+</head>
+<body>
+<div class="admin" data-screen-label="Admin Combos">
+  <aside id="sidebar"></aside>
+  <main class="admin-main">
+    <div class="admin-head">
+      <div><h1 class="h1">Combos &amp; Campaigns</h1><p>Create and manage promotional combo deals.</p></div>
+      <a class="btn btn-primary" href="admin-combo-edit.html"><span id="i-add"></span> Create New Combo</a>
+    </div>
+
+    <div class="combo-admin-grid">
+      <div class="card ca">
+        <div class="img-ph ca-img" data-label="family feast"><span class="badge badge-done">Active</span></div>
+        <div class="ca-body">
+          <h3>Family Feast</h3>
+          <p class="desc">2 Large Pizzas + 2 Sides + 4 Drinks</p>
+          <div class="ca-price"><span class="old tnum">$59.99</span><span class="new tnum">$49.99</span><span class="badge badge-amber">Save $10.00</span></div>
+          <div class="ca-meta"><span id="c1"></span> Valid until 5/15/2026</div>
+          <div class="ca-acts"><a class="btn btn-outline" id="e1" href="admin-combo-edit.html">Edit</a><button class="btn btn-outline" id="d1" style="color:var(--brand-600)">Delete</button></div>
+        </div>
+      </div>
+
+      <div class="card ca">
+        <div class="img-ph ca-img" data-label="solo special"><span class="badge badge-done">Active</span></div>
+        <div class="ca-body">
+          <h3>Solo Special</h3>
+          <p class="desc">1 Medium Pizza + 1 Side + 1 Drink</p>
+          <div class="ca-price"><span class="old tnum">$24.99</span><span class="new tnum">$19.99</span><span class="badge badge-amber">Save $5.00</span></div>
+          <div class="ca-meta"><span id="c2"></span> Valid until 4/30/2026</div>
+          <div class="ca-acts"><a class="btn btn-outline" id="e2" href="admin-combo-edit.html">Edit</a><button class="btn btn-outline" id="d2" style="color:var(--brand-600)">Delete</button></div>
+        </div>
+      </div>
+
+      <a class="create-combo" href="admin-combo-edit.html">
+        <span class="plus" id="i-plus"></span>
+        <h3>Create New Combo</h3>
+        <p>Design a new combo deal to attract more customers.</p>
+      </a>
+    </div>
+  </main>
+</div>
+<script src="assets/chrome.js"></script>
+<script>
+  mountSidebar('Combos & Campaigns');
+  const S=(id,n,sw)=>{const e=document.getElementById(id);if(e)e.innerHTML=PH_ICON(n,sw);};
+  S('i-add','plus',2.4); S('i-plus','plus',2.2); S('c1','calendar'); S('c2','calendar');
+  document.getElementById('e1').insertAdjacentHTML('afterbegin', PH_ICON('edit',2)+' ');
+  document.getElementById('e2').insertAdjacentHTML('afterbegin', PH_ICON('edit',2)+' ');
+  document.getElementById('d1').insertAdjacentHTML('afterbegin', PH_ICON('trash',2)+' ');
+  document.getElementById('d2').insertAdjacentHTML('afterbegin', PH_ICON('trash',2)+' ');
+</script>
+</body>
+</html>

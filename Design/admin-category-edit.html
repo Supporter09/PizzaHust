@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust Admin — Edit Category</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .ce-grid { display: grid; grid-template-columns: 1fr 340px; gap: 22px; align-items: start; }
+  .form-grid { display: grid; gap: 18px; }
+  .tog-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+  .tog-row:last-child { border-bottom: none; }
+  .tog-row .t { font-weight: 600; font-size: 14.5px; color: var(--ink-900); }
+  .tog-row .s { font-size: 12.5px; color: var(--ink-400); margin-top: 2px; }
+  .item-row { display: flex; align-items: center; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .item-row:last-child { border-bottom: none; }
+  .item-row .img-ph { width: 44px; height: 44px; border-radius: 9px; flex: none; }
+  .item-row .img-ph::after { display: none; }
+  .item-row .n { font-weight: 600; font-size: 14.5px; color: var(--ink-900); }
+  .item-row .p { font-size: 13px; color: var(--ink-400); }
+  .item-row .rm { margin-left: auto; }
+  .rm { width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; color: var(--ink-300); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all .15s ease; }
+  .rm:hover { background: var(--brand-50); color: var(--brand-600); }
+  .rm svg { width: 16px; height: 16px; }
+  @media (max-width: 920px) { .ce-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="admin" data-screen-label="Admin Category Editor">
+  <aside id="sidebar"></aside>
+  <main class="admin-main">
+    <a class="back" href="admin-categories.html" style="margin-bottom:18px"><span id="i-back"></span> Back to Categories</a>
+    <div class="admin-head" style="margin-top:10px">
+      <div><h1 class="h1">Edit Category</h1><p>Sides · 3 items</p></div>
+      <div style="display:flex;gap:12px"><a class="btn btn-outline" href="admin-categories.html">Cancel</a><a class="btn btn-primary" href="admin-categories.html">Save Changes</a></div>
+    </div>
+
+    <div class="ce-grid">
+      <div class="stack" style="gap:22px">
+        <div class="card card-pad">
+          <h3 class="h3" style="margin-bottom:18px">Basics</h3>
+          <div class="form-grid">
+            <div class="field"><label>Category Name *</label><input type="text" value="Sides"></div>
+            <div class="field"><label>Description <span class="muted" style="font-weight:500">(shown under the menu tab)</span></label><textarea rows="2">Crispy, fresh companions for your pizza.</textarea></div>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="row between" style="margin-bottom:8px"><h3 class="h3">Items in this category</h3><a class="btn btn-outline btn-sm" href="admin-item-edit.html"><span id="i-add"></span> Add Item</a></div>
+          <div id="items"></div>
+          <p class="muted" style="font-size:12.5px;margin-top:12px">Removing an item here moves it to <b>Uncategorized</b> — it isn't deleted.</p>
+        </div>
+      </div>
+
+      <div class="stack" style="gap:22px">
+        <div class="card card-pad">
+          <h3 class="h3" style="margin-bottom:8px">Visibility</h3>
+          <div class="tog-row"><div><div class="t">Active</div><div class="s">Category is available for items</div></div><span class="toggle on" onclick="this.classList.toggle('on')"></span></div>
+          <div class="tog-row"><div><div class="t">Visible on menu</div><div class="s">Shows as a filter tab on the customer menu</div></div><span class="toggle on" onclick="this.classList.toggle('on')"></span></div>
+        </div>
+        <div class="card card-pad" style="border-color:var(--brand-200)">
+          <h3 class="h3" style="margin-bottom:8px">Danger Zone</h3>
+          <p class="muted" style="font-size:13.5px;margin-bottom:14px">Deleting this category moves its 3 items to <b>Uncategorized</b>.</p>
+          <button class="btn btn-outline btn-block" style="color:var(--brand-600);border-color:var(--brand-200)"><span id="i-del"></span> Delete Category</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/chrome.js"></script>
+<script>
+(function(){
+  mountSidebar('Categories');
+  const S=(id,n,sw)=>{const e=document.getElementById(id);if(e)e.innerHTML=PH_ICON(n,sw);};
+  S('i-back','back',2);S('i-add','plus',2.4);S('i-del','trash',2);
+  document.getElementById('items').innerHTML = [
+    ['Garlic Bread','$4.99'],
+    ['Chicken Wings','$8.99'],
+    ['Caesar Salad','$5.99'],
+  ].map(([n,p]) => `
+    <div class="item-row">
+      <span class="img-ph"></span>
+      <div><div class="n">${n}</div><div class="p tnum">${p}</div></div>
+      <button class="rm" onclick="this.closest('.item-row').remove()" title="Remove from category">${PH_ICON('trash',2)}</button>
+    </div>`).join('');
+})();
+</script>
+</body>
+</html>

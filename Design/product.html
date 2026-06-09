@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust — Customize</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .pd { padding-block: 28px 80px; }
+  .back { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-500); font-weight: 600; font-size: 15px; margin-bottom: 24px; }
+  .back:hover { color: var(--brand-600); }
+  .back svg { width: 20px; height: 20px; }
+  .pd-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 48px; align-items: start; }
+  .pd-media { position: sticky; top: calc(var(--nav-h) + 24px); }
+  .pd-img { aspect-ratio: 1/1; border-radius: var(--r-xl); }
+  .pd-thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 14px; }
+  .pd-thumb { aspect-ratio: 1/1; border-radius: var(--r); cursor: pointer; }
+  .pd-thumb.sel { outline: 2.5px solid var(--brand-600); outline-offset: 2px; }
+  .pd h1 { font-size: 36px; }
+  .pd .desc { color: var(--ink-500); font-size: 16px; margin-top: 8px; }
+  .group { margin-top: 30px; }
+  .group > h3 { font-size: 17px; margin-bottom: 14px; }
+  .group .opt-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .opt {
+    border: 1.5px solid var(--line-2); border-radius: var(--r); background: var(--surface);
+    padding: 13px 22px; cursor: pointer; text-align: center; transition: all .14s ease; min-width: 96px;
+  }
+  .opt:hover { border-color: var(--brand-300); }
+  .opt .t { font-weight: 600; font-size: 15px; color: var(--ink-800); }
+  .opt .s { font-size: 13px; color: var(--ink-400); margin-top: 2px; }
+  .opt.sel { border-color: var(--brand-600); background: var(--brand-50); }
+  .opt.sel .t, .opt.sel .s { color: var(--brand-700); }
+  .top-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .top {
+    display: flex; align-items: center; gap: 11px; padding: 13px 14px;
+    border: 1.5px solid var(--line-2); border-radius: var(--r); background: var(--surface); cursor: pointer; transition: all .14s ease;
+  }
+  .top:hover { border-color: var(--brand-300); }
+  .top.sel { border-color: var(--brand-600); background: var(--brand-50); }
+  .top .box { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--line-2); flex: none; display: flex; align-items: center; justify-content: center; color: #fff; transition: all .14s ease; }
+  .top.sel .box { background: var(--brand-600); border-color: var(--brand-600); }
+  .top .box svg { width: 14px; height: 14px; opacity: 0; }
+  .top.sel .box svg { opacity: 1; }
+  .top .info { line-height: 1.25; }
+  .top .info .n { font-size: 14.5px; font-weight: 600; color: var(--ink-800); }
+  .top .info .p { font-size: 12.5px; color: var(--ink-400); }
+  .pd-foot { margin-top: 32px; border-top: 1px solid var(--line); padding-top: 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .qty-block { display: flex; align-items: center; gap: 16px; }
+  .qty-block .lbl { font-weight: 600; font-size: 15px; }
+  .total-bar { display: flex; align-items: center; gap: 18px; }
+  .total-bar .tt { text-align: right; }
+  .total-bar .tt .l { font-size: 13px; color: var(--ink-400); }
+  .total-bar .tt .v { font-size: 30px; font-weight: 800; color: var(--brand-600); line-height: 1; }
+</style>
+</head>
+<body>
+<div class="page" data-screen-label="Product Detail">
+  <header id="nav"></header>
+  <main class="page-body">
+    <div class="container pd">
+      <a class="back" href="menu.html"><span id="i-back"></span> Back to Menu</a>
+      <div class="pd-grid">
+        <div class="pd-media">
+          <div class="img-ph pd-img" data-label="margherita — main"></div>
+          <div class="pd-thumbs">
+            <div class="img-ph pd-thumb sel" data-label=""></div>
+            <div class="img-ph pd-thumb" data-label=""></div>
+            <div class="img-ph pd-thumb" data-label=""></div>
+            <div class="img-ph pd-thumb" data-label=""></div>
+          </div>
+        </div>
+        <div class="pd-config">
+          <h1>Margherita Classic</h1>
+          <p class="desc">Fresh mozzarella, tomato sauce, and basil — a timeless favorite baked on our signature dough.</p>
+
+          <div class="group">
+            <h3>Select Size</h3>
+            <div class="opt-row" data-single>
+              <div class="opt"><div class="t">Small</div><div class="s">10"</div></div>
+              <div class="opt sel"><div class="t">Medium</div><div class="s">12"</div></div>
+              <div class="opt"><div class="t">Large</div><div class="s">14"</div></div>
+            </div>
+          </div>
+
+          <div class="group">
+            <h3>Choose Crust</h3>
+            <div class="opt-row" data-single>
+              <div class="opt"><div class="t">Thin Crust</div></div>
+              <div class="opt sel"><div class="t">Regular</div></div>
+              <div class="opt"><div class="t">Thick Crust</div><div class="s">+$1.50</div></div>
+              <div class="opt"><div class="t">Stuffed Crust</div><div class="s">+$3.00</div></div>
+            </div>
+          </div>
+
+          <div class="group">
+            <h3>Add Toppings <span class="muted" style="font-weight:500;font-size:14px">(Optional)</span></h3>
+            <div class="top-grid" id="toppings"></div>
+          </div>
+
+          <div class="group">
+            <h3>Dish Note <span class="muted" style="font-weight:500;font-size:14px">(Optional)</span></h3>
+            <div class="field">
+              <textarea rows="2" placeholder="e.g., No spicy oil · cut into squares · allergy info…"></textarea>
+            </div>
+            <p class="muted" style="font-size:12.5px;margin-top:8px">Shown under this dish in your cart and sent to the kitchen with it. Notes for the courier are added at checkout.</p>
+          </div>
+
+          <div class="pd-foot">
+            <div class="qty-block">
+              <span class="lbl">Quantity</span>
+              <div class="stepper">
+                <button type="button" id="minus">−</button>
+                <span class="q" id="q">1</span>
+                <button type="button" id="plus">+</button>
+              </div>
+            </div>
+            <div class="total-bar">
+              <div class="tt"><div class="l">Total Price</div><div class="v tnum" id="total">$12.99</div></div>
+              <button class="btn btn-primary btn-lg" id="add"><span id="i-cart"></span> Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+</div>
+
+<script src="assets/chrome.js"></script>
+<script>
+  mountNav('Menu', { cart: 0 });
+  mountFooter();
+  document.getElementById('i-back').innerHTML = PH_ICON('back', 2);
+  document.getElementById('i-cart').innerHTML = PH_ICON('cart');
+
+  const base = 12.99;
+  const crustAdd = { 'Thin Crust':0, 'Regular':0, 'Thick Crust':1.5, 'Stuffed Crust':3 };
+  const toppings = [
+    ['Extra Cheese',1.5],['Pepperoni',2],['Mushrooms',1],['Olives',1],
+    ['Bell Peppers',1],['Onions',0.75],['Sausage',2],['Bacon',2.5]
+  ];
+  const tEl = document.getElementById('toppings');
+  tEl.innerHTML = toppings.map(([n,p],i) => `<div class="top" data-price="${p}">
+    <div class="box">${PH_ICON('check',3)}</div>
+    <div class="info"><div class="n">${n}</div><div class="p">+$${p.toFixed(2)}</div></div>
+  </div>`).join('');
+
+  let qty = 1;
+  function calc() {
+    let unit = base;
+    const crust = document.querySelector('.group:nth-child(2) .opt.sel .t')?.textContent;
+    unit += crustAdd[document.querySelectorAll('[data-single]')[1].querySelector('.sel .t').textContent] || 0;
+    document.querySelectorAll('.top.sel').forEach(t => unit += parseFloat(t.dataset.price));
+    document.getElementById('total').textContent = '$' + (unit * qty).toFixed(2);
+  }
+  document.querySelectorAll('[data-single]').forEach(row => {
+    row.addEventListener('click', e => {
+      const o = e.target.closest('.opt'); if (!o) return;
+      row.querySelectorAll('.opt').forEach(x => x.classList.toggle('sel', x === o));
+      calc();
+    });
+  });
+  tEl.addEventListener('click', e => { const t = e.target.closest('.top'); if (!t) return; t.classList.toggle('sel'); calc(); });
+  document.getElementById('plus').onclick = () => { qty++; document.getElementById('q').textContent = qty; calc(); };
+  document.getElementById('minus').onclick = () => { if (qty>1){qty--; document.getElementById('q').textContent = qty; calc();} };
+  calc();
+</script>
+</body>
+</html>
