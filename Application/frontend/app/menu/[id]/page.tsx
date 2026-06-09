@@ -170,12 +170,12 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
                   <QuantityStepper value={quantity} onChange={setQuantity} />
                   <p className="text-right">
                     <span className="block text-xs text-muted">Estimated</span>
-                    <span data-testid="line-estimate" className="text-2xl font-bold text-brand">
-                      {estimate !== null
-                        ? formatVnd(estimate)
-                        : quoting && estimate === null
-                          ? "…"
-                          : "—"}
+                    <span
+                      data-testid="line-estimate"
+                      aria-live="polite"
+                      className="text-2xl font-bold text-brand"
+                    >
+                      {estimate !== null ? formatVnd(estimate) : quoting ? "…" : "—"}
                     </span>
                   </p>
                 </div>
