@@ -56,7 +56,7 @@ Error codes (closed set, extend in this doc only):
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/categories` | List active categories |
-| GET | `/api/items` | List items, filterable by `category`, `vegetarian`, `kids` |
+| GET | `/api/items` | List active items, filterable by `category` (`category_id`). `vegetarian`/`kids` filters and item `description` are deferred — no schema columns yet. |
 | GET | `/api/items/{id}` | Item detail (includes sizes/crusts/toppings if pizza) |
 | GET | `/api/combos` | List active combos for current time window |
 

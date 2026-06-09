@@ -980,6 +980,73 @@
         "title": "MeResponse",
         "type": "object"
       },
+      "MenuCategoryOut": {
+        "properties": {
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "category_id",
+          "name",
+          "sort_order"
+        ],
+        "title": "MenuCategoryOut",
+        "type": "object"
+      },
+      "MenuItemOut": {
+        "properties": {
+          "base_price_vnd": {
+            "title": "Base Price Vnd",
+            "type": "integer"
+          },
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "is_pizza": {
+            "title": "Is Pizza",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_id",
+          "category_id",
+          "name",
+          "base_price_vnd",
+          "is_pizza"
+        ],
+        "title": "MenuItemOut",
+        "type": "object"
+      },
       "MessageResponse": {
         "properties": {
           "message": {
@@ -3126,6 +3193,31 @@
         ]
       }
     },
+    "/api/categories": {
+      "get": {
+        "operationId": "list_categories_api_categories_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MenuCategoryOut"
+                  },
+                  "title": "Response List Categories Api Categories Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Categories",
+        "tags": [
+          "menu"
+        ]
+      }
+    },
     "/api/config/delivery": {
       "get": {
         "operationId": "delivery_config_api_config_delivery_get",
@@ -3165,6 +3257,59 @@
         "summary": "Loyalty Config",
         "tags": [
           "config"
+        ]
+      }
+    },
+    "/api/items": {
+      "get": {
+        "operationId": "list_items_api_items_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MenuItemOut"
+                  },
+                  "title": "Response List Items Api Items Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Items",
+        "tags": [
+          "menu"
         ]
       }
     },

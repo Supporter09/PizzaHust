@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 
 import { AuthProvider } from "@/components/auth-provider";
+import { ThemeBootstrap } from "@/components/theme-bootstrap";
 import { TopNav } from "@/components/top-nav";
 import { bootstrapTheme } from "@/lib/theme";
 
@@ -27,9 +28,10 @@ const themeScript = `(${bootstrapTheme.toString()})()`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={poppins.variable} suppressHydrationWarning>
-      <body className="min-h-screen bg-surface text-fg">
+    <html lang="en" suppressHydrationWarning>
+      <body className={`min-h-screen bg-surface text-fg ${poppins.variable}`}>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <ThemeBootstrap />
         <AuthProvider>
           <TopNav />
           <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">{children}</main>

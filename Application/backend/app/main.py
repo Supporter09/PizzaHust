@@ -23,6 +23,7 @@ from app.api.errors import (
     handle_validation_error,
 )
 from app.api.loyalty import router as loyalty_router
+from app.api.menu import router as menu_router
 from app.api.webhooks import router as webhooks_router
 from app.infra.config import get_settings
 
@@ -57,6 +58,7 @@ app.add_exception_handler(APIError, handle_api_error)
 app.add_exception_handler(HTTPException, handle_http_exception)
 app.add_exception_handler(RequestValidationError, handle_validation_error)
 app.include_router(config_router)
+app.include_router(menu_router)
 app.include_router(auth_router)
 app.include_router(loyalty_router)
 app.include_router(admin_orders_router)

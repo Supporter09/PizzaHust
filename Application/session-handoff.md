@@ -1,21 +1,21 @@
 # session-handoff.md
 
-**Current feature:** `infra-008` — **done** on branch `infra-008-frontend-shell` @ `752a625` (squash-merge pending).
+**Current feature:** `U1` Browse Menus — **done** on branch `u1-browse-menus` @ `3f857a7` (PR pending).
 
 **Resume command:**
 
 ```bash
-cd Application && ./init.sh && ./verify.sh
+cd Application && ./init.sh && docker compose up -d backend frontend && ./verify.sh
 ```
 
-**State:** Light/dark semantic tokens, no-flash bootstrap, `ThemeToggle` in public + admin shells, app boundaries, vendored Poppins (OFL-1.1), full color sweep, theme e2e. `verify.sh` green.
+**State:** Public `GET /api/categories` + `GET /api/items`; `/menu` with category chips, item cards, VND via `formatVnd`; CONTRACTS reconciled (veg/kids/description deferred). Theme hydration fix for Playwright system-dark. `verify.sh` green.
 
-**Next feature:** `U1` Browse Menus (`depends_on`: `infra-006`, `infra-008`).
+**Next feature:** `U2` View Item Details (`depends_on`: `U1`).
 
-**PR:** Push branch and squash-merge:
+**PR:**
 
 ```bash
-git push -u origin infra-008-frontend-shell
-gh pr create --title "feat(infra-008): frontend shell — light/dark theme" \
-  --body "Token system + light/dark, theme toggle in both shells, app boundaries, vendored Poppins. verify.sh green at 752a625."
+git push -u origin u1-browse-menus
+gh pr create --title "feat(U1): browse menus (public menu API + /menu page)" \
+  --body "Public GET /api/categories + /api/items; /menu page with category filter + VND prices. verify.sh green at 3f857a7."
 ```
