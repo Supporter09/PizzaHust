@@ -97,3 +97,20 @@ def test_pizza_unit_price_rejects_negative() -> None:
             base_price_vnd=-1, size_modifier_vnd=0, topping_prices_vnd=[]
         )
     assert exc.value.code == "VALIDATION_FAILED"
+
+
+def test_compute_order_total_preview_mode_no_address() -> None:
+    quote = compute_order_total(
+        lines=[CartLine(unit_price_vnd=100_000, quantity=1)],
+        address_district=None,
+    )
+    assert quote.delivery_fee_vnd == 0
+    assert quote.total_vnd == 100_000
+    assert quote.subtotal_vnd == 100_000
+
+
+def test_compute_order_total_default_address_is_preview() -> None:
+    # Called with no address kwarg at all -> preview, no service-area error.
+    quote = compute_order_total(lines=[CartLine(unit_price_vnd=50_000, quantity=2)])
+    assert quote.delivery_fee_vnd == 0
+    assert quote.total_vnd == 100_000
