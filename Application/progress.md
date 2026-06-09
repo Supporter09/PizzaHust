@@ -201,3 +201,20 @@ Append-only session journal. Each session ends with a dated block. Keep blocks â
 
 **Next**
 - `infra-008` frontend shell. VM image-pull cutover and pytest-in-CI remain follow-ups.
+
+---
+
+## 2026-06-09 â€” infra-008 frontend shell (theme) on branch
+
+**Done**
+- Semantic CSS token system (`globals.css`), tested `lib/theme.ts` + no-flash bootstrap in `layout.tsx`.
+- Vendored Poppins (latin 400/600/700, OFL-1.1); `ThemeToggle` in TopNav + admin sidebar.
+- App `error` / `not-found` / `loading`; mechanical color sweep + hue-lookup badge `dark:` pairs.
+- `tests/e2e/theme.spec.ts` added.
+
+**Verified**
+- `npx vitest run lib/theme.test.ts`, `tsc`, `eslint`, `npm run build` green on branch `infra-008-frontend-shell` @ `2750431`.
+- `./verify.sh` not run to completion: Docker/OrbStack daemon unavailable (MySQL compose).
+
+**Next**
+- Start Docker, run `./init.sh && ./verify.sh`, set `infra-008` `done` with evidence, squash-merge PR.
