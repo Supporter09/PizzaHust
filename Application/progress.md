@@ -295,3 +295,19 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 **Next**
 - `U4` View Combo Promotions (`depends_on`: `U1`, `A4` — both done). Combo-line quoting in `POST /api/cart/quote` is the natural extension point.
+
+---
+
+## 2026-06-09 — U4 View Combo Promotions done
+
+**Done**
+- Domain `combo_savings_vnd` (clamped savings vs sum-of-parts).
+- Public `GET /api/combos`: Active window + all components active; eager-loaded items; 7 API tests.
+- OpenAPI + `frontend/lib/api/types.ts`; `lib/api/combos.ts` + vitest; `ComboCard`, `/combos`, top-nav links; Playwright `combos.spec.ts`.
+- `CONTRACTS.md` `GET /api/combos` schema example; cart combo quoting still deferred to U5.
+
+**Verified**
+- `./verify.sh` exit 0 at `30f0ffdf6befa1c3512b09d3b96d6f4f80ff6efd`, `2026-06-09T22:07:47Z`.
+
+**Next**
+- `U5` Manage Cart — combo lines in `POST /api/cart/quote` + cart persistence.
