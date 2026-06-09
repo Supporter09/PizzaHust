@@ -13,8 +13,10 @@ async function loginAsAdmin(page: Page) {
 
 test.describe("theme — public shell", () => {
   test("system default, toggle, and persistence", async ({ page }) => {
-    await page.emulateMedia({ colorScheme: "dark" });
     await page.goto("/");
+    await page.evaluate(() => window.localStorage.removeItem("theme"));
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.reload();
     const html = page.locator("html");
     await expect(html).toHaveClass(/dark/);
 
