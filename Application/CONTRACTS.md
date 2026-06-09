@@ -254,6 +254,13 @@ Returns **Active-only** combos for the current time window. Each entry includes 
         "quantity": 2,
         "image_url": null,
         "base_price_vnd": 125000
+      },
+      {
+        "product_id": 8,
+        "name": "Garlic Bread",
+        "quantity": 1,
+        "image_url": null,
+        "base_price_vnd": 45000
       }
     ]
   }
