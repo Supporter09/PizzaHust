@@ -21,6 +21,7 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
   const [item, setItem] = useState<MenuItemDetail | null>(null);
   const [status, setStatus] = useState<Status>("loading");
   const [sizeId, setSizeId] = useState<number | null>(null);
+  // FUTURE(U5): crust carries no price modifier; kept for cart payload.
   const [crustId, setCrustId] = useState<number | null>(null);
   const [toppingIds, setToppingIds] = useState<number[]>([]);
   const [quantity, setQuantity] = useState(1);

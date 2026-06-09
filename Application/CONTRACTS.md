@@ -67,6 +67,14 @@ Error codes (closed set, extend in this doc only):
 | POST | `/api/cart/quote` | Compute pricing for a candidate cart + address |
 | POST | `/api/orders` | Place COD order. Returns `{ order_code, total_vnd, status }`. Rejects with `OUT_OF_SERVICE_AREA` if address invalid |
 
+> **Sanctioned deviation — client-side single-item price preview (U2).** The
+> `/menu/[id]` item page renders a **display-only, non-authoritative** per-item
+> price estimate via frontend `lib/pricing.ts` (`computePizzaLineTotal`), a scoped
+> exception to the "frontend never recomputes" rule in `ARCHITECTURE.md`. It is a
+> trivial linear sum (base + size modifier + toppings) × quantity for a single
+> item, never used for cart or order money. U5 replaces it with the authoritative
+> `POST /api/cart/quote`, which gates all real totals server-side.
+
 ### Order tracking (U7, U11)
 
 | Method | Path | Purpose |
