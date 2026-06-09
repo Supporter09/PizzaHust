@@ -1,16 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { use, useCallback, useEffect, useMemo, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 
 import { CrustSelector } from "@/components/menu/crust-selector";
 import { QuantityStepper } from "@/components/menu/quantity-stepper";
 import { SizeSelector } from "@/components/menu/size-selector";
 import { ToppingSelector } from "@/components/menu/topping-selector";
 import { ApiClientError } from "@/lib/api/client";
+import { quoteCart } from "@/lib/api/cart";
 import { fetchItem, type MenuItemDetail } from "@/lib/api/menu";
 import { formatVnd } from "@/lib/format";
-import { computePizzaLineTotal } from "@/lib/pricing";
 
 type Status = "loading" | "ready" | "notfound" | "error";
 
@@ -21,10 +21,11 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
   const [item, setItem] = useState<MenuItemDetail | null>(null);
   const [status, setStatus] = useState<Status>("loading");
   const [sizeId, setSizeId] = useState<number | null>(null);
-  // FUTURE(U5): crust carries no price modifier; kept for cart payload.
   const [crustId, setCrustId] = useState<number | null>(null);
   const [toppingIds, setToppingIds] = useState<number[]>([]);
   const [quantity, setQuantity] = useState(1);
+  const [estimate, setEstimate] = useState<number | null>(null);
+  const [quoting, setQuoting] = useState(false);
 
   const load = useCallback(() => {
     if (!Number.isInteger(numericId) || numericId < 1) {
@@ -39,6 +40,10 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
         setCrustId(data.crusts[0]?.crust_id ?? null);
         setToppingIds([]);
         setQuantity(1);
+        if (!data.is_pizza) {
+          setEstimate(null);
+          setQuoting(false);
+        }
         setStatus("ready");
       })
       .catch((e) => {
@@ -51,19 +56,44 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
     return () => window.clearTimeout(timer);
   }, [load]);
 
-  const preview = useMemo(() => {
-    if (!item || !item.is_pizza) return null;
+  useEffect(() => {
+    if (!item || !item.is_pizza) {
+      return;
+    }
     const size = item.sizes.find((s) => s.size_id === sizeId);
-    const toppingPricesVnd = item.toppings
-      .filter((t) => toppingIds.includes(t.topping_id))
-      .map((t) => t.price_vnd);
-    return computePizzaLineTotal({
-      basePriceVnd: item.base_price_vnd,
-      sizeModifierVnd: size?.price_modifier_vnd ?? 0,
-      toppingPricesVnd,
-      quantity,
-    });
-  }, [item, sizeId, toppingIds, quantity]);
+    const crust = item.crusts.find((c) => c.crust_id === crustId);
+    let active = true;
+    const handle = window.setTimeout(() => {
+      if (!active) return;
+      setQuoting(true);
+      quoteCart({
+        redeem_points: 0,
+        lines: [
+          {
+            kind: "pizza",
+            item_id: item.product_id,
+            size: size?.name,
+            crust: crust?.name,
+            topping_ids: toppingIds,
+            quantity,
+          },
+        ],
+      })
+        .then((q) => {
+          if (active) setEstimate(q.total_vnd);
+        })
+        .catch(() => {
+          if (active) setEstimate(null);
+        })
+        .finally(() => {
+          if (active) setQuoting(false);
+        });
+    }, 250);
+    return () => {
+      active = false;
+      window.clearTimeout(handle);
+    };
+  }, [item, sizeId, crustId, toppingIds, quantity]);
 
   return (
     <section className="space-y-6">
@@ -141,7 +171,11 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
                   <p className="text-right">
                     <span className="block text-xs text-muted">Estimated</span>
                     <span data-testid="line-estimate" className="text-2xl font-bold text-brand">
-                      {formatVnd(preview ?? 0)}
+                      {estimate !== null
+                        ? formatVnd(estimate)
+                        : quoting && estimate === null
+                          ? "…"
+                          : "—"}
                     </span>
                   </p>
                 </div>
