@@ -217,4 +217,17 @@ Append-only session journal. Each session ends with a dated block. Keep blocks â
 - `./verify.sh` not run to completion: Docker/OrbStack daemon unavailable (MySQL compose).
 
 **Next**
-- Start Docker, run `./init.sh && ./verify.sh`, set `infra-008` `done` with evidence, squash-merge PR.
+- Squash-merge PR `infra-008-frontend-shell`.
+
+---
+
+## 2026-06-09 â€” infra-008 done
+
+**Done**
+- Closed theme plan: rebuilt `pizzahust-frontend` image for e2e; theme spec clears `localStorage` before system-default assertion.
+
+**Verified**
+- `./verify.sh` exit 0 at `752a625`, `2026-06-09T15:44:02+07:00` (7 Playwright passed, 4 skipped).
+
+**Next**
+- `U1` Browse Menus.

@@ -1,17 +1,21 @@
 # session-handoff.md
 
-**Current feature:** `infra-008` frontend shell (light/dark theme) — **in progress** on branch `infra-008-frontend-shell` @ `2750431`.
+**Current feature:** `infra-008` — **done** on branch `infra-008-frontend-shell` @ `752a625` (squash-merge pending).
 
 **Resume command:**
 
 ```bash
 cd Application && ./init.sh && ./verify.sh
-# then: mark infra-008 done in feature_list.json, squash-merge PR
 ```
 
-**State:** Plan tasks 1–14 implemented and committed on `infra-008-frontend-shell` (14 WIP commits). Task 15 blocked on full `verify.sh` until Docker is up (alembic + Playwright e2e need stack).
+**State:** Light/dark semantic tokens, no-flash bootstrap, `ThemeToggle` in public + admin shells, app boundaries, vendored Poppins (OFL-1.1), full color sweep, theme e2e. `verify.sh` green.
 
-**Shipped on branch:**
-- Token system, bootstrap, Poppins local font, toggles, boundaries, page sweeps, badge exceptions, theme e2e spec.
+**Next feature:** `U1` Browse Menus (`depends_on`: `infra-006`, `infra-008`).
 
-**Top blocker / next feature:** Run `./verify.sh` green → close `infra-008` → open squash-merge PR → then `U1` Browse Menus (depends on `infra-008`).
+**PR:** Push branch and squash-merge:
+
+```bash
+git push -u origin infra-008-frontend-shell
+gh pr create --title "feat(infra-008): frontend shell — light/dark theme" \
+  --body "Token system + light/dark, theme toggle in both shells, app boundaries, vendored Poppins. verify.sh green at 752a625."
+```

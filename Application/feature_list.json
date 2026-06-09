@@ -73,9 +73,9 @@
       "name": "Frontend shell: layout, routing, theme, API client",
       "description": "Next.js App Router shell, Tailwind config, light/dark + responsive base, lib/api wrapper.",
       "depends_on": ["infra-007"],
-      "status": "in-progress",
+      "status": "done",
       "owner": "Hoang",
-      "evidence": "branch infra-008-frontend-shell @2750431 — frontend vitest/tsc/eslint/build green; full ./verify.sh blocked (Docker daemon down 2026-06-09)"
+      "evidence": "verify.sh green at 752a625, 2026-06-09T15:44:02+07:00"
     },
 
     { "id": "U1",  "name": "Browse Menus",                        "depends_on": ["infra-006", "infra-008"], "status": "todo", "owner": "Hoang",  "evidence": "" },
