@@ -76,6 +76,7 @@ export default function MenuPage() {
             <Link
               key={item.product_id}
               href={`/menu/${item.product_id}`}
+              aria-label={item.name}
               className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
               <PizzaCard
