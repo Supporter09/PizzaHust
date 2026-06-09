@@ -64,9 +64,9 @@
       "name": "OpenAPI export + frontend type generation",
       "description": "Export /api/openapi.json, npm run gen:types pipeline, CI drift check.",
       "depends_on": ["infra-002"],
-      "status": "todo",
+      "status": "done",
       "owner": "Minh",
-      "evidence": ""
+      "evidence": "merged 9f9b3aa, 2026-06-09T14:38:12+07:00 — ci/contracts green; drift gate proven red-on-drift (run 27191063194); GHCR backend+frontend published (latest, sha-9f9b3aa, main)"
     },
     {
       "id": "infra-008",

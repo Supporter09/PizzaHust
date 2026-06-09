@@ -1,6 +1,6 @@
 # session-handoff.md
 
-**Current feature:** `infra-006` order state machine + pricing + loyalty domain — **done** on branch `infra-006-order-domain`.
+**Current feature:** `infra-007` CI pipelines (contract drift + GHCR images) — **done** on `main` @ `9f9b3aa`.
 
 **Resume command:**
 
@@ -8,14 +8,11 @@
 cd Application && ./init.sh && ./verify.sh
 ```
 
-**State:** `./verify.sh` exits `0` at implementation commit `656479f`, `2026-06-08T16:42:16+07:00`. Backend gates green: ruff, format, mypy, import-linter, 140 tests passed / 1 skipped, alembic check, OpenAPI drift. Frontend gates green: type check, generated types parity, eslint (1 pre-existing warning), vitest no tests, build. E2E: 5 passed / 4 skipped.
+**State:** PR #12 squash-merged. `ci.yml` + `docker-images.yml` on `main`. Drift gate exercised: intentional `openapi.json` drift → `contracts` failed (run `27191063194`); revert → green (run `27191106432`). Post-merge `docker-images` run `27191165080` pushed `ghcr.io/supporter09/pizzahust-{backend,frontend}` with `latest`, `main`, `sha-9f9b3aa`. Synced `package-lock.json` committed with infra-007 (required for `npm ci` in CI).
 
-**Shipped this session:**
-- `backend/app/domain/order_state.py`: closed transition graph + delivery-event mapping; existing admin/webhook status writes now call it.
-- `backend/app/domain/pricing.py`, `loyalty.py`, `service_area.py`: canonical COD pricing constants, loyalty rules, and Hanoi 2025 ward whitelist.
-- `/api/config/delivery` and `/api/config/loyalty`; regenerated `openapi.json` and `frontend/lib/api/types.ts`.
-- Docs updated for the 2025 Hanoi administrative model: 126 commune-level units citywide, MVP service area = 51 wards.
+**Shipped:**
+- GitHub Actions: OpenAPI + `gen:types` drift, static gates (ruff/mypy/lint-imports/tsc/eslint).
+- GHCR build/push on `main` / `v*`; PR build-only smoke.
+- Plans: `Application/docs/plans/2026-06-08-infra-007-ci-design.md`, `...-ci.md`.
 
-**Top blocker / next feature:** `infra-007` (OpenAPI/type-gen pipeline) is the next unblocked board item. Product features remain blocked: `U1` needs `infra-008`; `U6` needs `U5`.
-
-**Local note:** `Application/frontend/package-lock.json` is locally modified by `./init.sh` / npm install churn and was intentionally not committed.
+**Top blocker / next feature:** `infra-008` (frontend shell: layout, routing, theme, API client) — unblocked. Customer `U1` depends on `infra-008`. Follow-ups out of scope: VM image-pull cutover, pytest-in-CI with MySQL, pin backend dev tool versions in `pyproject.toml`.

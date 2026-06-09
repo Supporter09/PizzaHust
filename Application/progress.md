@@ -187,3 +187,17 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 **Next**
 - `infra-007` is the next unblocked board feature. `U1` remains blocked on `infra-008`; `U6` remains blocked on `U5`.
+
+---
+
+## 2026-06-09 — infra-007 CI pipelines completed
+
+**Done**
+- Merged PR #12 (`9f9b3aa`): `.github/workflows/ci.yml`, `docker-images.yml`; CI design + implementation plans; synced `frontend/package-lock.json` for `npm ci`.
+- Proved drift gate: `openapi.json` whitespace → `contracts` red (run `27191063194`); revert → green (`27191106432`).
+
+**Verified**
+- Post-merge GHCR publish run `27191165080` success; tags `latest`, `main`, `sha-9f9b3aa` on `pizzahust-backend` and `pizzahust-frontend`.
+
+**Next**
+- `infra-008` frontend shell. VM image-pull cutover and pytest-in-CI remain follow-ups.
