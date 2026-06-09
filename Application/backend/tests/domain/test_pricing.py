@@ -8,6 +8,7 @@ from app.domain.pricing import (
     OrderQuote,
     PricingError,
     compute_order_total,
+    compute_pizza_unit_price,
 )
 
 
@@ -68,3 +69,31 @@ def test_compute_order_total_rejects_negative_line_values() -> None:
             lines=[CartLine(unit_price_vnd=-1, quantity=1)],
             address_district="Ba Đình",
         )
+
+
+def test_pizza_unit_price_sums_base_size_and_toppings() -> None:
+    assert (
+        compute_pizza_unit_price(
+            base_price_vnd=125_000,
+            size_modifier_vnd=30_000,
+            topping_prices_vnd=[15_000, 20_000],
+        )
+        == 190_000
+    )
+
+
+def test_pizza_unit_price_no_toppings_no_modifier() -> None:
+    assert (
+        compute_pizza_unit_price(
+            base_price_vnd=99_000, size_modifier_vnd=0, topping_prices_vnd=[]
+        )
+        == 99_000
+    )
+
+
+def test_pizza_unit_price_rejects_negative() -> None:
+    with pytest.raises(PricingError) as exc:
+        compute_pizza_unit_price(
+            base_price_vnd=-1, size_modifier_vnd=0, topping_prices_vnd=[]
+        )
+    assert exc.value.code == "VALIDATION_FAILED"
