@@ -43,11 +43,11 @@ export default function LoginPage() {
   return (
     <section className="mx-auto w-full max-w-md">
       <div className="auth-card p-6 sm:p-8">
-        <h1 className="text-2xl font-semibold text-slate-900">Login</h1>
-        <p className="mt-1 text-sm text-slate-500">Use your phone number to sign in.</p>
+        <h1 className="text-2xl font-semibold text-fg">Login</h1>
+        <p className="mt-1 text-sm text-muted">Use your phone number to sign in.</p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-fg">
             Phone number
             <input
               className="input-field mt-1"
@@ -58,7 +58,7 @@ export default function LoginPage() {
             />
           </label>
 
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-fg">
             Password
             <input
               type="password"
@@ -70,16 +70,16 @@ export default function LoginPage() {
             />
           </label>
 
-          {errorMessage ? <p className="text-sm font-medium text-[var(--brand-red)]">{errorMessage}</p> : null}
+          {errorMessage ? <p className="text-sm font-medium text-danger">{errorMessage}</p> : null}
 
           <button type="submit" disabled={loading} className="btn-primary w-full py-2.5 disabled:opacity-60">
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
-        <p className="mt-4 text-sm text-slate-600">
+        <p className="mt-4 text-sm text-muted">
           New here?{" "}
-          <Link href="/register" className="font-semibold text-[var(--brand-red)] hover:underline">
+          <Link href="/register" className="font-semibold text-danger hover:underline">
             Create an account
           </Link>
         </p>

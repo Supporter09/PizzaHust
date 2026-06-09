@@ -47,7 +47,7 @@ export default function AccountPage() {
   }, [loading, user, router, getLoyalty]);
 
   if (loading || !user) {
-    return <p className="text-sm text-slate-500">Loading account...</p>;
+    return <p className="text-sm text-muted">Loading account...</p>;
   }
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -77,31 +77,31 @@ export default function AccountPage() {
   return (
     <section className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
       <div className="auth-card p-6 sm:p-8">
-        <h1 className="text-2xl font-semibold text-slate-900">My Profile</h1>
-        <p className="mt-1 text-sm text-slate-500">Update your profile details below.</p>
+        <h1 className="text-2xl font-semibold text-fg">My Profile</h1>
+        <p className="mt-1 text-sm text-muted">Update your profile details below.</p>
 
         <form
           key={`${user.full_name}-${user.address ?? ""}`}
           onSubmit={onSubmit}
           className="mt-6 space-y-4"
         >
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-fg">
             Full name
             <input className="input-field mt-1" name="full_name" defaultValue={user.full_name} />
           </label>
 
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-fg">
             Phone number
-            <input className="input-field mt-1 bg-slate-100" value={user.phone_number} disabled />
+            <input className="input-field mt-1 bg-surface-active" value={user.phone_number} disabled />
           </label>
 
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-fg">
             Address
             <input className="input-field mt-1" name="address" defaultValue={user.address ?? ""} />
           </label>
 
-          {formError ? <p className="text-sm font-medium text-[var(--brand-red)]">{formError}</p> : null}
-          {formMessage ? <p className="text-sm font-medium text-emerald-600">{formMessage}</p> : null}
+          {formError ? <p className="text-sm font-medium text-danger">{formError}</p> : null}
+          {formMessage ? <p className="text-sm font-medium text-success">{formMessage}</p> : null}
 
           <button type="submit" disabled={saving} className="btn-primary w-full py-2.5 disabled:opacity-60">
             {saving ? "Saving..." : "Save profile"}
@@ -110,22 +110,22 @@ export default function AccountPage() {
       </div>
 
       <aside className="auth-card p-6 sm:p-8">
-        <h2 className="text-xl font-semibold text-slate-900">Loyalty</h2>
+        <h2 className="text-xl font-semibold text-fg">Loyalty</h2>
         {loyaltyError ? (
-          <p className="mt-3 text-sm text-[var(--brand-red)]">{loyaltyError}</p>
+          <p className="mt-3 text-sm text-danger">{loyaltyError}</p>
         ) : loyalty ? (
-          <div className="mt-4 space-y-3 text-sm text-slate-700">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs uppercase tracking-wide text-slate-500">Current points</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-900">{loyalty.current_points}</p>
+          <div className="mt-4 space-y-3 text-sm text-fg">
+            <div className="rounded-xl border border-line bg-surface p-3">
+              <p className="text-xs uppercase tracking-wide text-muted">Current points</p>
+              <p className="mt-1 text-2xl font-semibold text-fg">{loyalty.current_points}</p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs uppercase tracking-wide text-slate-500">Total earned</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-900">{loyalty.total_points_earned}</p>
+            <div className="rounded-xl border border-line bg-surface p-3">
+              <p className="text-xs uppercase tracking-wide text-muted">Total earned</p>
+              <p className="mt-1 text-2xl font-semibold text-fg">{loyalty.total_points_earned}</p>
             </div>
           </div>
         ) : (
-          <p className="mt-3 text-sm text-slate-500">Loading loyalty...</p>
+          <p className="mt-3 text-sm text-muted">Loading loyalty...</p>
         )}
       </aside>
     </section>

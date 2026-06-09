@@ -56,11 +56,11 @@ export default function RegisterPage() {
   return (
     <section className="mx-auto w-full max-w-md">
       <div className="auth-card p-6 sm:p-8">
-        <h1 className="text-2xl font-semibold text-slate-900">Create Account</h1>
-        <p className="mt-1 text-sm text-slate-500">Register as a customer to track profile and loyalty.</p>
+        <h1 className="text-2xl font-semibold text-fg">Create Account</h1>
+        <p className="mt-1 text-sm text-muted">Register as a customer to track profile and loyalty.</p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-fg">
             Full name
             <input
               className="input-field mt-1"
@@ -70,7 +70,7 @@ export default function RegisterPage() {
             />
           </label>
 
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-fg">
             Phone number
             <input
               className="input-field mt-1"
@@ -80,7 +80,7 @@ export default function RegisterPage() {
             />
           </label>
 
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-fg">
             Password
             <input
               type="password"
@@ -91,7 +91,7 @@ export default function RegisterPage() {
             />
           </label>
 
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-fg">
             Address (optional)
             <input
               className="input-field mt-1"
@@ -101,17 +101,17 @@ export default function RegisterPage() {
             />
           </label>
 
-          {errorMessage ? <p className="text-sm font-medium text-[var(--brand-red)]">{errorMessage}</p> : null}
-          {successMessage ? <p className="text-sm font-medium text-emerald-600">{successMessage}</p> : null}
+          {errorMessage ? <p className="text-sm font-medium text-danger">{errorMessage}</p> : null}
+          {successMessage ? <p className="text-sm font-medium text-success">{successMessage}</p> : null}
 
           <button type="submit" disabled={loading} className="btn-primary w-full py-2.5 disabled:opacity-60">
             {loading ? "Creating account..." : "Create account"}
           </button>
         </form>
 
-        <p className="mt-4 text-sm text-slate-600">
+        <p className="mt-4 text-sm text-muted">
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-[var(--brand-red)] hover:underline">
+          <Link href="/login" className="font-semibold text-danger hover:underline">
             Login
           </Link>
         </p>
