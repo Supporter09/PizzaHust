@@ -71,6 +71,8 @@ def test_categories_active_ordered_by_sort():
     with create_session_factory()() as db:
         db.add_all(
             [
+                # Drinks + Salads share sort_order 3 → exercises the `name` tiebreaker.
+                Category(name="Salads", sort_order=3, is_active=True),
                 Category(name="Drinks", sort_order=3, is_active=True),
                 Category(name="Pizza", sort_order=1, is_active=True),
                 Category(name="Off", sort_order=2, is_active=False),
@@ -80,8 +82,21 @@ def test_categories_active_ordered_by_sort():
     client = TestClient(app)
     cats = client.get("/api/categories").json()
     names = [c["name"] for c in cats]
-    assert names == ["Pizza", "Drinks"]
+    # sort_order primary, name secondary: Pizza(1), then Drinks/Salads(3) alphabetically.
+    assert names == ["Pizza", "Drinks", "Salads"]
     assert all({"category_id", "name", "sort_order"} == set(c) for c in cats)
+
+
+def test_items_ordered_by_name():
+    app = build_test_app("menu-item-order")
+    cid = new_category("Pizza")
+    # Insert out of alphabetical order; the endpoint must return them sorted by name.
+    new_product(cid, "Pepperoni")
+    new_product(cid, "Margherita")
+    new_product(cid, "Hawaiian")
+    client = TestClient(app)
+    names = [i["name"] for i in client.get("/api/items").json()]
+    assert names == ["Hawaiian", "Margherita", "Pepperoni"]
 
 
 def test_menu_is_public_no_auth():
