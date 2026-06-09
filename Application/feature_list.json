@@ -105,6 +105,13 @@
     { "id": "K3",  "name": "Mark Order Ready for Dispatch",       "depends_on": ["K2", "infra-005"],        "status": "todo", "owner": "Hung",   "evidence": "" },
 
     { "id": "T1",  "name": "Request Delivery Service (mock-first)","depends_on": ["infra-005", "K3"],       "status": "todo", "owner": "Hung",   "evidence": "" },
-    { "id": "T2",  "name": "Synchronize Delivery Status (webhook)","depends_on": ["T1"],                     "status": "todo", "owner": "Thanh",  "evidence": "" }
+    { "id": "T2",  "name": "Synchronize Delivery Status (webhook)","depends_on": ["T1"],                     "status": "todo", "owner": "Thanh",  "evidence": "" },
+
+    { "id": "A8",  "name": "Generic Options Model",                "depends_on": ["A2"],                     "status": "todo", "owner": "Hieu",   "evidence": "" },
+    { "id": "A9",  "name": "Multi-image Dishes",                   "depends_on": ["A1"],                     "status": "todo", "owner": "Hieu",   "evidence": "" },
+    { "id": "A10", "name": "Combo Choice-Slots and Component Picker","depends_on": ["A4", "A8"],             "status": "todo", "owner": "Hieu",   "evidence": "" },
+    { "id": "U15", "name": "Customize Combo",                      "depends_on": ["U4", "A8", "A10"],        "status": "todo", "owner": "Hoang",  "evidence": "" },
+    { "id": "U16", "name": "Order Notes (dish and delivery)",      "depends_on": ["U5"],                     "status": "todo", "owner": "Hoang",  "evidence": "" },
+    { "id": "K4",  "name": "Confirm Pickup (fallback)",            "depends_on": ["K3"],                     "status": "todo", "owner": "Hung",   "evidence": "" }
   ]
 }
