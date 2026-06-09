@@ -272,3 +272,26 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 **Next**
 - `U3` Customize Pizza (first job: replace the client price preview with `POST /api/cart/quote`).
+
+---
+
+## 2026-06-09 — U3 Customize Pizza done
+
+**Done**
+- Domain `app/domain/pricing.py`: added pure `compute_pizza_unit_price(base + size_modifier + toppings)`; made `compute_order_total(address_district=None)` a preview mode (no service-area check, `delivery_fee_vnd=0`). Existing address-bearing callers/tests unchanged. +5 domain tests.
+- Backend `app/api/cart.py`: new public, non-mutating `POST /api/cart/quote`. Resolves prices from the DB (pizza: size-by-name modifier, crust existence, topping ids; side: base price), rejects combo (deferred U4/U5), `is_pizza`/kind mismatches, and side-with-options as `VALIDATION_FAILED` 400; `OUT_OF_SERVICE_AREA`/`INSUFFICIENT_LOYALTY` → 422. 15 integration tests.
+- Contract regenerated: `openapi.json` + `frontend/lib/api/types.ts` (`CartQuoteIn`/`CartQuoteOut`/`QuoteLineIn`/`QuoteAddressIn`/`QuoteLoyaltyOut`). `CONTRACTS.md` updated (authoritative-pricing note replaces the U2 deviation; combo/loyalty examples corrected — `max_redeemable` is 50% of post-combo subtotal).
+- Frontend `lib/api/cart.ts` (`quoteCart`) + 2 vitest; new minimal `vitest.config.ts` (`@`→root, first test using the alias). `/menu/[id]` now renders the authoritative server quote via a 250ms-debounced call with an `active`-flag stale/unmount guard; `aria-live` on the estimate. Deleted `lib/pricing.ts` + `lib/pricing.test.ts` (deviation retired).
+
+**Deviation retired**
+- The U2 client-side `computePizzaLineTotal` preview is gone; all pizza pricing is server-authoritative via `POST /api/cart/quote`.
+
+**Follow-ups (non-blocking)**
+- `redeem_points` is wired but inert until U13/U14 (balance 0 → any `>0` is `INSUFFICIENT_LOYALTY`); cart-line/combo quoting and multi-line carts land in U4/U5.
+- Pre-existing: leftover `*.sqlite3` test artifacts under `backend/tests/`; two seed tests need `ADMIN_SEED_PASSWORD`/`KITCHEN_SEED_PASSWORD` env (skipped/green under verify.sh env).
+
+**Verified**
+- `./verify.sh` exit 0 at `f93e6eac35addf1509d873f9cf7d2ba3f75a763b`, `2026-06-09T18:30:35Z` (backend 175 passed/1 skipped; frontend unit 11 passed; smoke 1; Playwright 11 passed/4 skipped; OpenAPI + types drift clean).
+
+**Next**
+- `U4` View Combo Promotions (`depends_on`: `U1`, `A4` — both done). Combo-line quoting in `POST /api/cart/quote` is the natural extension point.

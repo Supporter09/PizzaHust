@@ -38,18 +38,33 @@ def _line_subtotal(line: CartLine) -> int:
     return line.unit_price_vnd * line.quantity
 
 
+def compute_pizza_unit_price(
+    *,
+    base_price_vnd: int,
+    size_modifier_vnd: int,
+    topping_prices_vnd: list[int],
+) -> int:
+    parts = [base_price_vnd, size_modifier_vnd, *topping_prices_vnd]
+    if any(p < 0 for p in parts):
+        raise PricingError("VALIDATION_FAILED", "Pizza price inputs must be non-negative.")
+    return sum(parts)
+
+
 def compute_order_total(
     *,
     lines: list[CartLine],
-    address_district: str,
+    address_district: str | None = None,
     combo_discount_vnd: int = 0,
     redeem_points: int = 0,
     current_points: int = 0,
 ) -> OrderQuote:
     if combo_discount_vnd < 0:
         raise PricingError("VALIDATION_FAILED", "Combo discount cannot be negative.")
-    if not is_inner_hanoi(address_district):
-        raise PricingError("OUT_OF_SERVICE_AREA", "Delivery address is outside inner Hanoi.")
+    delivery_fee_vnd = 0
+    if address_district is not None:
+        if not is_inner_hanoi(address_district):
+            raise PricingError("OUT_OF_SERVICE_AREA", "Delivery address is outside inner Hanoi.")
+        delivery_fee_vnd = DELIVERY_FEE_VND
 
     subtotal_vnd = sum(_line_subtotal(line) for line in lines)
     discount_combo_vnd = min(combo_discount_vnd, subtotal_vnd)
@@ -65,13 +80,13 @@ def compute_order_total(
 
     total_vnd = max(
         0,
-        subtotal_after_combo_vnd - redemption.discount_vnd + DELIVERY_FEE_VND,
+        subtotal_after_combo_vnd - redemption.discount_vnd + delivery_fee_vnd,
     )
     return OrderQuote(
         subtotal_vnd=subtotal_vnd,
         discount_combo_vnd=discount_combo_vnd,
         discount_loyalty_vnd=redemption.discount_vnd,
-        delivery_fee_vnd=DELIVERY_FEE_VND,
+        delivery_fee_vnd=delivery_fee_vnd,
         total_vnd=total_vnd,
         loyalty_balance=current_points,
         loyalty_redeemed=redemption.redeemed_points,

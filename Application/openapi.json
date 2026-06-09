@@ -82,6 +82,76 @@
         "title": "Body_upload_item_image_api_admin_items__product_id__image_post",
         "type": "object"
       },
+      "CartQuoteIn": {
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuoteAddressIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/QuoteLineIn"
+            },
+            "minItems": 1,
+            "title": "Lines",
+            "type": "array"
+          },
+          "redeem_points": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Redeem Points",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lines"
+        ],
+        "title": "CartQuoteIn",
+        "type": "object"
+      },
+      "CartQuoteOut": {
+        "properties": {
+          "delivery_fee_vnd": {
+            "title": "Delivery Fee Vnd",
+            "type": "integer"
+          },
+          "discount_combo_vnd": {
+            "title": "Discount Combo Vnd",
+            "type": "integer"
+          },
+          "discount_loyalty_vnd": {
+            "title": "Discount Loyalty Vnd",
+            "type": "integer"
+          },
+          "loyalty": {
+            "$ref": "#/components/schemas/QuoteLoyaltyOut"
+          },
+          "subtotal_vnd": {
+            "title": "Subtotal Vnd",
+            "type": "integer"
+          },
+          "total_vnd": {
+            "title": "Total Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "subtotal_vnd",
+          "discount_combo_vnd",
+          "discount_loyalty_vnd",
+          "delivery_fee_vnd",
+          "total_vnd",
+          "loyalty"
+        ],
+        "title": "CartQuoteOut",
+        "type": "object"
+      },
       "CategoryIn": {
         "properties": {
           "description": {
@@ -1268,6 +1338,128 @@
           "user_id"
         ],
         "title": "OrderSummaryOut",
+        "type": "object"
+      },
+      "QuoteAddressIn": {
+        "properties": {
+          "administrative_unit": {
+            "title": "Administrative Unit",
+            "type": "string"
+          },
+          "street": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Street"
+          }
+        },
+        "required": [
+          "administrative_unit"
+        ],
+        "title": "QuoteAddressIn",
+        "type": "object"
+      },
+      "QuoteLineIn": {
+        "properties": {
+          "combo_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Combo Id"
+          },
+          "crust": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Crust"
+          },
+          "item_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Id"
+          },
+          "kind": {
+            "enum": [
+              "pizza",
+              "side",
+              "combo"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size"
+          },
+          "topping_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Topping Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "quantity"
+        ],
+        "title": "QuoteLineIn",
+        "type": "object"
+      },
+      "QuoteLoyaltyOut": {
+        "properties": {
+          "balance": {
+            "title": "Balance",
+            "type": "integer"
+          },
+          "max_redeemable": {
+            "title": "Max Redeemable",
+            "type": "integer"
+          },
+          "redeemed": {
+            "title": "Redeemed",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "balance",
+          "redeemed",
+          "max_redeemable"
+        ],
+        "title": "QuoteLoyaltyOut",
         "type": "object"
       },
       "RegisterRequest": {
@@ -3322,6 +3514,47 @@
         "summary": "Register",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/cart/quote": {
+      "post": {
+        "operationId": "quote_cart_api_cart_quote_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CartQuoteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartQuoteOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Quote Cart",
+        "tags": [
+          "cart"
         ]
       }
     },

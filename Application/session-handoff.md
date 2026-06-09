@@ -1,6 +1,6 @@
 # session-handoff.md
 
-**Current feature:** `U2` View Item Details — **done** on branch `u2-view-item-details` @ `ebc115b` (PR pending).
+**Current feature:** `U3` Customize Pizza — **done** on branch `u3-customize-pizza` @ `f93e6ea` (PR pending).
 
 **Resume command:**
 
@@ -8,22 +8,24 @@
 cd Application && ./init.sh && docker compose up -d --build backend frontend && ./verify.sh
 ```
 
-> Note: the compose `frontend` service serves a built bundle, so rebuild it (`--build`) to pick up new routes like `/menu/[id]`.
+> Note: the compose `frontend` service serves a built bundle — rebuild it (`--build`) to pick up the `/menu/[id]` quote wiring.
 
-**State:** Public `GET /api/items/{id}` embeds global pizza options (`sizes` ordered by price modifier, `crusts` by id, `toppings` by name); 404 on missing/inactive, 400 on bad id. `/menu/[id]` client page unwraps `params` via `use()`, holds size/crust/topping + quantity selection, and renders a **display-only, non-authoritative** per-item price preview via `lib/pricing.ts` (`computePizzaLineTotal`). Non-pizzas show image/name/price only. U1 menu cards link in (with `aria-label` for an accessible link name). No add-to-cart. `verify.sh` green at `ebc115b`.
+**State:** `POST /api/cart/quote` is the authoritative single-source pricing endpoint (public, non-mutating). It resolves prices from the catalog (pizza: base + size-by-name modifier + topping ids; side: base price), rejects `combo` lines (deferred U4/U5), `is_pizza`/kind mismatches, and side-with-options as `VALIDATION_FAILED` (400); out-of-area address and `redeem_points`-without-balance return 422. `address` is optional (absent ⇒ preview, `delivery_fee_vnd: 0`, no service-area check). The U2 client-side `computePizzaLineTotal` deviation is **removed**: `/menu/[id]` now renders the server `total_vnd` via a 250ms-debounced `quoteCart` call (`active`-flag stale/unmount guard, `aria-live` on the estimate). Domain gained pure `compute_pizza_unit_price`; `compute_order_total` address is now optional. `openapi.json` + `frontend/lib/api/types.ts` regenerated; `CONTRACTS.md` updated. `verify.sh` green at `f93e6ea`.
 
-**Next feature:** `U3` Customize Pizza (`depends_on`: `U2`).
+**Next feature:** `U4` View Combo Promotions (`depends_on`: `U1`, `A4` — both done).
 
-> U3's first job is to replace the client-side price preview (`lib/pricing.ts` `computePizzaLineTotal`, the documented U2 deviation) with the authoritative backend `POST /api/cart/quote`.
+> U4's natural extension point: implement `combo` line quoting in `POST /api/cart/quote` (currently rejected). Combos already have admin CRUD (A4) with a derived `Scheduled/Active/Expired` status and a `combo_price_vnd`; the public surface is `GET /api/combos` (list active combos for the current time window — see CONTRACTS.md).
 
 **Known follow-ups (non-blocking, recorded in `progress.md`):**
-- `/menu/[id]` and `/menu` fetch on mount without an in-flight cancellation guard (mirrors the U1 pattern); a rapid param change could race. Add an `AbortController`/cancelled flag if it becomes an issue.
-- The size/crust radiogroups are button-based and lack arrow-key roving-tabindex (deliberate; APG radiogroup keyboard nav not implemented).
+- `redeem_points` is wired through `cart/quote` but inert until U13/U14 (loyalty balance is 0, so any `> 0` is `INSUFFICIENT_LOYALTY`).
+- Multi-line cart + cart persistence are U5.
+- Pre-existing: leftover `*.sqlite3` artifacts under `backend/tests/`; two seed tests need `ADMIN_SEED_PASSWORD`/`KITCHEN_SEED_PASSWORD` env.
+- `/menu/[id]` + `/menu` still fetch on mount without an in-flight cancel guard on the item *load* (the new quote effect is guarded; the initial fetch mirrors the U1 pattern).
 
 **PR:**
 
 ```bash
-git push -u origin u2-view-item-details
-gh pr create --title "feat(U2): view item details (detail API + /menu/[id] customizer)" \
-  --body "GET /api/items/{id} embeds global pizza options; /menu/[id] detail page with size/crust/topping + quantity selectors and a display-only per-item price preview (deviation: client-side, non-authoritative — U5 replaces with the cart quote). Cards link in. verify.sh green."
+git push -u origin u3-customize-pizza
+gh pr create --title "feat(U3): customize pizza (authoritative cart quote)" \
+  --body "POST /api/cart/quote computes authoritative single-pizza pricing (address-optional preview mode); /menu/[id] calls it and the lib/pricing.ts deviation is removed. Domain unit-price helper added; compute_order_total address now optional; OpenAPI + FE types regenerated; CONTRACTS updated. verify.sh green at f93e6ea."
 ```
