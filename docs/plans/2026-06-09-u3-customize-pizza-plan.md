@@ -563,9 +563,13 @@ git commit -m "chore(U3): regenerate OpenAPI + frontend types for cart quote"
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { quoteCart } from "@/lib/api/cart";
-import { apiFetch } from "@/lib/api/client";
+import { ApiClientError, apiFetch } from "@/lib/api/client";
 
-vi.mock("@/lib/api/client", () => ({ apiFetch: vi.fn() }));
+// Stub only apiFetch; keep the real ApiClientError class so `instanceof`/`rejects.toBe` work.
+vi.mock("@/lib/api/client", async (orig) => ({
+  ...(await orig<typeof import("@/lib/api/client")>()),
+  apiFetch: vi.fn(),
+}));
 
 describe("quoteCart", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -603,12 +607,6 @@ describe("quoteCart", () => {
   });
 });
 ```
-
-> Note: import `ApiClientError` from the real module — adjust the mock so the named
-> export is preserved, e.g.
-> `vi.mock("@/lib/api/client", async (orig) => ({ ...(await orig<typeof import("@/lib/api/client")>()), apiFetch: vi.fn() }))`,
-> then `import { ApiClientError, apiFetch } from "@/lib/api/client";`. This keeps the
-> real `ApiClientError` class while stubbing only `apiFetch`.
 
 **Step 2: Run, expect fail**
 
