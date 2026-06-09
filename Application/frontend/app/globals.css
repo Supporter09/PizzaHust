@@ -1,13 +1,91 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-active: var(--surface-active);
+  --color-card: var(--card);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-fg: var(--brand-fg);
+  --color-brand-subtle: var(--brand-subtle);
+  --color-on-brand: var(--on-brand);
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-info: var(--info);
+  --color-info-subtle: var(--info-subtle);
+  --color-danger-solid: var(--danger-solid);
+  --color-warning-solid: var(--warning-solid);
+  --color-success-solid: var(--success-solid);
+}
+
 :root {
-  --brand-red: #d32f2f;
-  --brand-red-hover: #b71c1c;
-  --surface-bg: #f8fafc;
-  --surface-card: #ffffff;
-  --border-soft: #e2e8f0;
-  --text-muted: #64748b;
-  --focus-ring: color-mix(in srgb, var(--brand-red) 35%, transparent);
+  --surface: #f8fafc;
+  --surface-hover: #f1f5f9;
+  --surface-active: #e2e8f0;
+  --card: #ffffff;
+  --fg: #0f172a;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --brand: #d32f2f;
+  --brand-hover: #b71c1c;
+  --brand-fg: #d32f2f;
+  --brand-subtle: #fee2e2;
+  --on-brand: #ffffff;
+  --danger: #b91c1c;
+  --danger-subtle: #fef2f2;
+  --danger-solid: #b91c1c;
+  --warning: #b45309;
+  --warning-subtle: #fffbeb;
+  --warning-solid: #b45309;
+  --success: #15803d;
+  --success-subtle: #f0fdf4;
+  --success-solid: #15803d;
+  --info: #1d4ed8;
+  --info-subtle: #eff6ff;
+  --focus: color-mix(in srgb, var(--brand) 35%, transparent);
+
+  --brand-red: var(--brand);
+  --surface-bg: var(--surface);
+  --surface-card: var(--card);
+  --border-soft: var(--line);
+  --text-muted: var(--muted);
+  --focus-ring: var(--focus);
+}
+
+.dark {
+  --surface: #0f172a;
+  --surface-hover: #1e293b;
+  --surface-active: #334155;
+  --card: #1e293b;
+  --fg: #f1f5f9;
+  --muted: #94a3b8;
+  --line: #334155;
+  --brand: #d32f2f;
+  --brand-hover: #b71c1c;
+  --brand-fg: #f87171;
+  --brand-subtle: #7f1d1d;
+  --on-brand: #ffffff;
+  --danger: #f87171;
+  --danger-subtle: #7f1d1d;
+  --danger-solid: #b91c1c;
+  --warning: #fbbf24;
+  --warning-subtle: #78350f;
+  --warning-solid: #b45309;
+  --success: #4ade80;
+  --success-subtle: #14532d;
+  --success-solid: #15803d;
+  --info: #60a5fa;
+  --info-subtle: #1e3a8a;
 }
 
 * {
@@ -15,7 +93,7 @@
 }
 
 body {
-  font-family: Poppins, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: var(--font-poppins, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif);
 }
 
 a {
@@ -24,34 +102,34 @@ a {
 }
 
 .auth-card {
-  border: 1px solid var(--border-soft);
-  background: var(--surface-card);
+  border: 1px solid var(--line);
+  background: var(--card);
   border-radius: 16px;
   box-shadow: 0 20px 30px -20px rgb(15 23 42 / 0.15);
 }
 
 .btn-primary {
-  background: var(--brand-red);
-  color: #fff;
+  background: var(--brand);
+  color: var(--on-brand);
   border-radius: 10px;
   font-weight: 600;
   transition: background 150ms ease;
 }
-
 .btn-primary:hover {
-  background: var(--brand-red-hover);
+  background: var(--brand-hover);
 }
 
 .input-field {
   width: 100%;
-  border: 1px solid var(--border-soft);
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
   border-radius: 10px;
   padding: 0.6rem 0.75rem;
   font-size: 0.95rem;
   outline: none;
 }
-
 .input-field:focus {
-  border-color: var(--brand-red);
-  box-shadow: 0 0 0 4px var(--focus-ring);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px var(--focus);
 }
