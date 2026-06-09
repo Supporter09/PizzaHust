@@ -116,16 +116,16 @@ export default function MonitorOrdersPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Monitor Orders</h1>
+          <h1 className="text-2xl font-semibold text-fg">Monitor Orders</h1>
           {dispatchPendingCount > 0 && (
-            <p className="mt-1 text-sm text-orange-600 font-medium">
+            <p className="mt-1 text-sm text-warning font-medium">
               ⚠ {dispatchPendingCount} order{dispatchPendingCount > 1 ? "s" : ""} stuck in Dispatch Pending — retry needed
             </p>
           )}
         </div>
         <button
           onClick={() => void fetchOrders()}
-          className="rounded-md bg-white border border-gray-200 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+          className="rounded-md bg-card border border-line px-3 py-1.5 text-sm text-fg hover:bg-surface"
         >
           Refresh
         </button>
@@ -138,13 +138,13 @@ export default function MonitorOrdersPage() {
             onClick={() => setStatusFilter(f.value)}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               statusFilter === f.value
-                ? "bg-[#C73E1D] text-white"
-                : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
-            } ${f.value === "DispatchPending" && dispatchPendingCount > 0 ? "ring-2 ring-orange-400" : ""}`}
+                ? "bg-brand text-on-brand"
+                : "bg-card border border-line text-muted hover:bg-surface"
+            } ${f.value === "DispatchPending" && dispatchPendingCount > 0 ? "ring-2 ring-warning" : ""}`}
           >
             {f.label}
             {f.value === "DispatchPending" && dispatchPendingCount > 0 && (
-              <span className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] text-white">
+              <span className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-warning-solid text-[10px] text-on-brand">
                 {dispatchPendingCount}
               </span>
             )}
@@ -152,41 +152,41 @@ export default function MonitorOrdersPage() {
         ))}
       </div>
 
-      {error && <div className="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">{error}</div>}
+      {error && <div className="rounded-md bg-danger-subtle border border-danger px-4 py-3 text-sm text-fg mb-4">{error}</div>}
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50">
+      <div className="bg-card rounded-xl border border-line overflow-hidden">
+        <table className="min-w-full divide-y divide-line text-sm">
+          <thead className="bg-surface">
             <tr>
               {["Code", "Status", "Customer", "Address", "Total", "Time", ""].map((h) => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
+                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted uppercase tracking-wider">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-line">
             {loading && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">Loading…</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted">Loading…</td></tr>
             )}
             {!loading && orders.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">No orders</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted">No orders</td></tr>
             )}
             {!loading && orders.map((o) => (
-              <tr key={o.order_id} className={`hover:bg-gray-50 ${o.current_status === "DispatchPending" ? "bg-orange-50/50" : ""}`}>
-                <td className="px-4 py-3 font-mono text-xs text-gray-700">{o.order_code}</td>
+              <tr key={o.order_id} className={`hover:bg-surface ${o.current_status === "DispatchPending" ? "bg-warning-subtle/50" : ""}`}>
+                <td className="px-4 py-3 font-mono text-xs text-fg">{o.order_code}</td>
                 <td className="px-4 py-3"><StatusBadge status={o.current_status} /></td>
                 <td className="px-4 py-3">
                   <div className="font-medium">{o.recipient_name}</div>
-                  <div className="text-gray-400 text-xs">{o.recipient_phone}</div>
+                  <div className="text-muted text-xs">{o.recipient_phone}</div>
                 </td>
-                <td className="px-4 py-3 text-gray-500 max-w-[200px] truncate">{o.delivery_address}</td>
+                <td className="px-4 py-3 text-muted max-w-[200px] truncate">{o.delivery_address}</td>
                 <td className="px-4 py-3 font-medium">{formatVND(o.total_amount_vnd)}</td>
-                <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">{formatDateTime(o.created_at)}</td>
+                <td className="px-4 py-3 text-muted text-xs whitespace-nowrap">{formatDateTime(o.created_at)}</td>
                 <td className="px-4 py-3">
                   {o.current_status === "DispatchPending" && (
                     <button
                       onClick={() => void retryDispatch(o.order_id)}
                       disabled={retrying === o.order_id}
-                      className="rounded bg-orange-600 px-2 py-1 text-xs font-medium text-white hover:bg-orange-700 disabled:opacity-50"
+                      className="rounded bg-warning-solid px-2 py-1 text-xs font-medium text-on-brand hover:opacity-90 disabled:opacity-50"
                     >
                       {retrying === o.order_id ? "Retrying…" : "Retry Dispatch"}
                     </button>

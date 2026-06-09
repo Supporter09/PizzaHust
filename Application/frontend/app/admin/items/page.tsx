@@ -142,11 +142,11 @@ export default function ItemsPage() {
     <div>
       <Breadcrumb items={[{ label: "Admin", href: "/admin" }, { label: "Menu Items" }]} />
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Menu Items</h1>
-        <span className="text-sm text-gray-400">{visible.length} shown</span>
+        <h1 className="text-2xl font-semibold text-fg">Menu Items</h1>
+        <span className="text-sm text-muted">{visible.length} shown</span>
       </div>
 
-      <div className="mb-4 inline-flex rounded-lg border border-gray-200 bg-white p-0.5" role="tablist">
+      <div className="mb-4 inline-flex rounded-lg border border-line bg-card p-0.5" role="tablist">
         {(["pizza", "side"] as const).map((k) => (
           <button
             key={k}
@@ -158,7 +158,7 @@ export default function ItemsPage() {
               setSearch("");
             }}
             className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-              kind === k ? "bg-[#C73E1D] text-white" : "text-gray-600 hover:text-gray-900"
+              kind === k ? "bg-brand text-on-brand" : "text-muted hover:text-fg"
             }`}
           >
             {k === "pizza" ? "Pizzas" : "Side Dishes"}
@@ -167,31 +167,31 @@ export default function ItemsPage() {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded-md border border-danger bg-danger-subtle px-4 py-3 text-sm text-fg">
           {error}
         </div>
       )}
 
       <form
         onSubmit={submit}
-        className="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-gray-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4"
+        className="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-line bg-card p-4 sm:grid-cols-2 lg:grid-cols-4"
       >
         <div className="lg:col-span-2">
-          <label className="mb-1 block text-xs font-medium text-gray-500">Name</label>
+          <label className="mb-1 block text-xs font-medium text-muted">Name</label>
           <input
             required
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#C73E1D] focus:ring-2 focus:ring-[#C73E1D]/30"
+            className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500">Category</label>
+          <label className="mb-1 block text-xs font-medium text-muted">Category</label>
           <select
             required
             value={form.category_id}
             onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#C73E1D] focus:ring-2 focus:ring-[#C73E1D]/30"
+            className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
           >
             <option value="" disabled>
               Select…
@@ -204,19 +204,19 @@ export default function ItemsPage() {
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500">Price (VND)</label>
+          <label className="mb-1 block text-xs font-medium text-muted">Price (VND)</label>
           <input
             required
             type="number"
             min={0}
             value={form.base_price_vnd}
             onChange={(e) => setForm({ ...form, base_price_vnd: e.target.value })}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#C73E1D] focus:ring-2 focus:ring-[#C73E1D]/30"
+            className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
           />
         </div>
         <div className="flex items-center gap-3 sm:col-span-2 lg:col-span-4">
           {editingId !== null && (
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2 text-sm text-fg">
               <input
                 type="checkbox"
                 checked={editActive}
@@ -228,7 +228,7 @@ export default function ItemsPage() {
           <button
             type="submit"
             disabled={busy || noCategories}
-            className="rounded-lg bg-[#C73E1D] px-4 py-2 text-sm font-medium text-white hover:bg-[#a93217] disabled:opacity-50"
+            className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50"
           >
             {editingId === null ? `Add ${kind === "pizza" ? "pizza" : "side dish"}` : "Save changes"}
           </button>
@@ -236,13 +236,13 @@ export default function ItemsPage() {
             <button
               type="button"
               onClick={resetForm}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+              className="rounded-lg border border-line px-4 py-2 text-sm text-muted hover:bg-surface"
             >
               Cancel
             </button>
           )}
           {noCategories && (
-            <span className="text-sm text-amber-600">Add an active category first.</span>
+            <span className="text-sm text-warning">Add an active category first.</span>
           )}
         </div>
       </form>
@@ -251,31 +251,31 @@ export default function ItemsPage() {
         <SearchBar value={search} onChange={setSearch} placeholder="Search items…" />
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50">
+      <div className="overflow-x-auto rounded-xl border border-line bg-card">
+        <table className="min-w-full divide-y divide-line text-sm">
+          <thead className="bg-surface">
             <tr>
               {["Image", "Name", "Category", "Price", "Status", ""].map((h) => (
                 <th
                   key={h}
-                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted"
                 >
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-line">
             {loading && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={6} className="px-4 py-8 text-center text-muted">
                   Loading…
                 </td>
               </tr>
             )}
             {!loading && visible.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={6} className="px-4 py-8 text-center text-muted">
                   No items
                 </td>
               </tr>
@@ -294,18 +294,18 @@ export default function ItemsPage() {
                         className="h-10 w-10 rounded object-cover"
                       />
                     ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-100 text-xs text-gray-300">
+                      <div className="flex h-10 w-10 items-center justify-center rounded bg-surface-hover text-xs text-muted">
                         —
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{it.name}</td>
-                  <td className="px-4 py-3 text-gray-700">{catName(it.category_id)}</td>
-                  <td className="px-4 py-3 text-gray-700">{vnd(it.base_price_vnd)}</td>
+                  <td className="px-4 py-3 font-medium text-fg">{it.name}</td>
+                  <td className="px-4 py-3 text-fg">{catName(it.category_id)}</td>
+                  <td className="px-4 py-3 text-fg">{vnd(it.base_price_vnd)}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                        it.is_active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"
+                        it.is_active ? "bg-success-subtle text-success" : "bg-surface-hover text-muted"
                       }`}
                     >
                       {it.is_active ? "Active" : "Inactive"}
@@ -315,11 +315,11 @@ export default function ItemsPage() {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => startEdit(it)}
-                        className="rounded px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100"
+                        className="rounded px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-hover"
                       >
                         Edit
                       </button>
-                      <label className="cursor-pointer rounded px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100">
+                      <label className="cursor-pointer rounded px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-hover">
                         {uploadingId === it.product_id ? "…" : "Image"}
                         <input
                           type="file"
@@ -337,13 +337,13 @@ export default function ItemsPage() {
                           <button
                             onClick={() => void remove(it.product_id)}
                             disabled={busy}
-                            className="rounded bg-red-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                            className="rounded bg-danger-solid px-2.5 py-1 text-xs font-medium text-on-brand hover:opacity-90 disabled:opacity-50"
                           >
                             Confirm
                           </button>
                           <button
                             onClick={() => setConfirmId(null)}
-                            className="rounded px-2.5 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100"
+                            className="rounded px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-hover"
                           >
                             Cancel
                           </button>
@@ -351,7 +351,7 @@ export default function ItemsPage() {
                       ) : (
                         <button
                           onClick={() => setConfirmId(it.product_id)}
-                          className="rounded px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                          className="rounded px-2.5 py-1 text-xs font-medium text-danger hover:bg-danger-subtle"
                         >
                           Delete
                         </button>
