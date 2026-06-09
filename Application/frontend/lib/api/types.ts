@@ -485,6 +485,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/cart/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Quote Cart */
+        post: operations["quote_cart_api_cart_quote_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/categories": {
         parameters: {
             query?: never;
@@ -651,6 +668,31 @@ export interface components {
         Body_upload_item_image_api_admin_items__product_id__image_post: {
             /** Image */
             image: string;
+        };
+        /** CartQuoteIn */
+        CartQuoteIn: {
+            address?: components["schemas"]["QuoteAddressIn"] | null;
+            /** Lines */
+            lines: components["schemas"]["QuoteLineIn"][];
+            /**
+             * Redeem Points
+             * @default 0
+             */
+            redeem_points: number;
+        };
+        /** CartQuoteOut */
+        CartQuoteOut: {
+            /** Delivery Fee Vnd */
+            delivery_fee_vnd: number;
+            /** Discount Combo Vnd */
+            discount_combo_vnd: number;
+            /** Discount Loyalty Vnd */
+            discount_loyalty_vnd: number;
+            loyalty: components["schemas"]["QuoteLoyaltyOut"];
+            /** Subtotal Vnd */
+            subtotal_vnd: number;
+            /** Total Vnd */
+            total_vnd: number;
         };
         /** CategoryIn */
         CategoryIn: {
@@ -1051,6 +1093,42 @@ export interface components {
             total_amount_vnd: number;
             /** User Id */
             user_id: number | null;
+        };
+        /** QuoteAddressIn */
+        QuoteAddressIn: {
+            /** Administrative Unit */
+            administrative_unit: string;
+            /** Street */
+            street?: string | null;
+        };
+        /** QuoteLineIn */
+        QuoteLineIn: {
+            /** Combo Id */
+            combo_id?: number | null;
+            /** Crust */
+            crust?: string | null;
+            /** Item Id */
+            item_id?: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "pizza" | "side" | "combo";
+            /** Quantity */
+            quantity: number;
+            /** Size */
+            size?: string | null;
+            /** Topping Ids */
+            topping_ids?: number[];
+        };
+        /** QuoteLoyaltyOut */
+        QuoteLoyaltyOut: {
+            /** Balance */
+            balance: number;
+            /** Max Redeemable */
+            max_redeemable: number;
+            /** Redeemed */
+            redeemed: number;
         };
         /** RegisterRequest */
         RegisterRequest: {
@@ -2439,6 +2517,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RegisterResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    quote_cart_api_cart_quote_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CartQuoteIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CartQuoteOut"];
                 };
             };
             /** @description Validation Error */
