@@ -11,3 +11,9 @@ export function fetchCategories(): Promise<MenuCategory[]> {
 export function fetchItems(): Promise<MenuItem[]> {
   return apiFetch<MenuItem[]>("/items");
 }
+
+export type MenuItemDetail = components["schemas"]["MenuItemDetailOut"];
+
+export function fetchItem(id: number): Promise<MenuItemDetail> {
+  return apiFetch<MenuItemDetail>(`/items/${id}`);
+}
