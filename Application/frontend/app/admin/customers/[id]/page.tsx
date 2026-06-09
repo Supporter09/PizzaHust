@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { use } from "react";
 import Link from "next/link";
-import { StatusBadge } from "@/components/shared/status-badge";
 
 interface CustomerDetail {
   user_id: number;

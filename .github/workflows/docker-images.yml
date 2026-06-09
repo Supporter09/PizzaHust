@@ -1,0 +1,70 @@
+name: docker-images
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: backend
+            context: Application/backend
+            image: ghcr.io/supporter09/pizzahust-backend
+            build_args: ""
+          - component: frontend
+            context: Application/frontend
+            image: ghcr.io/supporter09/pizzahust-frontend
+            # Bake the prod same-origin API base so the published image is cutover-ready.
+            build_args: |
+              NEXT_PUBLIC_API_BASE_URL=/api
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          # Only Docker ops after checkout (login uses GITHUB_TOKEN directly);
+          # no git push, so don't persist the token in .git/config.
+          persist-credentials: false
+
+      # Skip login on pull_request: forked PRs only get a read-only token and we do
+      # not push from PRs anyway (build-only smoke test below).
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6
+        with:
+          images: ${{ matrix.image }}
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7
+        with:
+          context: ${{ matrix.context }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64
+          build-args: ${{ matrix.build_args }}
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.component }}
