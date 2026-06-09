@@ -57,7 +57,7 @@ New `app/api/combos.py`, public (no auth guard), registered in `app/main.py` nea
   `combo_item_id` order.
 
 Response model `PublicComboOut` (list):
-```
+```json
 combo_id: int
 name: str
 description: str | None
@@ -96,8 +96,8 @@ Integration tests `tests/test_combos.py` (mirror `tests/test_menu.py`, public no
 - `app/combos/page.tsx`: `"use client"`, the `loading | ready | error` state-machine
   pattern cloned from `app/menu/page.tsx` (deferred mount fetch, skeleton grid, empty
   state, error block with "Try again"). Confirmed via Next 16.1.x docs that the existing
-  `useState`+`useEffect` client-fetch pattern is current/idiomatic — no SWR introduced
-  (not a project dependency; YAGNI).
+   `useState`+`useEffect` client-fetch pattern is current/idiomatic on Next 16.2.x — no SWR
+   introduced (not a project dependency; YAGNI).
 - `components/combos/combo-card.tsx`: combo name, description, component list with
   thumbnails (component `image_url`, "No image" fallback like `pizza-card`), prominent
   `combo_price_vnd` via `formatVnd`, and a **"Save {formatVnd(savings_vnd)}"** badge shown
