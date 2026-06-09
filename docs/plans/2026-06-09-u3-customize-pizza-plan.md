@@ -283,6 +283,7 @@ def test_quote_inactive_product_400():
         json={"lines": [{"kind": "pizza", "item_id": pid, "quantity": 1}]},
     )
     assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"
 
 
 def test_quote_combo_kind_rejected_400():
@@ -291,7 +292,8 @@ def test_quote_combo_kind_rejected_400():
         "/api/cart/quote",
         json={"lines": [{"kind": "combo", "combo_id": 1, "quantity": 1}]},
     )
-    assert r.status_code in (400, 422)
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"
 
 
 def test_quote_unknown_size_name_400():
@@ -301,6 +303,17 @@ def test_quote_unknown_size_name_400():
         json={"lines": [{"kind": "pizza", "item_id": pid, "size": "XXL", "quantity": 1}]},
     )
     assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"
+
+
+def test_quote_unknown_crust_name_400():
+    app, pid, *_ = _pizza_fixture("cart-badcrust")
+    r = TestClient(app).post(
+        "/api/cart/quote",
+        json={"lines": [{"kind": "pizza", "item_id": pid, "crust": "lava", "quantity": 1}]},
+    )
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"
 
 
 def test_quote_unknown_topping_id_400():
@@ -314,6 +327,7 @@ def test_quote_unknown_topping_id_400():
         },
     )
     assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"
 
 
 def test_quote_side_with_pizza_options_400():
@@ -325,6 +339,19 @@ def test_quote_side_with_pizza_options_400():
         json={"lines": [{"kind": "side", "item_id": pid, "size": "M", "quantity": 1}]},
     )
     assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"
+
+
+def test_quote_pizza_kind_on_side_product_400():
+    app = build_test_app("cart-kind-mismatch")
+    cid = new_category("Sides")
+    pid = new_product(cid, "Garlic Bread", base_price_vnd=45_000, is_pizza=False)
+    r = TestClient(app).post(
+        "/api/cart/quote",
+        json={"lines": [{"kind": "pizza", "item_id": pid, "quantity": 1}]},
+    )
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"
 ```
 
 **Step 2: Run, expect fail**
@@ -565,8 +592,23 @@ describe("quoteCart", () => {
     });
     expect(out).toEqual(resp);
   });
+
+  it("propagates ApiClientError from the wrapper", async () => {
+    const err = new ApiClientError("Invalid request.", 400, "VALIDATION_FAILED");
+    (apiFetch as ReturnType<typeof vi.fn>).mockRejectedValue(err);
+
+    await expect(
+      quoteCart({ lines: [{ kind: "pizza" as const, item_id: 1, quantity: 1 }] }),
+    ).rejects.toBe(err);
+  });
 });
 ```
+
+> Note: import `ApiClientError` from the real module — adjust the mock so the named
+> export is preserved, e.g.
+> `vi.mock("@/lib/api/client", async (orig) => ({ ...(await orig<typeof import("@/lib/api/client")>()), apiFetch: vi.fn() }))`,
+> then `import { ApiClientError, apiFetch } from "@/lib/api/client";`. This keeps the
+> real `ApiClientError` class while stubbing only `apiFetch`.
 
 **Step 2: Run, expect fail**
 
@@ -628,8 +670,9 @@ useEffect(() => {
   }
   const size = item.sizes.find((s) => s.size_id === sizeId);
   const crust = item.crusts.find((c) => c.crust_id === crustId);
-  const token = Symbol();
-  latestQuote.current = token;
+  // `active` is invalidated by cleanup on both re-run AND unmount, so neither the
+  // debounce nor the in-flight request can setState after this effect is torn down.
+  let active = true;
   setQuoting(true);
   const handle = window.setTimeout(() => {
     quoteCart({
@@ -645,20 +688,23 @@ useEffect(() => {
       ],
     })
       .then((q) => {
-        if (latestQuote.current === token) setEstimate(q.total_vnd);
+        if (active) setEstimate(q.total_vnd);
       })
       .catch(() => {
-        if (latestQuote.current === token) setEstimate(null);
+        if (active) setEstimate(null);
       })
       .finally(() => {
-        if (latestQuote.current === token) setQuoting(false);
+        if (active) setQuoting(false);
       });
   }, 250);
-  return () => window.clearTimeout(handle);
+  return () => {
+    active = false;
+    window.clearTimeout(handle);
+  };
 }, [item, sizeId, crustId, toppingIds, quantity]);
 ```
 
-Add near the other hooks: `const latestQuote = useRef<symbol | null>(null);` (import `useRef`).
+(No `useRef` needed — the per-effect `active` closure both dedupes stale runs and prevents post-unmount setState.)
 
 - In the JSX, render `estimate`: show `formatVnd(estimate)` when set, a subtle pending hint while `quoting && estimate === null`, and keep the `data-testid="line-estimate"` attribute on the price span. When `estimate === null` and not quoting, render `—`.
 
@@ -693,8 +739,40 @@ git commit -m "feat(U3): quote /menu/[id] price via backend; retire client previ
 
 **Step 1: Edits**
 - In the "Cart & Checkout" section, replace the U2-deviation blockquote (lines ~70-76) with a note that U3 retired `lib/pricing.ts` and `/menu/[id]` now calls `POST /api/cart/quote`.
-- Document `POST /api/cart/quote`: `address` is **optional** — absent => preview pricing (delivery_fee 0, no service-area check); present + outside whitelist => `OUT_OF_SERVICE_AREA` (422). `combo` lines are deferred (U4/U5) and return `VALIDATION_FAILED`. `redeem_points` accepted but capped to 0 until loyalty balance lands (U13/U14).
-- Confirm the request/response examples already in "Schema Examples" still match (they do; nested `loyalty` object preserved).
+- Document `POST /api/cart/quote`: `address` is **optional** — absent => preview pricing (delivery_fee 0, no service-area check); present + outside whitelist => `OUT_OF_SERVICE_AREA` (422). `combo` lines are deferred (U4/U5) and return `VALIDATION_FAILED` (400). `redeem_points` is accepted but, because the loyalty **balance is 0 until U13/U14**, any `redeem_points > 0` exceeds the balance and returns `INSUFFICIENT_LOYALTY` (422). U3 callers send `redeem_points: 0` (the default); the field is wired for U14.
+- **Rewrite the "Schema Examples" request/response for `POST /api/cart/quote`** — the committed example shows a `combo` line and `discount_combo_vnd: 30000` (combo quoting succeeding), which U3 rejects. Replace with a pizza+side example whose numbers are internally consistent with U3 behavior:
+
+  Request:
+  ```json
+  {
+    "lines": [
+      {
+        "kind": "pizza",
+        "item_id": 12,
+        "size": "M",
+        "crust": "thin",
+        "topping_ids": [3, 7],
+        "quantity": 1
+      },
+      { "kind": "side", "item_id": 21, "quantity": 2 }
+    ],
+    "address": { "administrative_unit": "Ba Đình", "street": "..." },
+    "redeem_points": 0
+  }
+  ```
+
+  Response (pizza 190.000 + side 2×30.000 = 250.000 subtotal; in-area address adds 22.000; no combo/loyalty in U3):
+  ```json
+  {
+    "subtotal_vnd": 250000,
+    "discount_combo_vnd": 0,
+    "discount_loyalty_vnd": 0,
+    "delivery_fee_vnd": 22000,
+    "total_vnd": 272000,
+    "loyalty": { "balance": 0, "redeemed": 0, "max_redeemable": 0 }
+  }
+  ```
+- Add a one-line note under the example: combo lines are documented separately as deferred; a future combo-quote example lands with U4/U5.
 
 **Step 2: Commit**
 

@@ -63,10 +63,12 @@ address and are unaffected (backward compatible).
   - Unknown size/crust/topping name/id → `VALIDATION_FAILED` 400.
 - Pricing: build `CartLine(unit_price_vnd, quantity)` per line, call
   `compute_order_total(address_district = address.administrative_unit if address else None,
-  redeem_points=..., current_points=0)`. (Loyalty balance is U13/U14; `current_points=0`
-  here, so `redeem_points` is effectively capped to 0 until then — accepted.)
+  redeem_points=..., current_points=0)`. Loyalty balance is U13/U14, so `current_points=0`
+  here; `compute_redemption` raises `INSUFFICIENT_LOYALTY` when `requested > current`, so any
+  `redeem_points > 0` returns 422. U3 callers send `redeem_points: 0` (default); the field is
+  wired ahead of U14.
   - `address` present + invalid → `OUT_OF_SERVICE_AREA` 422.
-- Response `CartQuoteOut` (matches `CONTRACTS.md` example exactly):
+- Response `CartQuoteOut` (matches the U3-corrected `CONTRACTS.md` example):
   ```
   { subtotal_vnd, discount_combo_vnd, discount_loyalty_vnd, delivery_fee_vnd, total_vnd,
     loyalty: { balance, redeemed, max_redeemable } }
