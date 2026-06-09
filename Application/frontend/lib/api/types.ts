@@ -485,6 +485,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Categories */
+        get: operations["list_categories_api_categories_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/config/delivery": {
         parameters: {
             query?: never;
@@ -511,6 +528,23 @@ export interface paths {
         };
         /** Loyalty Config */
         get: operations["loyalty_config_api_config_loyalty_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Items */
+        get: operations["list_items_api_items_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -887,6 +921,30 @@ export interface components {
             /** Csrf Token */
             csrf_token: string;
             user: components["schemas"]["AuthUserDTO"];
+        };
+        /** MenuCategoryOut */
+        MenuCategoryOut: {
+            /** Category Id */
+            category_id: number;
+            /** Name */
+            name: string;
+            /** Sort Order */
+            sort_order: number;
+        };
+        /** MenuItemOut */
+        MenuItemOut: {
+            /** Base Price Vnd */
+            base_price_vnd: number;
+            /** Category Id */
+            category_id: number;
+            /** Image Url */
+            image_url?: string | null;
+            /** Is Pizza */
+            is_pizza: boolean;
+            /** Name */
+            name: string;
+            /** Product Id */
+            product_id: number;
         };
         /** MessageResponse */
         MessageResponse: {
@@ -2322,6 +2380,26 @@ export interface operations {
             };
         };
     };
+    list_categories_api_categories_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuCategoryOut"][];
+                };
+            };
+        };
+    };
     delivery_config_api_config_delivery_get: {
         parameters: {
             query?: never;
@@ -2358,6 +2436,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoyaltyConfigOut"];
+                };
+            };
+        };
+    };
+    list_items_api_items_get: {
+        parameters: {
+            query?: {
+                category?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuItemOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
