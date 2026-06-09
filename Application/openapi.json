@@ -1340,6 +1340,108 @@
         "title": "OrderSummaryOut",
         "type": "object"
       },
+      "PublicComboItemOut": {
+        "properties": {
+          "base_price_vnd": {
+            "title": "Base Price Vnd",
+            "type": "integer"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "integer"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_id",
+          "name",
+          "quantity",
+          "base_price_vnd"
+        ],
+        "title": "PublicComboItemOut",
+        "type": "object"
+      },
+      "PublicComboOut": {
+        "properties": {
+          "combo_id": {
+            "title": "Combo Id",
+            "type": "integer"
+          },
+          "combo_price_vnd": {
+            "title": "Combo Price Vnd",
+            "type": "integer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PublicComboItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "items_total_vnd": {
+            "title": "Items Total Vnd",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "savings_vnd": {
+            "title": "Savings Vnd",
+            "type": "integer"
+          },
+          "target_group": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Group"
+          }
+        },
+        "required": [
+          "combo_id",
+          "name",
+          "combo_price_vnd",
+          "items_total_vnd",
+          "savings_vnd",
+          "items"
+        ],
+        "title": "PublicComboOut",
+        "type": "object"
+      },
       "QuoteAddressIn": {
         "properties": {
           "administrative_unit": {
@@ -3580,6 +3682,31 @@
         "summary": "List Categories",
         "tags": [
           "menu"
+        ]
+      }
+    },
+    "/api/combos": {
+      "get": {
+        "operationId": "list_combos_api_combos_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PublicComboOut"
+                  },
+                  "title": "Response List Combos Api Combos Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Combos",
+        "tags": [
+          "combos"
         ]
       }
     },
