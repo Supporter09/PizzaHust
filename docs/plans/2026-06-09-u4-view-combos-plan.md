@@ -204,6 +204,26 @@ def test_component_image_url_surfaced():
     items = {i["name"]: i["image_url"] for i in body[0]["items"]}
     assert items["WithImg"] == "/static/img/withimg.png"
     assert items["NoImg"] is None
+
+
+def test_excludes_combo_with_inactive_component():
+    # Admin PATCH can deactivate a product after the combo was created (no combo guard
+    # on patch). Such a combo must not surface on the public page.
+    app = build_test_app("combos-inactive-part")
+    cid = new_category("Pizza")
+    p1 = new_product(cid, "Active", base_price_vnd=100_000, is_pizza=True)
+    p2 = new_product(cid, "GoneSoon", base_price_vnd=50_000, is_pizza=False)
+    _add_combo("HasInactive", 120_000, [(p1, 1), (p2, 1)])
+    with create_session_factory()() as db:
+        from sqlalchemy import select
+        from app.infra.db.models import Product
+
+        prod = db.scalar(select(Product).where(Product.product_id == p2))
+        prod.is_active = False
+        db.commit()
+    r = TestClient(app).get("/api/combos")
+    assert r.status_code == 200
+    assert r.json() == []
 ```
 
 **Step 2: Run, expect fail**
@@ -233,7 +253,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.domain.combos import ComboStatus, combo_savings_vnd, combo_status
 from app.infra.db.deps import get_db
-from app.infra.db.models import Combo
+from app.infra.db.models import Combo, ComboItem
 
 router = APIRouter(prefix="/api", tags=["combos"])
 
@@ -266,7 +286,7 @@ def list_combos(db: Session = Depends(get_db)) -> list[PublicComboOut]:
     now = _now_utc_naive()
     stmt = (
         select(Combo)
-        .options(selectinload(Combo.combo_items).selectinload(Combo.combo_items.property.mapper.class_.product))
+        .options(selectinload(Combo.combo_items).selectinload(ComboItem.product))
         .order_by(Combo.combo_id)
     )
     out: list[PublicComboOut] = []
@@ -274,6 +294,10 @@ def list_combos(db: Session = Depends(get_db)) -> list[PublicComboOut]:
         if combo_status(combo.validity_start, combo.validity_end, now) is not ComboStatus.ACTIVE:
             continue
         items = sorted(combo.combo_items, key=lambda ci: ci.combo_item_id)
+        # A component product can be deactivated after the combo was created (admin PATCH
+        # has no combo guard). Don't surface a combo whose parts aren't all orderable.
+        if any(not ci.product.is_active for ci in items):
+            continue
         items_total = sum(ci.product.base_price_vnd * ci.quantity for ci in items)
         out.append(
             PublicComboOut(
@@ -299,14 +323,14 @@ def list_combos(db: Session = Depends(get_db)) -> list[PublicComboOut]:
     return out
 ```
 
-NOTE on the eager-load: the nested `selectinload` for `ComboItem.product` is cleaner written as `selectinload(Combo.combo_items).selectinload(ComboItem.product)` — import `ComboItem` from models and use that form instead of the `.property.mapper` expression. Verify the relationship attribute names against `app/infra/db/models.py` (`Combo.combo_items`, `ComboItem.product`) before finalizing.
+Verify the relationship attribute names against `app/infra/db/models.py` (`Combo.combo_items`, `ComboItem.product`) before finalizing.
 
 Then in `app/main.py`: add `from app.api.combos import router as combos_router` (with the other `app.api.*` imports) and `app.include_router(combos_router)` near `app.include_router(menu_router)`.
 
 **Step 4: Run, expect pass**
 
 Run: `.venv/bin/python -m pytest -q tests/test_combos.py`
-Expected: PASS (6 tests).
+Expected: PASS (7 tests).
 
 **Step 5: Run nearby suites for regressions**
 
@@ -610,7 +634,9 @@ git commit -m "feat(U4): combos page, combo card, and nav link"
 **Files:**
 - Create: `Application/frontend/tests/e2e/combos.spec.ts`
 
-**Context:** Seeds (`app/seeds/run.py`) create two Active combos: "Lunch Duo for 2" (255.000) and "Family Feast 4" (480.000). `verify.sh` seeds before the browser run. Mirror the assertions style of `tests/e2e/item-detail.spec.ts`.
+**Context:** Seeds (`app/seeds/run.py`) create two Active combos: "Lunch Duo for 2" (255.000₫) and "Family Feast 4" (480.000₫), both priced below their parts (so each shows a "Save …" badge). `verify.sh` seeds before the browser run. Mirror the assertion style of `tests/e2e/item-detail.spec.ts`. The core U4 value prop is that each card shows a price AND server-computed savings — assert both so a card that drops the savings badge cannot pass.
+
+> Check `lib/format.ts::formatVnd` for the exact currency string (grouping separator + `₫`). If it renders `255.000₫`, the price assertions below match; adjust the expected substrings if the format differs. Don't assert an exact savings amount (it depends on seed component prices) — assert the "Save " affordance is present.
 
 **Step 1: Write `tests/e2e/combos.spec.ts`:**
 
@@ -618,10 +644,18 @@ git commit -m "feat(U4): combos page, combo card, and nav link"
 import { expect, test } from "@playwright/test";
 
 test.describe("U4 — View Combo Promotions", () => {
-  test("lists active combos with price", async ({ page }) => {
+  test("lists active combos with price and savings", async ({ page }) => {
     await page.goto("/combos");
     await expect(page.getByRole("heading", { name: "Combo Promotions" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Lunch Duo for 2" })).toBeVisible();
+
+    // Scope to the "Lunch Duo for 2" card and prove price + savings are rendered.
+    const card = page
+      .locator("article")
+      .filter({ has: page.getByRole("heading", { name: "Lunch Duo for 2" }) });
+    await expect(card).toBeVisible();
+    await expect(card.getByText("255.000₫")).toBeVisible();
+    await expect(card.getByText(/Save\s/)).toBeVisible();
+
     await expect(page.getByRole("heading", { name: "Family Feast 4" })).toBeVisible();
   });
 
