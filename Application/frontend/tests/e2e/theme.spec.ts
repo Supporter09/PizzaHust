@@ -33,10 +33,14 @@ test.describe("theme — admin shell", () => {
     await loginAsAdmin(page);
     await page.goto("/admin/orders");
     const html = page.locator("html");
-    const before = await html.getAttribute("class");
+    const hadDark = await html.evaluate((el) => el.classList.contains("dark"));
 
     await page.getByRole("button", { name: "Toggle dark mode" }).first().click();
-    const after = await html.getAttribute("class");
-    expect(after).not.toBe(before);
+
+    if (hadDark) {
+      await expect(html).not.toHaveClass(/dark/);
+    } else {
+      await expect(html).toHaveClass(/dark/);
+    }
   });
 });

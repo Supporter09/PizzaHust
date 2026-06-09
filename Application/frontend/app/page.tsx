@@ -15,7 +15,7 @@ export default function HomePage() {
         </p>
         <div className="flex flex-wrap gap-3">
           <Link href="/register" className="btn-primary px-5 py-2.5">Create Account</Link>
-          <Link href="/login" className="rounded-xl border border-line px-5 py-2.5 font-medium text-fg hover:border-line">
+          <Link href="/login" className="rounded-xl border border-line px-5 py-2.5 font-medium text-fg hover:border-muted">
             Login
           </Link>
         </div>

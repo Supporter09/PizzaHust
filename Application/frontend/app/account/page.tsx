@@ -92,7 +92,7 @@ export default function AccountPage() {
 
           <label className="block text-sm font-medium text-fg">
             Phone number
-            <input className="input-field mt-1 bg-surface-active" value={user.phone_number} disabled />
+            <input className="input-field mt-1 bg-surface-hover" value={user.phone_number} disabled />
           </label>
 
           <label className="block text-sm font-medium text-fg">

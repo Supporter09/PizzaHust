@@ -1,21 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { applyTheme, setStoredTheme, type Theme } from "@/lib/theme";
 
-export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("light");
+function readThemeFromDom(): Theme {
+  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+}
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, []);
+export function ThemeToggle() {
+  const [theme, setTheme] = useState<Theme>(() =>
+    typeof document !== "undefined" ? readThemeFromDom() : "light",
+  );
 
   const toggle = () => {
-    const next: Theme = theme === "dark" ? "light" : "dark";
+    const next: Theme = readThemeFromDom() === "dark" ? "light" : "dark";
     setTheme(next);
     applyTheme(next);
     setStoredTheme(next);
