@@ -4,13 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 import Breadcrumb from "@/components/admin/Breadcrumb";
+import { formatVnd } from "@/lib/format";
 
 type ComboOut = components["schemas"]["ComboOut"];
 type ItemOut = components["schemas"]["ItemOut"];
 type ComboStatus = components["schemas"]["ComboStatus"];
 
 const msg = (e: unknown) => (e instanceof ApiClientError ? e.message : String(e));
-const vnd = (n: number) => `${n.toLocaleString("vi-VN")}₫`;
 const dtLocal = (iso: string | null) => (iso ? iso.slice(0, 16) : "");
 
 const STATUS_BADGE: Record<ComboStatus, string> = {
@@ -236,7 +236,7 @@ export default function CombosPage() {
         <div className="mt-4">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-medium text-muted">Items (at least 2)</span>
-            <span className="text-xs text-muted">Parts total: {vnd(itemsTotal)}</span>
+            <span className="text-xs text-muted">Parts total: {formatVnd(itemsTotal)}</span>
           </div>
           <div className="space-y-2">
             {rows.map((r, i) => (
@@ -251,7 +251,7 @@ export default function CombosPage() {
                   <option value="">Select product…</option>
                   {products.map((p) => (
                     <option key={p.product_id} value={p.product_id}>
-                      {p.name} ({vnd(p.base_price_vnd)})
+                      {p.name} ({formatVnd(p.base_price_vnd)})
                     </option>
                   ))}
                 </select>
@@ -287,7 +287,7 @@ export default function CombosPage() {
 
         {overPriced && (
           <div className="mt-3 rounded-md border border-warning bg-warning-subtle px-3 py-2 text-sm text-warning">
-            Heads up: this combo ({vnd(comboPrice)}) costs more than its items ({vnd(itemsTotal)}).
+            Heads up: this combo ({formatVnd(comboPrice)}) costs more than its items ({formatVnd(itemsTotal)}).
             You can still save it.
           </div>
         )}
@@ -338,7 +338,7 @@ export default function CombosPage() {
                   </ul>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <span className="font-semibold text-fg">{vnd(c.combo_price_vnd)}</span>
+                  <span className="font-semibold text-fg">{formatVnd(c.combo_price_vnd)}</span>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => startEdit(c)}
