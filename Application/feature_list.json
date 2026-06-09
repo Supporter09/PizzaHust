@@ -78,7 +78,7 @@
       "evidence": "verify.sh green at 752a625, 2026-06-09T15:44:02+07:00"
     },
 
-    { "id": "U1",  "name": "Browse Menus",                        "depends_on": ["infra-006", "infra-008"], "status": "todo", "owner": "Hoang",  "evidence": "" },
+    { "id": "U1",  "name": "Browse Menus",                        "depends_on": ["infra-006", "infra-008"], "status": "done", "owner": "Hoang",  "evidence": "verify.sh green at 3f857a7683f07c16002aefd9906ab67dd14f167d, 2026-06-09T10:34:33Z" },
     { "id": "U2",  "name": "View Item Details",                   "depends_on": ["U1"],                     "status": "todo", "owner": "Hoang",  "evidence": "" },
     { "id": "U3",  "name": "Customize Pizza",                     "depends_on": ["U2"],                     "status": "todo", "owner": "Hoang",  "evidence": "" },
     { "id": "U4",  "name": "View Combo Promotions",               "depends_on": ["U1", "A4"],               "status": "todo", "owner": "Hoang",  "evidence": "" },
