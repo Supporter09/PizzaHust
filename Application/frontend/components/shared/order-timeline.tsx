@@ -46,7 +46,7 @@ export function OrderTimeline({ currentStatus, timeline = [] }: Props) {
   const currentIdx = steps.indexOf(currentStatus as (typeof ORDER_STATUSES)[number]);
 
   return (
-    <ol className="relative border-l border-gray-200 ml-3 space-y-6">
+    <ol className="relative border-l border-line ml-3 space-y-6">
       {steps.map((step, i) => {
         const at = timeMap[step];
         const done = currentIdx >= i || !!at;
@@ -55,23 +55,23 @@ export function OrderTimeline({ currentStatus, timeline = [] }: Props) {
         return (
           <li key={step} className="ml-6">
             <span
-              className={`absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-white ${
-                done ? "bg-[#C73E1D] text-white" : "bg-gray-100 text-gray-400"
-              } ${active ? "ring-[#C73E1D]/20" : ""}`}
+              className={`absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-card ${
+                done ? "bg-brand text-on-brand" : "bg-surface-hover text-muted"
+              } ${active ? "ring-brand/20" : ""}`}
             >
               {done ? (
                 <svg className="h-3 w-3" viewBox="0 0 12 12" fill="currentColor">
                   <path d="M10.28 2.28L4.5 8.06 1.72 5.28a1 1 0 00-1.44 1.44l3.5 3.5a1 1 0 001.44 0l6.5-6.5a1 1 0 00-1.44-1.44z" />
                 </svg>
               ) : (
-                <span className="h-2 w-2 rounded-full bg-gray-300" />
+                <span className="h-2 w-2 rounded-full bg-line" />
               )}
             </span>
-            <div className={`font-medium text-sm ${active ? "text-[#C73E1D]" : done ? "text-gray-900" : "text-gray-400"}`}>
+            <div className={`font-medium text-sm ${active ? "text-brand-fg" : done ? "text-fg" : "text-muted"}`}>
               {STATUS_LABELS[step] ?? step}
             </div>
             {at && (
-              <time className="text-xs text-gray-500">{formatTime(at)}</time>
+              <time className="text-xs text-muted">{formatTime(at)}</time>
             )}
           </li>
         );

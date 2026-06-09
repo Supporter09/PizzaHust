@@ -53,13 +53,6 @@
   --info: #1d4ed8;
   --info-subtle: #eff6ff;
   --focus: color-mix(in srgb, var(--brand) 35%, transparent);
-
-  --brand-red: var(--brand);
-  --surface-bg: var(--surface);
-  --surface-card: var(--card);
-  --border-soft: var(--line);
-  --text-muted: var(--muted);
-  --focus-ring: var(--focus);
 }
 
 .dark {

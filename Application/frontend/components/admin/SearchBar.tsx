@@ -13,7 +13,7 @@ export default function SearchBar({ value, onChange, placeholder }: SearchBarPro
       placeholder={placeholder ?? "Search…"}
       onChange={(e) => onChange(e.target.value)}
       aria-label={placeholder ?? "Search"}
-      className="w-full max-w-sm rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#C73E1D] focus:ring-2 focus:ring-[#C73E1D]/30"
+      className="w-full max-w-sm rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
     />
   );
 }

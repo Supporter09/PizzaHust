@@ -14,9 +14,9 @@ const vnd = (n: number) => `${n.toLocaleString("vi-VN")}₫`;
 const dtLocal = (iso: string | null) => (iso ? iso.slice(0, 16) : "");
 
 const STATUS_BADGE: Record<ComboStatus, string> = {
-  Active: "bg-green-50 text-green-700",
-  Scheduled: "bg-amber-50 text-amber-700",
-  Expired: "bg-gray-100 text-gray-500",
+  Active: "bg-green-50 dark:bg-green-500/15 text-green-700 dark:text-green-300",
+  Scheduled: "bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300",
+  Expired: "bg-gray-100 dark:bg-gray-500/20 text-gray-500 dark:text-gray-300",
 };
 
 interface ItemRow {
@@ -157,26 +157,26 @@ export default function CombosPage() {
   }
 
   const inputCls =
-    "w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#C73E1D] focus:ring-2 focus:ring-[#C73E1D]/30";
+    "w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30";
 
   return (
     <div>
       <Breadcrumb items={[{ label: "Admin", href: "/admin" }, { label: "Combos" }]} />
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Combos</h1>
-        <span className="text-sm text-gray-400">{combos.length} combos</span>
+        <h1 className="text-2xl font-semibold text-fg">Combos</h1>
+        <span className="text-sm text-muted">{combos.length} combos</span>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded-md border border-danger bg-danger-subtle px-4 py-3 text-sm text-fg">
           {error}
         </div>
       )}
 
-      <form onSubmit={submit} className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
+      <form onSubmit={submit} className="mb-6 rounded-xl border border-line bg-card p-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">Name</label>
+            <label className="mb-1 block text-xs font-medium text-muted">Name</label>
             <input
               required
               value={form.name}
@@ -185,7 +185,7 @@ export default function CombosPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">Price (VND)</label>
+            <label className="mb-1 block text-xs font-medium text-muted">Price (VND)</label>
             <input
               required
               type="number"
@@ -196,7 +196,7 @@ export default function CombosPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">Group size</label>
+            <label className="mb-1 block text-xs font-medium text-muted">Group size</label>
             <input
               type="number"
               min={1}
@@ -206,7 +206,7 @@ export default function CombosPage() {
             />
           </div>
           <div className="lg:col-span-3">
-            <label className="mb-1 block text-xs font-medium text-gray-500">Description</label>
+            <label className="mb-1 block text-xs font-medium text-muted">Description</label>
             <input
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -214,7 +214,7 @@ export default function CombosPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">Valid from</label>
+            <label className="mb-1 block text-xs font-medium text-muted">Valid from</label>
             <input
               type="datetime-local"
               value={form.validity_start}
@@ -223,7 +223,7 @@ export default function CombosPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">Valid until</label>
+            <label className="mb-1 block text-xs font-medium text-muted">Valid until</label>
             <input
               type="datetime-local"
               value={form.validity_end}
@@ -235,8 +235,8 @@ export default function CombosPage() {
 
         <div className="mt-4">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500">Items (at least 2)</span>
-            <span className="text-xs text-gray-400">Parts total: {vnd(itemsTotal)}</span>
+            <span className="text-xs font-medium text-muted">Items (at least 2)</span>
+            <span className="text-xs text-muted">Parts total: {vnd(itemsTotal)}</span>
           </div>
           <div className="space-y-2">
             {rows.map((r, i) => (
@@ -262,14 +262,14 @@ export default function CombosPage() {
                   onChange={(e) =>
                     setRows(rows.map((x, j) => (j === i ? { ...x, quantity: e.target.value } : x)))
                   }
-                  className="w-20 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#C73E1D] focus:ring-2 focus:ring-[#C73E1D]/30"
+                  className="w-20 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
                 />
                 <button
                   type="button"
                   onClick={() => setRows(rows.filter((_, j) => j !== i))}
                   disabled={rows.length <= 2}
                   aria-label="Remove item"
-                  className="rounded px-2 py-1 text-sm text-gray-400 hover:bg-gray-100 disabled:opacity-30"
+                  className="rounded px-2 py-1 text-sm text-muted hover:bg-surface-hover disabled:opacity-30"
                 >
                   ✕
                 </button>
@@ -279,14 +279,14 @@ export default function CombosPage() {
           <button
             type="button"
             onClick={() => setRows([...rows, { product_id: "", quantity: "1" }])}
-            className="mt-2 text-sm font-medium text-[#C73E1D] hover:underline"
+            className="mt-2 text-sm font-medium text-brand-fg hover:underline"
           >
             + Add item
           </button>
         </div>
 
         {overPriced && (
-          <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+          <div className="mt-3 rounded-md border border-warning bg-warning-subtle px-3 py-2 text-sm text-warning">
             Heads up: this combo ({vnd(comboPrice)}) costs more than its items ({vnd(itemsTotal)}).
             You can still save it.
           </div>
@@ -296,7 +296,7 @@ export default function CombosPage() {
           <button
             type="submit"
             disabled={busy}
-            className="rounded-lg bg-[#C73E1D] px-4 py-2 text-sm font-medium text-white hover:bg-[#a93217] disabled:opacity-50"
+            className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50"
           >
             {editingId === null ? "Create combo" : "Save changes"}
           </button>
@@ -304,7 +304,7 @@ export default function CombosPage() {
             <button
               type="button"
               onClick={resetForm}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+              className="rounded-lg border border-line px-4 py-2 text-sm text-muted hover:bg-surface"
             >
               Cancel
             </button>
@@ -313,23 +313,23 @@ export default function CombosPage() {
       </form>
 
       <div className="space-y-3">
-        {loading && <p className="text-sm text-gray-400">Loading…</p>}
-        {!loading && combos.length === 0 && <p className="text-sm text-gray-400">No combos</p>}
+        {loading && <p className="text-sm text-muted">Loading…</p>}
+        {!loading && combos.length === 0 && <p className="text-sm text-muted">No combos</p>}
         {!loading &&
           combos.map((c) => (
-            <div key={c.combo_id} className="rounded-xl border border-gray-200 bg-white p-4">
+            <div key={c.combo_id} className="rounded-xl border border-line bg-card p-4">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-gray-900">{c.name}</h3>
+                    <h3 className="font-medium text-fg">{c.name}</h3>
                     <span
                       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[c.status]}`}
                     >
                       {c.status}
                     </span>
                   </div>
-                  {c.description && <p className="mt-0.5 text-sm text-gray-500">{c.description}</p>}
-                  <ul className="mt-2 text-sm text-gray-600">
+                  {c.description && <p className="mt-0.5 text-sm text-muted">{c.description}</p>}
+                  <ul className="mt-2 text-sm text-muted">
                     {c.items.map((it) => (
                       <li key={it.product_id}>
                         {it.quantity}× {it.name}
@@ -338,11 +338,11 @@ export default function CombosPage() {
                   </ul>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <span className="font-semibold text-gray-900">{vnd(c.combo_price_vnd)}</span>
+                  <span className="font-semibold text-fg">{vnd(c.combo_price_vnd)}</span>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => startEdit(c)}
-                      className="rounded px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100"
+                      className="rounded px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-hover"
                     >
                       Edit
                     </button>
@@ -351,13 +351,13 @@ export default function CombosPage() {
                         <button
                           onClick={() => void remove(c.combo_id)}
                           disabled={busy}
-                          className="rounded bg-red-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                          className="rounded bg-danger-solid px-2.5 py-1 text-xs font-medium text-on-brand hover:opacity-90 disabled:opacity-50"
                         >
                           Confirm
                         </button>
                         <button
                           onClick={() => setConfirmId(null)}
-                          className="rounded px-2.5 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100"
+                          className="rounded px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-hover"
                         >
                           Cancel
                         </button>
@@ -365,7 +365,7 @@ export default function CombosPage() {
                     ) : (
                       <button
                         onClick={() => setConfirmId(c.combo_id)}
-                        className="rounded px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                        className="rounded px-2.5 py-1 text-xs font-medium text-danger hover:bg-danger-subtle"
                       >
                         Delete
                       </button>
