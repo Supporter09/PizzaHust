@@ -1,6 +1,11 @@
 from datetime import datetime
 
-from app.domain.combos import ComboStatus, combo_price_below_items, combo_status
+from app.domain.combos import (
+    ComboStatus,
+    combo_price_below_items,
+    combo_savings_vnd,
+    combo_status,
+)
 
 T0 = datetime(2026, 6, 1, 10, 0, 0)
 START = datetime(2026, 6, 5, 0, 0, 0)
@@ -45,3 +50,15 @@ def test_price_below_items_true_when_cheaper():
 
 def test_price_below_items_false_when_equal_or_more():
     assert combo_price_below_items(255_000, 255_000) is False
+
+
+def test_savings_positive_when_combo_cheaper():
+    assert combo_savings_vnd(200_000, 255_000) == 55_000
+
+
+def test_savings_zero_when_equal():
+    assert combo_savings_vnd(255_000, 255_000) == 0
+
+
+def test_savings_clamped_zero_when_overpriced():
+    assert combo_savings_vnd(300_000, 255_000) == 0
