@@ -45,9 +45,9 @@ export default function MenuPage() {
       <h1 className="text-3xl font-bold text-fg">Menu</h1>
 
       {status === "error" ? (
-        <div className="rounded-md bg-danger-subtle px-4 py-3 text-sm text-fg">
-          Couldn&apos;t load the menu.{" "}
-          <button type="button" className="font-semibold text-brand-fg" onClick={load}>
+        <div className="rounded-md border border-danger bg-danger-subtle px-4 py-3 text-sm text-fg">
+          <p>Couldn&apos;t load the menu.</p>
+          <button type="button" className="btn-primary mt-3 px-5 py-2.5" onClick={load}>
             Try again
           </button>
         </div>
