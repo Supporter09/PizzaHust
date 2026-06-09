@@ -90,6 +90,7 @@ def _resolve_line(db: Session, line: QuoteLineIn) -> CartLine:
                 raise _bad("Unknown size.")
             size_modifier = size.price_modifier_vnd
         if line.crust is not None:
+            # Crust has no price modifier in the schema; validate existence only.
             crust = db.scalar(select(PizzaCrust).where(PizzaCrust.name == line.crust))
             if crust is None:
                 raise _bad("Unknown crust.")
@@ -123,6 +124,7 @@ def quote_cart(payload: CartQuoteIn, db: Session = Depends(get_db)) -> CartQuote
             lines=lines,
             address_district=district,
             redeem_points=payload.redeem_points,
+            # Loyalty balance is U13/U14; until then current_points=0, so any redeem_points>0 -> INSUFFICIENT_LOYALTY (422).
             current_points=0,
         )
     except PricingError as exc:

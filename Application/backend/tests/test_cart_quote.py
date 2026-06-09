@@ -176,3 +176,40 @@ def test_quote_pizza_kind_on_side_product_400():
     )
     assert r.status_code == 400
     assert r.json()["error"]["code"] == "VALIDATION_FAILED"
+
+
+def test_quote_redeem_points_without_balance_422():
+    app, pid, *_ = _pizza_fixture("cart-redeem-none")
+    r = TestClient(app).post(
+        "/api/cart/quote",
+        json={
+            "lines": [{"kind": "pizza", "item_id": pid, "size": "S", "quantity": 1}],
+            "redeem_points": 5,
+        },
+    )
+    assert r.status_code == 422
+    assert r.json()["error"]["code"] == "INSUFFICIENT_LOYALTY"
+
+
+def test_quote_side_with_crust_400():
+    app = build_test_app("cart-side-crust")
+    cid = new_category("Sides")
+    pid = new_product(cid, "Garlic Bread", base_price_vnd=45_000, is_pizza=False)
+    r = TestClient(app).post(
+        "/api/cart/quote",
+        json={"lines": [{"kind": "side", "item_id": pid, "crust": "thin", "quantity": 1}]},
+    )
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"
+
+
+def test_quote_side_with_toppings_400():
+    app = build_test_app("cart-side-tops")
+    cid = new_category("Sides")
+    pid = new_product(cid, "Garlic Bread", base_price_vnd=45_000, is_pizza=False)
+    r = TestClient(app).post(
+        "/api/cart/quote",
+        json={"lines": [{"kind": "side", "item_id": pid, "topping_ids": [1], "quantity": 1}]},
+    )
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"
