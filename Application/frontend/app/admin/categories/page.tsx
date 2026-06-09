@@ -127,40 +127,40 @@ export default function CategoriesPage() {
     <div>
       <Breadcrumb items={[{ label: "Admin", href: "/admin" }, { label: "Categories" }]} />
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Categories</h1>
-        <span className="text-sm text-gray-400">{cats.length} categories</span>
+        <h1 className="text-2xl font-semibold text-fg">Categories</h1>
+        <span className="text-sm text-muted">{cats.length} categories</span>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded-md border border-danger bg-danger-subtle px-4 py-3 text-sm text-fg">
           {error}
         </div>
       )}
 
       <form
         onSubmit={submit}
-        className="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-gray-200 bg-white p-4 sm:grid-cols-3"
+        className="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-line bg-card p-4 sm:grid-cols-3"
       >
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500">Name</label>
+          <label className="mb-1 block text-xs font-medium text-muted">Name</label>
           <input
             required
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#C73E1D] focus:ring-2 focus:ring-[#C73E1D]/30"
+            className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
           />
         </div>
         <div className="sm:col-span-2">
-          <label className="mb-1 block text-xs font-medium text-gray-500">Description</label>
+          <label className="mb-1 block text-xs font-medium text-muted">Description</label>
           <input
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#C73E1D] focus:ring-2 focus:ring-[#C73E1D]/30"
+            className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
           />
         </div>
         <div className="flex items-center gap-3 sm:col-span-3">
           {editingId !== null && (
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2 text-sm text-fg">
               <input
                 type="checkbox"
                 checked={editActive}
@@ -172,7 +172,7 @@ export default function CategoriesPage() {
           <button
             type="submit"
             disabled={busy}
-            className="rounded-lg bg-[#C73E1D] px-4 py-2 text-sm font-medium text-white hover:bg-[#a93217] disabled:opacity-50"
+            className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50"
           >
             {editingId === null ? "Add category" : "Save changes"}
           </button>
@@ -180,7 +180,7 @@ export default function CategoriesPage() {
             <button
               type="button"
               onClick={resetForm}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+              className="rounded-lg border border-line px-4 py-2 text-sm text-muted hover:bg-surface"
             >
               Cancel
             </button>
@@ -188,31 +188,31 @@ export default function CategoriesPage() {
         </div>
       </form>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50">
+      <div className="overflow-x-auto rounded-xl border border-line bg-card">
+        <table className="min-w-full divide-y divide-line text-sm">
+          <thead className="bg-surface">
             <tr>
               {["Order", "Name", "Description", "Status", ""].map((h) => (
                 <th
                   key={h}
-                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted"
                 >
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-line">
             {loading && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={5} className="px-4 py-8 text-center text-muted">
                   Loading…
                 </td>
               </tr>
             )}
             {!loading && cats.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={5} className="px-4 py-8 text-center text-muted">
                   No categories
                 </td>
               </tr>
@@ -226,7 +226,7 @@ export default function CategoriesPage() {
                         onClick={() => void move(i, -1)}
                         disabled={busy || i === 0}
                         aria-label="Move up"
-                        className="rounded px-1.5 py-0.5 text-gray-400 hover:bg-gray-100 disabled:opacity-30"
+                        className="rounded px-1.5 py-0.5 text-muted hover:bg-surface-hover disabled:opacity-30"
                       >
                         ↑
                       </button>
@@ -234,18 +234,18 @@ export default function CategoriesPage() {
                         onClick={() => void move(i, 1)}
                         disabled={busy || i === cats.length - 1}
                         aria-label="Move down"
-                        className="rounded px-1.5 py-0.5 text-gray-400 hover:bg-gray-100 disabled:opacity-30"
+                        className="rounded px-1.5 py-0.5 text-muted hover:bg-surface-hover disabled:opacity-30"
                       >
                         ↓
                       </button>
                     </div>
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{c.name}</td>
-                  <td className="px-4 py-3 text-gray-500">{c.description ?? "—"}</td>
+                  <td className="px-4 py-3 font-medium text-fg">{c.name}</td>
+                  <td className="px-4 py-3 text-muted">{c.description ?? "—"}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                        c.is_active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"
+                        c.is_active ? "bg-success-subtle text-success" : "bg-surface-hover text-muted"
                       }`}
                     >
                       {c.is_active ? "Active" : "Inactive"}
@@ -255,7 +255,7 @@ export default function CategoriesPage() {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => startEdit(c)}
-                        className="rounded px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100"
+                        className="rounded px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-hover"
                       >
                         Edit
                       </button>
@@ -264,13 +264,13 @@ export default function CategoriesPage() {
                           <button
                             onClick={() => void remove(c.category_id)}
                             disabled={busy}
-                            className="rounded bg-red-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                            className="rounded bg-danger-solid px-2.5 py-1 text-xs font-medium text-on-brand hover:opacity-90 disabled:opacity-50"
                           >
                             Confirm
                           </button>
                           <button
                             onClick={() => setConfirmId(null)}
-                            className="rounded px-2.5 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100"
+                            className="rounded px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-hover"
                           >
                             Cancel
                           </button>
@@ -278,7 +278,7 @@ export default function CategoriesPage() {
                       ) : (
                         <button
                           onClick={() => setConfirmId(c.category_id)}
-                          className="rounded px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                          className="rounded px-2.5 py-1 text-xs font-medium text-danger hover:bg-danger-subtle"
                         >
                           Delete
                         </button>

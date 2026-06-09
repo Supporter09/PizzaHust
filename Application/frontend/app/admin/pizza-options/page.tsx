@@ -88,56 +88,56 @@ function OptionSection({ title, priceLabel, load, create, remove }: OptionSectio
   }
 
   return (
-    <section className="rounded-xl border border-gray-200 bg-white p-4">
-      <h2 className="mb-3 text-lg font-semibold text-gray-900">{title}</h2>
+    <section className="rounded-xl border border-line bg-card p-4">
+      <h2 className="mb-3 text-lg font-semibold text-fg">{title}</h2>
 
       {error && (
-        <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="mb-3 rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-fg">
           {error}
         </div>
       )}
 
       <form onSubmit={add} className="mb-4 flex flex-wrap items-end gap-2">
         <div className="flex-1 min-w-[8rem]">
-          <label className="mb-1 block text-xs font-medium text-gray-500">Name</label>
+          <label className="mb-1 block text-xs font-medium text-muted">Name</label>
           <input
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#C73E1D] focus:ring-2 focus:ring-[#C73E1D]/30"
+            className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
           />
         </div>
         {priceLabel && (
           <div className="w-36">
-            <label className="mb-1 block text-xs font-medium text-gray-500">{priceLabel}</label>
+            <label className="mb-1 block text-xs font-medium text-muted">{priceLabel}</label>
             <input
               type="number"
               min={0}
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#C73E1D] focus:ring-2 focus:ring-[#C73E1D]/30"
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
             />
           </div>
         )}
         <button
           type="submit"
           disabled={busy}
-          className="rounded-lg bg-[#C73E1D] px-4 py-2 text-sm font-medium text-white hover:bg-[#a93217] disabled:opacity-50"
+          className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50"
         >
           Add
         </button>
       </form>
 
-      <ul className="divide-y divide-gray-100">
-        {loading && <li className="py-3 text-sm text-gray-400">Loading…</li>}
-        {!loading && rows.length === 0 && <li className="py-3 text-sm text-gray-400">None yet</li>}
+      <ul className="divide-y divide-line">
+        {loading && <li className="py-3 text-sm text-muted">Loading…</li>}
+        {!loading && rows.length === 0 && <li className="py-3 text-sm text-muted">None yet</li>}
         {!loading &&
           rows.map((r) => (
             <li key={r.id} className="flex items-center justify-between py-2.5">
-              <span className="text-sm text-gray-900">
+              <span className="text-sm text-fg">
                 {r.name}
                 {r.price !== null && (
-                  <span className="ml-2 text-xs text-gray-400">{vnd(r.price)}</span>
+                  <span className="ml-2 text-xs text-muted">{vnd(r.price)}</span>
                 )}
               </span>
               {confirmId === r.id ? (
@@ -145,13 +145,13 @@ function OptionSection({ title, priceLabel, load, create, remove }: OptionSectio
                   <button
                     onClick={() => void del(r.id)}
                     disabled={busy}
-                    className="rounded bg-red-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                    className="rounded bg-danger-solid px-2.5 py-1 text-xs font-medium text-on-brand hover:opacity-90 disabled:opacity-50"
                   >
                     Confirm
                   </button>
                   <button
                     onClick={() => setConfirmId(null)}
-                    className="rounded px-2.5 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100"
+                    className="rounded px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-hover"
                   >
                     Cancel
                   </button>
@@ -159,7 +159,7 @@ function OptionSection({ title, priceLabel, load, create, remove }: OptionSectio
               ) : (
                 <button
                   onClick={() => setConfirmId(r.id)}
-                  className="rounded px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                  className="rounded px-2.5 py-1 text-xs font-medium text-danger hover:bg-danger-subtle"
                 >
                   Delete
                 </button>
@@ -175,7 +175,7 @@ export default function PizzaOptionsPage() {
   return (
     <div>
       <Breadcrumb items={[{ label: "Admin", href: "/admin" }, { label: "Pizza Options" }]} />
-      <h1 className="mb-6 text-2xl font-semibold text-gray-900">Pizza Options</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-fg">Pizza Options</h1>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <OptionSection

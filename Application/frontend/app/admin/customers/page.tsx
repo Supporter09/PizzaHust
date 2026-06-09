@@ -15,9 +15,9 @@ interface Customer {
 }
 
 const TIER_BADGE: Record<string, string> = {
-  standard: "bg-gray-100 text-gray-600",
-  silver: "bg-slate-100 text-slate-600",
-  gold: "bg-amber-100 text-amber-700",
+  standard: "bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300",
+  silver: "bg-slate-100 dark:bg-slate-500/20 text-slate-600 dark:text-slate-300",
+  gold: "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300",
 };
 
 export default function CustomersPage() {
@@ -71,8 +71,8 @@ export default function CustomersPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Customer Accounts</h1>
-        <span className="text-sm text-gray-400">{customers.length} accounts</span>
+        <h1 className="text-2xl font-semibold text-fg">Customer Accounts</h1>
+        <span className="text-sm text-muted">{customers.length} accounts</span>
       </div>
 
       <div className="mb-4">
@@ -81,60 +81,60 @@ export default function CustomersPage() {
           placeholder="Search by name, phone, or email…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full max-w-sm rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#C73E1D]/30 focus:border-[#C73E1D]"
+          className="w-full max-w-sm rounded-lg border border-line px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
         />
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
+        <div className="rounded-md bg-danger-subtle border border-danger px-4 py-3 text-sm text-fg mb-4">
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50">
+      <div className="bg-card rounded-xl border border-line overflow-hidden">
+        <table className="min-w-full divide-y divide-line text-sm">
+          <thead className="bg-surface">
             <tr>
               {["Customer", "Contact", "Tier", "Points", "Orders", "Status", ""].map((h) => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
+                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted uppercase tracking-wider">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-line">
             {loading && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">Loading…</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted">Loading…</td></tr>
             )}
             {!loading && customers.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">No customers found</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted">No customers found</td></tr>
             )}
             {!loading && customers.map((c) => (
-              <tr key={c.user_id} className={`hover:bg-gray-50 ${c.is_locked ? "opacity-60" : ""}`}>
+              <tr key={c.user_id} className={`hover:bg-surface ${c.is_locked ? "opacity-60" : ""}`}>
                 <td className="px-4 py-3">
-                  <Link href={`/admin/customers/${c.user_id}`} className="font-medium text-gray-900 hover:text-[#C73E1D]">
+                  <Link href={`/admin/customers/${c.user_id}`} className="font-medium text-fg hover:text-brand-fg">
                     {c.full_name}
                   </Link>
-                  <div className="text-xs text-gray-400">#{c.user_id}</div>
+                  <div className="text-xs text-muted">#{c.user_id}</div>
                 </td>
                 <td className="px-4 py-3">
                   <div>{c.phone_number}</div>
-                  {c.email && <div className="text-xs text-gray-400">{c.email}</div>}
+                  {c.email && <div className="text-xs text-muted">{c.email}</div>}
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${TIER_BADGE[c.membership_tier] ?? "bg-gray-100 text-gray-600"}`}>
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${TIER_BADGE[c.membership_tier] ?? "bg-surface-hover text-muted dark:bg-surface-active dark:text-muted"}`}>
                     {c.membership_tier}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-gray-700">{c.current_points.toLocaleString()}</td>
-                <td className="px-4 py-3 text-gray-700">{c.order_count}</td>
+                <td className="px-4 py-3 text-fg">{c.current_points.toLocaleString()}</td>
+                <td className="px-4 py-3 text-fg">{c.order_count}</td>
                 <td className="px-4 py-3">
                   {c.is_locked ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
-                      <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    <span className="inline-flex items-center gap-1 rounded-full bg-danger-subtle px-2 py-0.5 text-xs font-medium text-danger">
+                      <span className="h-1.5 w-1.5 rounded-full bg-danger-solid" />
                       Locked
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
-                      <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    <span className="inline-flex items-center gap-1 rounded-full bg-success-subtle px-2 py-0.5 text-xs font-medium text-success">
+                      <span className="h-1.5 w-1.5 rounded-full bg-success-solid" />
                       Active
                     </span>
                   )}
@@ -145,8 +145,8 @@ export default function CustomersPage() {
                     disabled={toggling === c.user_id}
                     className={`rounded px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-50 ${
                       c.is_locked
-                        ? "bg-green-600 text-white hover:bg-green-700"
-                        : "bg-red-600 text-white hover:bg-red-700"
+                        ? "bg-success-solid text-on-brand hover:opacity-90"
+                        : "bg-danger-solid text-on-brand hover:opacity-90"
                     }`}
                   >
                     {toggling === c.user_id ? "…" : c.is_locked ? "Unlock" : "Lock"}
