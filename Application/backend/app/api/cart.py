@@ -73,9 +73,7 @@ def _resolve_line(db: Session, line: QuoteLineIn) -> CartLine:
     if line.item_id is None:
         raise _bad("item_id is required.")
     product = db.scalar(
-        select(Product).where(
-            Product.product_id == line.item_id, Product.is_active.is_(True)
-        )
+        select(Product).where(Product.product_id == line.item_id, Product.is_active.is_(True))
     )
     if product is None:
         raise _bad("Unknown or inactive product.")
@@ -124,7 +122,8 @@ def quote_cart(payload: CartQuoteIn, db: Session = Depends(get_db)) -> CartQuote
             lines=lines,
             address_district=district,
             redeem_points=payload.redeem_points,
-            # Loyalty balance is U13/U14; until then current_points=0, so any redeem_points>0 -> INSUFFICIENT_LOYALTY (422).
+            # Loyalty balance arrives in U13/U14; until then current_points=0, so any
+            # redeem_points > 0 raises INSUFFICIENT_LOYALTY (422).
             current_points=0,
         )
     except PricingError as exc:

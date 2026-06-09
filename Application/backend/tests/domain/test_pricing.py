@@ -84,18 +84,14 @@ def test_pizza_unit_price_sums_base_size_and_toppings() -> None:
 
 def test_pizza_unit_price_no_toppings_no_modifier() -> None:
     assert (
-        compute_pizza_unit_price(
-            base_price_vnd=99_000, size_modifier_vnd=0, topping_prices_vnd=[]
-        )
+        compute_pizza_unit_price(base_price_vnd=99_000, size_modifier_vnd=0, topping_prices_vnd=[])
         == 99_000
     )
 
 
 def test_pizza_unit_price_rejects_negative() -> None:
     with pytest.raises(PricingError) as exc:
-        compute_pizza_unit_price(
-            base_price_vnd=-1, size_modifier_vnd=0, topping_prices_vnd=[]
-        )
+        compute_pizza_unit_price(base_price_vnd=-1, size_modifier_vnd=0, topping_prices_vnd=[])
     assert exc.value.code == "VALIDATION_FAILED"
 
 

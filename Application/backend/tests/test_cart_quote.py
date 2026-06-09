@@ -144,11 +144,7 @@ def test_quote_unknown_topping_id_400():
     app, pid, *_ = _pizza_fixture("cart-badtop")
     r = TestClient(app).post(
         "/api/cart/quote",
-        json={
-            "lines": [
-                {"kind": "pizza", "item_id": pid, "topping_ids": [999999], "quantity": 1}
-            ]
-        },
+        json={"lines": [{"kind": "pizza", "item_id": pid, "topping_ids": [999999], "quantity": 1}]},
     )
     assert r.status_code == 400
     assert r.json()["error"]["code"] == "VALIDATION_FAILED"
