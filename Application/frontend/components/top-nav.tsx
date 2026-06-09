@@ -46,6 +46,9 @@ export function TopNav() {
           <Link href="/" className={navClass(pathname === "/")}>
             Home
           </Link>
+          <Link href="/combos" className={navClass(pathname === "/combos")}>
+            Combos
+          </Link>
           {links.map((link) => (
             <Link key={link.href} href={link.href} className={navClass(pathname === link.href)}>
               {link.label}
@@ -88,6 +91,13 @@ export function TopNav() {
             onClick={() => setMenuOpen(false)}
           >
             Home
+          </Link>
+          <Link
+            href="/combos"
+            className={`${navClass(pathname === "/combos")} py-3`}
+            onClick={() => setMenuOpen(false)}
+          >
+            Combos
           </Link>
           {links.map((link) => (
             <Link
