@@ -67,13 +67,17 @@ Error codes (closed set, extend in this doc only):
 | POST | `/api/cart/quote` | Compute pricing for a candidate cart + address |
 | POST | `/api/orders` | Place COD order. Returns `{ order_code, total_vnd, status }`. Rejects with `OUT_OF_SERVICE_AREA` if address invalid |
 
-> **Sanctioned deviation — client-side single-item price preview (U2).** The
-> `/menu/[id]` item page renders a **display-only, non-authoritative** per-item
-> price estimate via frontend `lib/pricing.ts` (`computePizzaLineTotal`), a scoped
-> exception to the "frontend never recomputes" rule in `ARCHITECTURE.md`. It is a
-> trivial linear sum (base + size modifier + toppings) × quantity for a single
-> item, never used for cart or order money. U5 replaces it with the authoritative
-> `POST /api/cart/quote`, which gates all real totals server-side.
+> **Authoritative pricing (U3).** `POST /api/cart/quote` is the single source of
+> truth for line and cart pricing. The former U2 client-side preview
+> (`frontend/lib/pricing.ts` `computePizzaLineTotal`) has been **removed** in U3; the
+> `/menu/[id]` item page now calls `POST /api/cart/quote` for a single customized
+> pizza line and renders `total_vnd`. `address` is **optional**: when absent the quote
+> runs in preview mode (`delivery_fee_vnd: 0`, no service-area check); when present and
+> outside the inner-Hanoi whitelist it returns `OUT_OF_SERVICE_AREA` (422). `combo`
+> lines are deferred (U4/U5) and currently return `VALIDATION_FAILED` (400).
+> `redeem_points` is accepted for forward-compatibility with U14, but because the
+> loyalty balance is 0 until U13/U14, any `redeem_points > 0` returns
+> `INSUFFICIENT_LOYALTY` (422); U3 callers send `redeem_points: 0`.
 
 ### Order tracking (U7, U11)
 
@@ -219,24 +223,31 @@ All under `/api/kitchen/`, role=`kitchen` required.
       "topping_ids": [3, 7],
       "quantity": 1
     },
-    { "kind": "side", "item_id": 21, "quantity": 2 },
-    { "kind": "combo", "combo_id": 4, "quantity": 1 }
+    { "kind": "side", "item_id": 21, "quantity": 2 }
   ],
   "address": { "administrative_unit": "Ba Đình", "street": "..." },
-  "redeem_points": 10
+  "redeem_points": 0
 }
 ```
 
+> `combo` lines are deferred (U4/U5) — a combo example will land with those features.
+> Omit `address` to receive a preview quote (`delivery_fee_vnd: 0`, no service-area check).
+
 ### `POST /api/cart/quote` — response
+
+Pizza line 190.000 (base 125.000 + size M 30.000 + toppings 15.000 + 20.000) plus side
+2 × 30.000 = 60.000 gives a 250.000 subtotal; the in-area address adds the 22.000
+delivery fee. No combo discount and (in this sprint) no loyalty redemption.
+`max_redeemable` is derived from 50% of the post-combo subtotal (125.000 ÷ 1.000 = 125).
 
 ```json
 {
-  "subtotal_vnd": 295000,
-  "discount_combo_vnd": 30000,
-  "discount_loyalty_vnd": 10000,
+  "subtotal_vnd": 250000,
+  "discount_combo_vnd": 0,
+  "discount_loyalty_vnd": 0,
   "delivery_fee_vnd": 22000,
-  "total_vnd": 277000,
-  "loyalty": { "balance": 42, "redeemed": 10, "max_redeemable": 132 }
+  "total_vnd": 272000,
+  "loyalty": { "balance": 0, "redeemed": 0, "max_redeemable": 125 }
 }
 ```
 
