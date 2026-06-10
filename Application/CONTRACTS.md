@@ -57,7 +57,7 @@ Error codes (closed set, extend in this doc only):
 |---|---|---|
 | GET | `/api/categories` | List active categories |
 | GET | `/api/items` | List active items, filterable by `category` (`category_id`). `vegetarian`/`kids` filters and item `description` are deferred — no schema columns yet. |
-| GET | `/api/items/{id}` | Item detail (includes sizes/crusts/toppings if pizza) |
+| GET | `/api/items/{id}` | Item detail (includes `option_groups[]` — options enabled for this dish) |
 | GET | `/api/combos` | List active combos for current time window |
 
 ### Cart & Checkout (U3, U5, U6, U13)
@@ -74,7 +74,14 @@ Error codes (closed set, extend in this doc only):
 > pizza line and renders `total_vnd`. `address` is **optional**: when absent the quote
 > runs in preview mode (`delivery_fee_vnd: 0`, no service-area check); when present and
 > outside the inner-Hanoi whitelist it returns `OUT_OF_SERVICE_AREA` (422). `combo`
-> lines are deferred (U4/U5) and currently return `VALIDATION_FAILED` (400).
+> lines are deferred (U5/U15) and currently return `VALIDATION_FAILED` (400).
+>
+> **Generic options (A8).** A line is `{kind: "item"|"combo", item_id, option_ids, quantity}`.
+> The server **dedupes** `option_ids` before validation and pricing (duplicates never
+> double-charge), then enforces group rules against the dish's enabled set. Rule
+> violations return `VALIDATION_FAILED` (400) with a machine-readable
+> `details.reason`: `option_not_available` (+`option_id`), `required_group_missing`
+> (+`group_name`), or `single_group_conflict` (+`group_name`).
 > `redeem_points` is accepted for forward-compatibility with U14, but because the
 > loyalty balance is 0 until U13/U14, any `redeem_points > 0` returns
 > `INSUFFICIENT_LOYALTY` (422); U3 callers send `redeem_points: 0`.
@@ -112,13 +119,13 @@ All under `/api/admin/`, role=`admin` required.
 |---|---|---|
 | GET/POST/PATCH/DELETE | `/api/admin/items` | A1, A2 — pizzas + side dishes; GET filters `kind=pizza\|side`, `category_id`, `active` |
 | POST | `/api/admin/items/{id}/image` | A1 — multipart image upload (field `image`); returns `{ "image_url": string }` |
-| GET/POST/PATCH/DELETE | `/api/admin/sizes` | A2 — pizza sizes |
-| GET/POST/PATCH/DELETE | `/api/admin/crusts` | A2 — pizza crusts |
-| GET/POST/PATCH/DELETE | `/api/admin/toppings` | A2 — pizza toppings |
+| GET/POST/PATCH/DELETE | `/api/admin/option-groups` | A2/A8 — option categories (`name`, `select_type: single\|multi`, `required`, `sort_order`) |
+| POST | `/api/admin/option-groups/{gid}/options` | A2/A8 — add option (`name`, `description?`, `price_delta_vnd ≥ 0`, `sort_order`) |
+| PATCH/DELETE | `/api/admin/options/{oid}` | A2/A8 — edit/delete one option |
+| GET/PUT | `/api/admin/items/{id}/options` | A2/A8 — per-dish enablement; PUT body `{ "option_ids": [] }` replaces the enabled set |
 | GET/POST/PATCH/DELETE | `/api/admin/categories` | A3 |
 | GET/POST/PATCH/DELETE | `/api/admin/combos` | A4 — response includes derived `status` |
 | POST | `/api/admin/import/pizzas` | A1 — CSV upsert (multipart field `file`) |
-| POST | `/api/admin/import/toppings` | A1 — CSV upsert (multipart field `file`) |
 | GET | `/api/admin/orders` | A5 list, query param `status` |
 | GET | `/api/admin/orders/{id}` | A5 get order detail |
 | POST | `/api/admin/orders/{id}/cancel` | A5 cancel order |
@@ -145,21 +152,25 @@ All under `/api/admin/`, role=`admin` required.
   to JSON-only — `multipart/form-data`, field `image`. Extension allowlist
   (`png`/`jpg`/`jpeg`/`webp`) + size cap (`IMAGE_MAX_BYTES`); returns `{ "image_url" }`
   and sets the item's `image_url`. Files are served read-only at `IMAGE_BASE_URL`.
-- **A2 options** (`/api/admin/sizes|crusts|toppings`): full CRUD each. Each `name`
-  is **unique** (DB-enforced); a duplicate on create/rename → `409 CONFLICT`. `DELETE`
-  is guarded against historical order data (a size/crust/topping referenced by an
-  existing order item → `409 CONFLICT`, never an FK/500).
+- **A2/A8 options** (`/api/admin/option-groups`, `/api/admin/options`): admin-defined
+  option categories with options. Group `name` unique globally; option `name` unique
+  **per group** (DB-enforced) — duplicates → `409 CONFLICT`. `price_delta_vnd` must be
+  ≥ 0 (negative → `VALIDATION_FAILED`). Group `DELETE` **cascades** to its options and
+  their per-dish enablement. There are **no** order-history delete guards: orders hold
+  snapshots in `order_item_options` (group/option names + delta at order time; readers
+  order by `id`), so catalog deletes never orphan history.
 - **A4 combos** (`/api/admin/combos`): a combo needs **≥ 2 component items**, each
   referencing an existing, active product. Response carries a derived `status`
   (`Scheduled` / `Active` / `Expired`) computed from the validity window at
   read-time. An **over-priced** combo (price > sum of parts) is **accepted** —
   the frontend warns but the API does not reject. Validity rejects only
   `validity_end < validity_start` (equality allowed).
-- **Bulk import** (`/api/admin/import/{pizzas,toppings}`): `multipart/form-data`,
-  field `file`. Upsert by name (re-import is idempotent). An unknown **or inactive**
-  `category_name` is reported as a per-row error and skipped — categories are
-  **never** auto-created. A non-boolean `is_pizza` value is likewise a per-row error. Pizzas CSV columns: `name, category_name,
-  base_price_vnd, is_pizza`. Toppings CSV columns: `name, price_vnd`.
+- **Bulk import** (`/api/admin/import/pizzas`): `multipart/form-data`, field `file`.
+  Upsert by name (re-import is idempotent). An unknown **or inactive** `category_name`
+  is reported as a per-row error and skipped — categories are **never** auto-created.
+  A non-boolean `is_pizza` value is likewise a per-row error. CSV columns:
+  `name, category_name, base_price_vnd, is_pizza`. The v1 toppings import was
+  **removed** with the fixed-toppings model (A8); the v2 import screen is dish-CSV only.
 
 #### A5 Monitor Orders — scope
 - Lists all orders (any status). Client-side polling every 15s.
@@ -210,27 +221,42 @@ All under `/api/kitchen/`, role=`kitchen` required.
 
 ## Schema Examples
 
+### `GET /api/items/{id}` — `option_groups` (A8)
+
+Only options **enabled for this dish**; groups with zero enabled options are omitted.
+Any dish may carry options — `is_pizza` no longer gates the query.
+
+```json
+"option_groups": [
+  {
+    "group_id": 1,
+    "name": "Size",
+    "select_type": "single",
+    "required": true,
+    "options": [
+      { "option_id": 1, "name": "S", "description": null, "price_delta_vnd": 0 },
+      { "option_id": 2, "name": "M", "description": null, "price_delta_vnd": 30000 }
+    ]
+  }
+]
+```
+
 ### `POST /api/cart/quote` — request
 
 ```json
 {
   "lines": [
-    {
-      "kind": "pizza",
-      "item_id": 12,
-      "size": "M",
-      "crust": "thin",
-      "topping_ids": [3, 7],
-      "quantity": 1
-    },
-    { "kind": "side", "item_id": 21, "quantity": 2 }
+    { "kind": "item", "item_id": 12, "option_ids": [2, 7, 9], "quantity": 1 },
+    { "kind": "item", "item_id": 21, "quantity": 2 }
   ],
   "address": { "administrative_unit": "Ba Đình", "street": "..." },
   "redeem_points": 0
 }
 ```
 
-> `combo` lines are deferred to **U5** (cart/order support for combos). U4 adds the public read surface only.
+> `combo` lines are deferred to **U5/U15**. `option_ids` are validated against the
+> dish's enabled set; rule violations → `VALIDATION_FAILED` (400) with `details.reason`
+> (`option_not_available` / `required_group_missing` / `single_group_conflict`).
 > Omit `address` to receive a preview quote (`delivery_fee_vnd: 0`, no service-area check).
 
 ### `GET /api/combos` — response
@@ -269,7 +295,7 @@ Returns **Active-only** combos for the current time window. Each entry includes 
 
 ### `POST /api/cart/quote` — response
 
-Pizza line 190.000 (base 125.000 + size M 30.000 + toppings 15.000 + 20.000) plus side
+Pizza line 190.000 (base 125.000 + option deltas: size M 30.000, toppings 15.000 + 20.000) plus side
 2 × 30.000 = 60.000 gives a 250.000 subtotal; the in-area address adds the 22.000
 delivery fee. No combo discount and (in this sprint) no loyalty redemption.
 `max_redeemable` is derived from 50% of the post-combo subtotal (125.000 ÷ 1.000 = 125).

@@ -54,20 +54,6 @@
         "title": "Body_import_pizzas_api_admin_import_pizzas_post",
         "type": "object"
       },
-      "Body_import_toppings_api_admin_import_toppings_post": {
-        "properties": {
-          "file": {
-            "contentMediaType": "application/octet-stream",
-            "title": "File",
-            "type": "string"
-          }
-        },
-        "required": [
-          "file"
-        ],
-        "title": "Body_import_toppings_api_admin_import_toppings_post",
-        "type": "object"
-      },
       "Body_upload_item_image_api_admin_items__product_id__image_post": {
         "properties": {
           "image": {
@@ -570,54 +556,6 @@
         "title": "ComboStatus",
         "type": "string"
       },
-      "CrustIn": {
-        "properties": {
-          "name": {
-            "title": "Name",
-            "type": "string"
-          }
-        },
-        "required": [
-          "name"
-        ],
-        "title": "CrustIn",
-        "type": "object"
-      },
-      "CrustOut": {
-        "properties": {
-          "crust_id": {
-            "title": "Crust Id",
-            "type": "integer"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          }
-        },
-        "required": [
-          "crust_id",
-          "name"
-        ],
-        "title": "CrustOut",
-        "type": "object"
-      },
-      "CrustPatch": {
-        "properties": {
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          }
-        },
-        "title": "CrustPatch",
-        "type": "object"
-      },
       "CustomerDetailOut": {
         "properties": {
           "address": {
@@ -761,6 +699,129 @@
         "title": "DeliveryConfigOut",
         "type": "object"
       },
+      "GroupIn": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "required": {
+            "default": false,
+            "title": "Required",
+            "type": "boolean"
+          },
+          "select_type": {
+            "default": "multi",
+            "enum": [
+              "single",
+              "multi"
+            ],
+            "title": "Select Type",
+            "type": "string"
+          },
+          "sort_order": {
+            "default": 0,
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "GroupIn",
+        "type": "object"
+      },
+      "GroupOut": {
+        "properties": {
+          "group_id": {
+            "title": "Group Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "select_type": {
+            "enum": [
+              "single",
+              "multi"
+            ],
+            "title": "Select Type",
+            "type": "string"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "group_id",
+          "name",
+          "select_type",
+          "required",
+          "sort_order"
+        ],
+        "title": "GroupOut",
+        "type": "object"
+      },
+      "GroupPatch": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "required": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required"
+          },
+          "select_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "single",
+                  "multi"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Select Type"
+          },
+          "sort_order": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sort Order"
+          }
+        },
+        "title": "GroupPatch",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -835,6 +896,111 @@
           "kind"
         ],
         "title": "ItemIn",
+        "type": "object"
+      },
+      "ItemOptionGroupOut": {
+        "properties": {
+          "group_id": {
+            "title": "Group Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/ItemOptionOut"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "select_type": {
+            "enum": [
+              "single",
+              "multi"
+            ],
+            "title": "Select Type",
+            "type": "string"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "group_id",
+          "name",
+          "select_type",
+          "required",
+          "sort_order",
+          "options"
+        ],
+        "title": "ItemOptionGroupOut",
+        "type": "object"
+      },
+      "ItemOptionOut": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "option_id": {
+            "title": "Option Id",
+            "type": "integer"
+          },
+          "price_delta_vnd": {
+            "title": "Price Delta Vnd",
+            "type": "integer"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "option_id",
+          "name",
+          "price_delta_vnd",
+          "sort_order",
+          "enabled"
+        ],
+        "title": "ItemOptionOut",
+        "type": "object"
+      },
+      "ItemOptionsPut": {
+        "properties": {
+          "option_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Option Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "option_ids"
+        ],
+        "title": "ItemOptionsPut",
         "type": "object"
       },
       "ItemOut": {
@@ -1073,24 +1239,6 @@
         "title": "MenuCategoryOut",
         "type": "object"
       },
-      "MenuCrustOut": {
-        "properties": {
-          "crust_id": {
-            "title": "Crust Id",
-            "type": "integer"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          }
-        },
-        "required": [
-          "crust_id",
-          "name"
-        ],
-        "title": "MenuCrustOut",
-        "type": "object"
-      },
       "MenuItemDetailOut": {
         "properties": {
           "base_price_vnd": {
@@ -1100,14 +1248,6 @@
           "category_id": {
             "title": "Category Id",
             "type": "integer"
-          },
-          "crusts": {
-            "default": [],
-            "items": {
-              "$ref": "#/components/schemas/MenuCrustOut"
-            },
-            "title": "Crusts",
-            "type": "array"
           },
           "image_url": {
             "anyOf": [
@@ -1128,25 +1268,17 @@
             "title": "Name",
             "type": "string"
           },
+          "option_groups": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/MenuOptionGroupOut"
+            },
+            "title": "Option Groups",
+            "type": "array"
+          },
           "product_id": {
             "title": "Product Id",
             "type": "integer"
-          },
-          "sizes": {
-            "default": [],
-            "items": {
-              "$ref": "#/components/schemas/MenuSizeOut"
-            },
-            "title": "Sizes",
-            "type": "array"
-          },
-          "toppings": {
-            "default": [],
-            "items": {
-              "$ref": "#/components/schemas/MenuToppingOut"
-            },
-            "title": "Toppings",
-            "type": "array"
           }
         },
         "required": [
@@ -1203,50 +1335,78 @@
         "title": "MenuItemOut",
         "type": "object"
       },
-      "MenuSizeOut": {
+      "MenuOptionGroupOut": {
         "properties": {
+          "group_id": {
+            "title": "Group Id",
+            "type": "integer"
+          },
           "name": {
             "title": "Name",
             "type": "string"
           },
-          "price_modifier_vnd": {
-            "title": "Price Modifier Vnd",
-            "type": "integer"
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/MenuOptionOut"
+            },
+            "title": "Options",
+            "type": "array"
           },
-          "size_id": {
-            "title": "Size Id",
-            "type": "integer"
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "select_type": {
+            "enum": [
+              "single",
+              "multi"
+            ],
+            "title": "Select Type",
+            "type": "string"
           }
         },
         "required": [
-          "size_id",
+          "group_id",
           "name",
-          "price_modifier_vnd"
+          "select_type",
+          "required",
+          "options"
         ],
-        "title": "MenuSizeOut",
+        "title": "MenuOptionGroupOut",
         "type": "object"
       },
-      "MenuToppingOut": {
+      "MenuOptionOut": {
         "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
           "name": {
             "title": "Name",
             "type": "string"
           },
-          "price_vnd": {
-            "title": "Price Vnd",
+          "option_id": {
+            "title": "Option Id",
             "type": "integer"
           },
-          "topping_id": {
-            "title": "Topping Id",
+          "price_delta_vnd": {
+            "title": "Price Delta Vnd",
             "type": "integer"
           }
         },
         "required": [
-          "topping_id",
+          "option_id",
           "name",
-          "price_vnd"
+          "price_delta_vnd"
         ],
-        "title": "MenuToppingOut",
+        "title": "MenuOptionOut",
         "type": "object"
       },
       "MessageResponse": {
@@ -1260,6 +1420,136 @@
           "message"
         ],
         "title": "MessageResponse",
+        "type": "object"
+      },
+      "OptionIn": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price_delta_vnd": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Price Delta Vnd",
+            "type": "integer"
+          },
+          "sort_order": {
+            "default": 0,
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "OptionIn",
+        "type": "object"
+      },
+      "OptionOut": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "group_id": {
+            "title": "Group Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "option_id": {
+            "title": "Option Id",
+            "type": "integer"
+          },
+          "price_delta_vnd": {
+            "title": "Price Delta Vnd",
+            "type": "integer"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "option_id",
+          "group_id",
+          "name",
+          "price_delta_vnd",
+          "sort_order"
+        ],
+        "title": "OptionOut",
+        "type": "object"
+      },
+      "OptionPatch": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "price_delta_vnd": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Delta Vnd"
+          },
+          "sort_order": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sort Order"
+          }
+        },
+        "title": "OptionPatch",
         "type": "object"
       },
       "OrderCancelIn": {
@@ -1479,17 +1769,6 @@
             ],
             "title": "Combo Id"
           },
-          "crust": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Crust"
-          },
           "item_id": {
             "anyOf": [
               {
@@ -1503,35 +1782,23 @@
           },
           "kind": {
             "enum": [
-              "pizza",
-              "side",
+              "item",
               "combo"
             ],
             "title": "Kind",
             "type": "string"
           },
+          "option_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Option Ids",
+            "type": "array"
+          },
           "quantity": {
             "minimum": 1.0,
             "title": "Quantity",
             "type": "integer"
-          },
-          "size": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Size"
-          },
-          "topping_ids": {
-            "items": {
-              "type": "integer"
-            },
-            "title": "Topping Ids",
-            "type": "array"
           }
         },
         "required": [
@@ -1615,144 +1882,6 @@
           "user"
         ],
         "title": "RegisterResponse",
-        "type": "object"
-      },
-      "SizeIn": {
-        "properties": {
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "price_modifier_vnd": {
-            "default": 0,
-            "title": "Price Modifier Vnd",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "name"
-        ],
-        "title": "SizeIn",
-        "type": "object"
-      },
-      "SizeOut": {
-        "properties": {
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "price_modifier_vnd": {
-            "title": "Price Modifier Vnd",
-            "type": "integer"
-          },
-          "size_id": {
-            "title": "Size Id",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "size_id",
-          "name",
-          "price_modifier_vnd"
-        ],
-        "title": "SizeOut",
-        "type": "object"
-      },
-      "SizePatch": {
-        "properties": {
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          },
-          "price_modifier_vnd": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Price Modifier Vnd"
-          }
-        },
-        "title": "SizePatch",
-        "type": "object"
-      },
-      "ToppingIn": {
-        "properties": {
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "price_vnd": {
-            "title": "Price Vnd",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "name",
-          "price_vnd"
-        ],
-        "title": "ToppingIn",
-        "type": "object"
-      },
-      "ToppingOut": {
-        "properties": {
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "price_vnd": {
-            "title": "Price Vnd",
-            "type": "integer"
-          },
-          "topping_id": {
-            "title": "Topping Id",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "topping_id",
-          "name",
-          "price_vnd"
-        ],
-        "title": "ToppingOut",
-        "type": "object"
-      },
-      "ToppingPatch": {
-        "properties": {
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          },
-          "price_vnd": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Price Vnd"
-          }
-        },
-        "title": "ToppingPatch",
         "type": "object"
       },
       "UpdateProfileRequest": {
@@ -2221,155 +2350,6 @@
         ]
       }
     },
-    "/api/admin/crusts": {
-      "get": {
-        "operationId": "list_crusts_api_admin_crusts_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/CrustOut"
-                  },
-                  "title": "Response List Crusts Api Admin Crusts Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "List Crusts",
-        "tags": [
-          "admin-options"
-        ]
-      },
-      "post": {
-        "operationId": "create_crust_api_admin_crusts_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CrustIn"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CrustOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Create Crust",
-        "tags": [
-          "admin-options"
-        ]
-      }
-    },
-    "/api/admin/crusts/{crust_id}": {
-      "delete": {
-        "operationId": "delete_crust_api_admin_crusts__crust_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "crust_id",
-            "required": true,
-            "schema": {
-              "title": "Crust Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Delete Crust",
-        "tags": [
-          "admin-options"
-        ]
-      },
-      "patch": {
-        "operationId": "patch_crust_api_admin_crusts__crust_id__patch",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "crust_id",
-            "required": true,
-            "schema": {
-              "title": "Crust Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CrustPatch"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CrustOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Patch Crust",
-        "tags": [
-          "admin-options"
-        ]
-      }
-    },
     "/api/admin/customers": {
       "get": {
         "operationId": "list_customers_api_admin_customers_get",
@@ -2604,47 +2584,6 @@
           }
         },
         "summary": "Import Pizzas",
-        "tags": [
-          "admin-import"
-        ]
-      }
-    },
-    "/api/admin/import/toppings": {
-      "post": {
-        "operationId": "import_toppings_api_admin_import_toppings_post",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_import_toppings_api_admin_import_toppings_post"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImportSummary"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Import Toppings",
         "tags": [
           "admin-import"
         ]
@@ -2959,6 +2898,392 @@
         ]
       }
     },
+    "/api/admin/items/{product_id}/options": {
+      "get": {
+        "operationId": "item_options_api_admin_items__product_id__options_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "title": "Product Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ItemOptionGroupOut"
+                  },
+                  "title": "Response Item Options Api Admin Items  Product Id  Options Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Item Options",
+        "tags": [
+          "admin-option-groups"
+        ]
+      },
+      "put": {
+        "operationId": "replace_item_options_api_admin_items__product_id__options_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "title": "Product Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemOptionsPut"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ItemOptionGroupOut"
+                  },
+                  "title": "Response Replace Item Options Api Admin Items  Product Id  Options Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Replace Item Options",
+        "tags": [
+          "admin-option-groups"
+        ]
+      }
+    },
+    "/api/admin/option-groups": {
+      "get": {
+        "operationId": "list_groups_api_admin_option_groups_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupOut"
+                  },
+                  "title": "Response List Groups Api Admin Option Groups Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Groups",
+        "tags": [
+          "admin-option-groups"
+        ]
+      },
+      "post": {
+        "operationId": "create_group_api_admin_option_groups_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Group",
+        "tags": [
+          "admin-option-groups"
+        ]
+      }
+    },
+    "/api/admin/option-groups/{group_id}": {
+      "delete": {
+        "operationId": "delete_group_api_admin_option_groups__group_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Group",
+        "tags": [
+          "admin-option-groups"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_group_api_admin_option_groups__group_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Group",
+        "tags": [
+          "admin-option-groups"
+        ]
+      }
+    },
+    "/api/admin/option-groups/{group_id}/options": {
+      "post": {
+        "operationId": "create_option_api_admin_option_groups__group_id__options_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Option",
+        "tags": [
+          "admin-option-groups"
+        ]
+      }
+    },
+    "/api/admin/options/{option_id}": {
+      "delete": {
+        "operationId": "delete_option_api_admin_options__option_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "option_id",
+            "required": true,
+            "schema": {
+              "title": "Option Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Option",
+        "tags": [
+          "admin-option-groups"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_option_api_admin_options__option_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "option_id",
+            "required": true,
+            "schema": {
+              "title": "Option Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptionPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Option",
+        "tags": [
+          "admin-option-groups"
+        ]
+      }
+    },
     "/api/admin/orders": {
       "get": {
         "operationId": "list_orders_api_admin_orders_get",
@@ -3155,304 +3480,6 @@
         "summary": "Retry Dispatch",
         "tags": [
           "admin-orders"
-        ]
-      }
-    },
-    "/api/admin/sizes": {
-      "get": {
-        "operationId": "list_sizes_api_admin_sizes_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/SizeOut"
-                  },
-                  "title": "Response List Sizes Api Admin Sizes Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "List Sizes",
-        "tags": [
-          "admin-options"
-        ]
-      },
-      "post": {
-        "operationId": "create_size_api_admin_sizes_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SizeIn"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SizeOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Create Size",
-        "tags": [
-          "admin-options"
-        ]
-      }
-    },
-    "/api/admin/sizes/{size_id}": {
-      "delete": {
-        "operationId": "delete_size_api_admin_sizes__size_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "size_id",
-            "required": true,
-            "schema": {
-              "title": "Size Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Delete Size",
-        "tags": [
-          "admin-options"
-        ]
-      },
-      "patch": {
-        "operationId": "patch_size_api_admin_sizes__size_id__patch",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "size_id",
-            "required": true,
-            "schema": {
-              "title": "Size Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SizePatch"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SizeOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Patch Size",
-        "tags": [
-          "admin-options"
-        ]
-      }
-    },
-    "/api/admin/toppings": {
-      "get": {
-        "operationId": "list_toppings_api_admin_toppings_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ToppingOut"
-                  },
-                  "title": "Response List Toppings Api Admin Toppings Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "List Toppings",
-        "tags": [
-          "admin-options"
-        ]
-      },
-      "post": {
-        "operationId": "create_topping_api_admin_toppings_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ToppingIn"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ToppingOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Create Topping",
-        "tags": [
-          "admin-options"
-        ]
-      }
-    },
-    "/api/admin/toppings/{topping_id}": {
-      "delete": {
-        "operationId": "delete_topping_api_admin_toppings__topping_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "topping_id",
-            "required": true,
-            "schema": {
-              "title": "Topping Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Delete Topping",
-        "tags": [
-          "admin-options"
-        ]
-      },
-      "patch": {
-        "operationId": "patch_topping_api_admin_toppings__topping_id__patch",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "topping_id",
-            "required": true,
-            "schema": {
-              "title": "Topping Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ToppingPatch"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ToppingOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Patch Topping",
-        "tags": [
-          "admin-options"
         ]
       }
     },
