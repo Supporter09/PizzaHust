@@ -9,7 +9,19 @@ from app.domain.pricing import (
     PricingError,
     compute_order_total,
     compute_pizza_unit_price,
+    compute_unit_price,
 )
+
+
+def test_compute_unit_price_base_only():
+    assert compute_unit_price(base_price_vnd=125_000, option_deltas_vnd=[]) == 125_000
+
+
+def test_compute_unit_price_sums_deltas():
+    assert (
+        compute_unit_price(base_price_vnd=125_000, option_deltas_vnd=[30_000, 15_000, 20_000])
+        == 190_000
+    )
 
 
 def test_delivery_fee_matches_product_contract() -> None:
