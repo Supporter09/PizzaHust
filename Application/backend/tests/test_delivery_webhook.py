@@ -71,8 +71,8 @@ def _tracking_count(order_id: int) -> int:
 def test_valid_event_advances_order_and_records_tracking(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    app = build_test_app("wh-ok")
     monkeypatch.setenv("DELIVERY_WEBHOOK_SECRET", SECRET)
+    app = build_test_app("wh-ok")
     order_id = _new_order("mock-ok1", OrderStatus.DELIVERING)
     client = TestClient(app)
 
@@ -84,8 +84,8 @@ def test_valid_event_advances_order_and_records_tracking(
 
 
 def test_bad_signature_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
-    app = build_test_app("wh-badsig")
     monkeypatch.setenv("DELIVERY_WEBHOOK_SECRET", SECRET)
+    app = build_test_app("wh-badsig")
     _new_order("mock-x", OrderStatus.DELIVERING)
     client = TestClient(app)
 
@@ -94,25 +94,20 @@ def test_bad_signature_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
     assert resp.status_code == 401
 
 
-def test_missing_secret_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
-    app = build_test_app("wh-nosecret")
+def test_empty_webhook_secret_rejected_at_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    from pydantic import ValidationError
+
+    from app.infra.config import get_settings
+
     monkeypatch.setenv("DELIVERY_WEBHOOK_SECRET", "")
-    client = TestClient(app)
-
-    # Even a signature computed with an empty key must be rejected.
-    body = json.dumps({"reference": "mock-x", "state": "Delivered"}).encode()
-    resp = client.post(
-        "/api/webhooks/delivery",
-        content=body,
-        headers={"X-Signature": hmac.new(b"", body, hashlib.sha256).hexdigest()},
-    )
-
-    assert resp.status_code == 401
+    get_settings.cache_clear()
+    with pytest.raises(ValidationError):
+        get_settings()
 
 
 def test_malformed_payload_is_400(monkeypatch: pytest.MonkeyPatch) -> None:
-    app = build_test_app("wh-malformed")
     monkeypatch.setenv("DELIVERY_WEBHOOK_SECRET", SECRET)
+    app = build_test_app("wh-malformed")
     client = TestClient(app)
 
     body = b"{not valid json"
@@ -126,8 +121,8 @@ def test_malformed_payload_is_400(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_duplicate_event_is_idempotent(monkeypatch: pytest.MonkeyPatch) -> None:
-    app = build_test_app("wh-dup")
     monkeypatch.setenv("DELIVERY_WEBHOOK_SECRET", SECRET)
+    app = build_test_app("wh-dup")
     order_id = _new_order("mock-dup", OrderStatus.DELIVERING)
     client = TestClient(app)
     payload = {"reference": "mock-dup", "state": "Delivered", "event_id": "evt-1"}
@@ -141,8 +136,8 @@ def test_duplicate_event_is_idempotent(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_unknown_reference_is_noop(monkeypatch: pytest.MonkeyPatch) -> None:
-    app = build_test_app("wh-unknown")
     monkeypatch.setenv("DELIVERY_WEBHOOK_SECRET", SECRET)
+    app = build_test_app("wh-unknown")
     order_id = _new_order("mock-known", OrderStatus.DELIVERING)
     client = TestClient(app)
 
@@ -154,8 +149,8 @@ def test_unknown_reference_is_noop(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_terminal_order_not_modified(monkeypatch: pytest.MonkeyPatch) -> None:
-    app = build_test_app("wh-terminal")
     monkeypatch.setenv("DELIVERY_WEBHOOK_SECRET", SECRET)
+    app = build_test_app("wh-terminal")
     order_id = _new_order("mock-term", OrderStatus.CANCELLED)
     client = TestClient(app)
 
@@ -167,8 +162,8 @@ def test_terminal_order_not_modified(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_webhook_illegal_transition_is_noop(monkeypatch: pytest.MonkeyPatch) -> None:
-    app = build_test_app("wh-illegal")
     monkeypatch.setenv("DELIVERY_WEBHOOK_SECRET", SECRET)
+    app = build_test_app("wh-illegal")
     order_id = _new_order("mock-illegal", OrderStatus.READY_FOR_DISPATCH)
     client = TestClient(app)
 

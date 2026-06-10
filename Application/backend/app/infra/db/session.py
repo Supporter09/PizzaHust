@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 from functools import cache
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -16,11 +16,21 @@ def get_database_url() -> str:
 
 def create_db_engine(database_url: str | None = None) -> Engine:
     # pool_recycle guards against MySQL dropping idle connections (wait_timeout).
-    return create_engine(
+    engine = create_engine(
         database_url or get_database_url(),
         pool_pre_ping=True,
         pool_recycle=3600,
     )
+    if engine.url.get_backend_name() == "sqlite":
+        # SQLite skips FK enforcement (and ON DELETE CASCADE) unless asked;
+        # without this, tests would not exercise the same cascades as MySQL.
+        @event.listens_for(engine, "connect")
+        def _enable_sqlite_fks(dbapi_connection: object, _record: object) -> None:
+            cursor = dbapi_connection.cursor()  # type: ignore[attr-defined]
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.close()
+
+    return engine
 
 
 @cache

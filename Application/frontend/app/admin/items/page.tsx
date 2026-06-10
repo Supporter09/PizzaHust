@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 import Breadcrumb from "@/components/admin/Breadcrumb";
@@ -299,7 +300,14 @@ export default function ItemsPage() {
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3 font-medium text-fg">{it.name}</td>
+                  <td className="px-4 py-3 font-medium">
+                    <Link
+                      href={`/admin/items/${it.product_id}`}
+                      className="text-brand hover:underline"
+                    >
+                      {it.name}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 text-fg">{catName(it.category_id)}</td>
                   <td className="px-4 py-3 text-fg">{vnd(it.base_price_vnd)}</td>
                   <td className="px-4 py-3">

@@ -24,7 +24,7 @@ describe("quoteCart", () => {
 
     const body = {
       redeem_points: 0,
-      lines: [{ kind: "pizza" as const, item_id: 1, size: "M", topping_ids: [3], quantity: 1 }],
+      lines: [{ kind: "item" as const, item_id: 1, option_ids: [2, 3], quantity: 1 }],
     };
     const out = await quoteCart(body);
 
@@ -42,7 +42,7 @@ describe("quoteCart", () => {
     await expect(
       quoteCart({
         redeem_points: 0,
-        lines: [{ kind: "pizza" as const, item_id: 1, quantity: 1 }],
+        lines: [{ kind: "item" as const, item_id: 1, quantity: 1 }],
       }),
     ).rejects.toBe(err);
   });

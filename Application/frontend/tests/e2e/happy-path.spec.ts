@@ -4,7 +4,9 @@
  */
 import { test, expect, type Page } from "@playwright/test";
 
-const BASE = process.env.E2E_BASE_URL ?? "http://localhost:3000";
+import { E2E_BASE_URL } from "./env";
+
+const BASE = E2E_BASE_URL;
 const TS = Date.now();
 // Backend expects a 10-digit VN mobile: ^(0|\+84)[3-9]\d{8}$.
 // "09" + 8 digits = 10 chars, with a valid leading [3-9] second digit.

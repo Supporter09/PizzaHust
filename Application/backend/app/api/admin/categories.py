@@ -54,7 +54,7 @@ def _name_taken(db: Session, name: str, exclude_id: int | None = None) -> bool:
 
 @router.get("", response_model=list[CategoryOut])
 def list_categories(
-    db: Session = Depends(get_db), _a: User = Depends(require_admin)
+    db: Session = Depends(get_db, scope="function"), _a: User = Depends(require_admin)
 ) -> list[CategoryOut]:
     stmt = select(Category).order_by(Category.sort_order, Category.category_id)
     return [CategoryOut.model_validate(c) for c in db.scalars(stmt).all()]
@@ -62,7 +62,9 @@ def list_categories(
 
 @router.post("", response_model=CategoryOut, status_code=201)
 def create_category(
-    body: CategoryIn, db: Session = Depends(get_db), _a: User = Depends(require_admin)
+    body: CategoryIn,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
 ) -> CategoryOut:
     if _name_taken(db, body.name):
         raise APIError(
@@ -81,7 +83,9 @@ def create_category(
 
 @router.get("/{category_id}", response_model=CategoryOut)
 def get_category(
-    category_id: int, db: Session = Depends(get_db), _a: User = Depends(require_admin)
+    category_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
 ) -> CategoryOut:
     cat = db.get(Category, category_id)
     if cat is None:
@@ -93,7 +97,7 @@ def get_category(
 def patch_category(
     category_id: int,
     body: CategoryPatch,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> CategoryOut:
     cat = db.get(Category, category_id)
@@ -111,7 +115,9 @@ def patch_category(
 
 @router.delete("/{category_id}", status_code=204)
 def delete_category(
-    category_id: int, db: Session = Depends(get_db), _a: User = Depends(require_admin)
+    category_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
 ) -> None:
     cat = db.get(Category, category_id)
     if cat is None:

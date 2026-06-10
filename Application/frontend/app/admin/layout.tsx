@@ -11,7 +11,6 @@ const NAV = [
   { href: "/admin/orders", label: "Monitor Orders" },
   { href: "/admin/customers", label: "Customers" },
   { href: "/admin/items", label: "Menu Items" },
-  { href: "/admin/pizza-options", label: "Pizza Options" },
   { href: "/admin/categories", label: "Categories" },
   { href: "/admin/combos", label: "Combos" },
   { href: "/admin/import", label: "Bulk Import" },

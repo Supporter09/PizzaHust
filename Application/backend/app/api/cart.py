@@ -15,14 +15,15 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.errors import APIError
+from app.domain.options import SelectableOption, validate_option_selection
 from app.domain.pricing import (
     CartLine,
     PricingError,
     compute_order_total,
-    compute_pizza_unit_price,
+    compute_unit_price,
 )
 from app.infra.db.deps import get_db
-from app.infra.db.models import PizzaCrust, PizzaSize, Product, Topping
+from app.infra.db.models import Option, OptionGroup, Product, ProductOption
 
 router = APIRouter(prefix="/api/cart", tags=["cart"])
 
@@ -33,12 +34,10 @@ class QuoteAddressIn(BaseModel):
 
 
 class QuoteLineIn(BaseModel):
-    kind: Literal["pizza", "side", "combo"]
+    kind: Literal["item", "combo"]
     item_id: int | None = None
     combo_id: int | None = None
-    size: str | None = None
-    crust: str | None = None
-    topping_ids: list[int] = Field(default_factory=list)
+    option_ids: list[int] = Field(default_factory=list)
     quantity: int = Field(ge=1)
 
 
@@ -78,43 +77,50 @@ def _resolve_line(db: Session, line: QuoteLineIn) -> CartLine:
     if product is None:
         raise _bad("Unknown or inactive product.")
 
-    if line.kind == "pizza":
-        if not product.is_pizza:
-            raise _bad("Product is not a pizza.")
-        size_modifier = 0
-        if line.size is not None:
-            size = db.scalar(select(PizzaSize).where(PizzaSize.name == line.size))
-            if size is None:
-                raise _bad("Unknown size.")
-            size_modifier = size.price_modifier_vnd
-        if line.crust is not None:
-            # Crust has no price modifier in the schema; validate existence only.
-            crust = db.scalar(select(PizzaCrust).where(PizzaCrust.name == line.crust))
-            if crust is None:
-                raise _bad("Unknown crust.")
-        topping_prices: list[int] = []
-        for tid in line.topping_ids:
-            topping = db.scalar(select(Topping).where(Topping.topping_id == tid))
-            if topping is None:
-                raise _bad("Unknown topping.")
-            topping_prices.append(topping.price_vnd)
-        unit = compute_pizza_unit_price(
-            base_price_vnd=product.base_price_vnd,
-            size_modifier_vnd=size_modifier,
-            topping_prices_vnd=topping_prices,
+    rows = db.execute(
+        select(Option, OptionGroup)
+        .join(OptionGroup, Option.group_id == OptionGroup.group_id)
+        .join(ProductOption, ProductOption.option_id == Option.option_id)
+        .where(ProductOption.product_id == product.product_id)
+    ).all()
+    available = [
+        SelectableOption(
+            option_id=option.option_id,
+            group_id=group.group_id,
+            group_name=group.name,
+            select_type=group.select_type,
+            required=group.required,
         )
-        return CartLine(unit_price_vnd=unit, quantity=line.quantity)
+        for option, group in rows
+    ]
+    deltas_by_id = {option.option_id: option.price_delta_vnd for option, _ in rows}
 
-    # kind == "side"
-    if product.is_pizza:
-        raise _bad("Product is a pizza, not a side.")
-    if line.size or line.crust or line.topping_ids:
-        raise _bad("Side items do not take size, crust, or toppings.")
-    return CartLine(unit_price_vnd=product.base_price_vnd, quantity=line.quantity)
+    selected = list(dict.fromkeys(line.option_ids))
+    err = validate_option_selection(available, selected)
+    if err is not None:
+        details: dict[str, object] = {"reason": err.reason}
+        if err.group_name is not None:
+            details["group_name"] = err.group_name
+        if err.option_id is not None:
+            details["option_id"] = err.option_id
+        raise APIError(
+            code="VALIDATION_FAILED",
+            message="Invalid option selection.",
+            status_code=400,
+            details=details,
+        )
+
+    unit = compute_unit_price(
+        base_price_vnd=product.base_price_vnd,
+        option_deltas_vnd=[deltas_by_id[oid] for oid in selected],
+    )
+    return CartLine(unit_price_vnd=unit, quantity=line.quantity)
 
 
 @router.post("/quote", response_model=CartQuoteOut)
-def quote_cart(payload: CartQuoteIn, db: Session = Depends(get_db)) -> CartQuoteOut:
+def quote_cart(
+    payload: CartQuoteIn, db: Session = Depends(get_db, scope="function")
+) -> CartQuoteOut:
     lines = [_resolve_line(db, line) for line in payload.lines]
     district = payload.address.administrative_unit if payload.address else None
     try:
@@ -122,8 +128,6 @@ def quote_cart(payload: CartQuoteIn, db: Session = Depends(get_db)) -> CartQuote
             lines=lines,
             address_district=district,
             redeem_points=payload.redeem_points,
-            # Loyalty balance arrives in U13/U14; until then current_points=0, so any
-            # redeem_points > 0 raises INSUFFICIENT_LOYALTY (422).
             current_points=0,
         )
     except PricingError as exc:

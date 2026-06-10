@@ -8,8 +8,19 @@ from app.domain.pricing import (
     OrderQuote,
     PricingError,
     compute_order_total,
-    compute_pizza_unit_price,
+    compute_unit_price,
 )
+
+
+def test_compute_unit_price_base_only():
+    assert compute_unit_price(base_price_vnd=125_000, option_deltas_vnd=[]) == 125_000
+
+
+def test_compute_unit_price_sums_deltas():
+    assert (
+        compute_unit_price(base_price_vnd=125_000, option_deltas_vnd=[30_000, 15_000, 20_000])
+        == 190_000
+    )
 
 
 def test_delivery_fee_matches_product_contract() -> None:
@@ -71,30 +82,6 @@ def test_compute_order_total_rejects_negative_line_values() -> None:
         )
 
 
-def test_pizza_unit_price_sums_base_size_and_toppings() -> None:
-    assert (
-        compute_pizza_unit_price(
-            base_price_vnd=125_000,
-            size_modifier_vnd=30_000,
-            topping_prices_vnd=[15_000, 20_000],
-        )
-        == 190_000
-    )
-
-
-def test_pizza_unit_price_no_toppings_no_modifier() -> None:
-    assert (
-        compute_pizza_unit_price(base_price_vnd=99_000, size_modifier_vnd=0, topping_prices_vnd=[])
-        == 99_000
-    )
-
-
-def test_pizza_unit_price_rejects_negative() -> None:
-    with pytest.raises(PricingError) as exc:
-        compute_pizza_unit_price(base_price_vnd=-1, size_modifier_vnd=0, topping_prices_vnd=[])
-    assert exc.value.code == "VALIDATION_FAILED"
-
-
 def test_compute_order_total_preview_mode_no_address() -> None:
     quote = compute_order_total(
         lines=[CartLine(unit_price_vnd=100_000, quantity=1)],
@@ -110,3 +97,10 @@ def test_compute_order_total_default_address_is_preview() -> None:
     quote = compute_order_total(lines=[CartLine(unit_price_vnd=50_000, quantity=2)])
     assert quote.delivery_fee_vnd == 0
     assert quote.total_vnd == 100_000
+
+
+def test_compute_unit_price_rejects_negative_inputs():
+    with pytest.raises(PricingError):
+        compute_unit_price(base_price_vnd=-1, option_deltas_vnd=[])
+    with pytest.raises(PricingError):
+        compute_unit_price(base_price_vnd=100_000, option_deltas_vnd=[10_000, -5_000])

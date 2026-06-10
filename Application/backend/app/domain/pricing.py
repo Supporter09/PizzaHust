@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from app.domain.loyalty import LoyaltyError, compute_redemption
@@ -38,16 +39,11 @@ def _line_subtotal(line: CartLine) -> int:
     return line.unit_price_vnd * line.quantity
 
 
-def compute_pizza_unit_price(
-    *,
-    base_price_vnd: int,
-    size_modifier_vnd: int,
-    topping_prices_vnd: list[int],
-) -> int:
-    parts = [base_price_vnd, size_modifier_vnd, *topping_prices_vnd]
-    if any(p < 0 for p in parts):
-        raise PricingError("VALIDATION_FAILED", "Pizza price inputs must be non-negative.")
-    return sum(parts)
+def compute_unit_price(*, base_price_vnd: int, option_deltas_vnd: Sequence[int]) -> int:
+    """Unit price for one item line: base price plus the sum of selected option deltas."""
+    if base_price_vnd < 0 or any(d < 0 for d in option_deltas_vnd):
+        raise PricingError("VALIDATION_FAILED", "Price inputs must be non-negative.")
+    return base_price_vnd + sum(option_deltas_vnd)
 
 
 def compute_order_total(

@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
 
-import { CrustSelector } from "@/components/menu/crust-selector";
+import { OptionGroupSelector } from "@/components/menu/option-group-selector";
 import { QuantityStepper } from "@/components/menu/quantity-stepper";
-import { SizeSelector } from "@/components/menu/size-selector";
-import { ToppingSelector } from "@/components/menu/topping-selector";
 import { ApiClientError } from "@/lib/api/client";
 import { quoteCart } from "@/lib/api/cart";
 import { fetchItem, type MenuItemDetail } from "@/lib/api/menu";
@@ -20,9 +18,7 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
 
   const [item, setItem] = useState<MenuItemDetail | null>(null);
   const [status, setStatus] = useState<Status>("loading");
-  const [sizeId, setSizeId] = useState<number | null>(null);
-  const [crustId, setCrustId] = useState<number | null>(null);
-  const [toppingIds, setToppingIds] = useState<number[]>([]);
+  const [selections, setSelections] = useState<Record<number, number[]>>({});
   const [quantity, setQuantity] = useState(1);
   const [estimate, setEstimate] = useState<number | null>(null);
   const [quoting, setQuoting] = useState(false);
@@ -36,11 +32,16 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
     fetchItem(numericId)
       .then((data) => {
         setItem(data);
-        setSizeId(data.sizes[0]?.size_id ?? null);
-        setCrustId(data.crusts[0]?.crust_id ?? null);
-        setToppingIds([]);
+        const initial: Record<number, number[]> = {};
+        for (const g of data.option_groups) {
+          initial[g.group_id] =
+            g.select_type === "single" && g.required && g.options.length > 0
+              ? [g.options[0].option_id]
+              : [];
+        }
+        setSelections(initial);
         setQuantity(1);
-        if (!data.is_pizza) {
+        if (data.option_groups.length === 0) {
           setEstimate(null);
           setQuoting(false);
         }
@@ -57,11 +58,9 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
   }, [load]);
 
   useEffect(() => {
-    if (!item || !item.is_pizza) {
+    if (!item || item.option_groups.length === 0) {
       return;
     }
-    const size = item.sizes.find((s) => s.size_id === sizeId);
-    const crust = item.crusts.find((c) => c.crust_id === crustId);
     let active = true;
     const handle = window.setTimeout(() => {
       if (!active) return;
@@ -70,11 +69,9 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
         redeem_points: 0,
         lines: [
           {
-            kind: "pizza",
+            kind: "item",
             item_id: item.product_id,
-            size: size?.name,
-            crust: crust?.name,
-            topping_ids: toppingIds,
+            option_ids: Object.values(selections).flat(),
             quantity,
           },
         ],
@@ -93,7 +90,7 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
       active = false;
       window.clearTimeout(handle);
     };
-  }, [item, sizeId, crustId, toppingIds, quantity]);
+  }, [item, selections, quantity]);
 
   return (
     <section className="space-y-6">
@@ -144,28 +141,23 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
           <div className="space-y-6">
             <h1 className="text-3xl font-bold text-fg">{item.name}</h1>
 
-            {item.is_pizza ? (
+            {item.option_groups.length > 0 ? (
               <>
-                <div className="space-y-2">
-                  <h2 className="text-sm font-semibold text-muted">Select Size</h2>
-                  <SizeSelector sizes={item.sizes} selectedId={sizeId} onSelect={setSizeId} />
-                </div>
-                <div className="space-y-2">
-                  <h2 className="text-sm font-semibold text-muted">Choose Crust</h2>
-                  <CrustSelector crusts={item.crusts} selectedId={crustId} onSelect={setCrustId} />
-                </div>
-                <div className="space-y-2">
-                  <h2 className="text-sm font-semibold text-muted">Add Toppings (Optional)</h2>
-                  <ToppingSelector
-                    toppings={item.toppings}
-                    selectedIds={toppingIds}
-                    onToggle={(tid) =>
-                      setToppingIds((prev) =>
-                        prev.includes(tid) ? prev.filter((x) => x !== tid) : [...prev, tid],
-                      )
-                    }
-                  />
-                </div>
+                {item.option_groups.map((g) => (
+                  <div key={g.group_id} className="space-y-2">
+                    <h2 className="text-sm font-semibold text-muted">
+                      {g.name}
+                      {g.select_type === "multi" ? " (Optional)" : ""}
+                    </h2>
+                    <OptionGroupSelector
+                      group={g}
+                      selectedIds={selections[g.group_id] ?? []}
+                      onChange={(ids) =>
+                        setSelections((prev) => ({ ...prev, [g.group_id]: ids }))
+                      }
+                    />
+                  </div>
+                ))}
                 <div className="flex items-center justify-between gap-4 border-t border-line pt-4">
                   <QuantityStepper value={quantity} onChange={setQuantity} />
                   <p className="text-right">

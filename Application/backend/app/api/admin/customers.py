@@ -42,7 +42,7 @@ def list_customers(
     q: str | None = None,
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _admin: User = Depends(require_admin),
 ) -> list[CustomerOut]:
     stmt = (
@@ -84,7 +84,7 @@ def list_customers(
 @router.get("/{user_id}", response_model=CustomerDetailOut)
 def get_customer(
     user_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _admin: User = Depends(require_admin),
 ) -> CustomerDetailOut:
     row = db.execute(
@@ -108,7 +108,7 @@ def get_customer(
 def lock_customer(
     user_id: int,
     body: LockIn,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _admin: User = Depends(require_admin),
 ) -> None:
     user: User | None = db.get(User, user_id)
@@ -120,7 +120,7 @@ def lock_customer(
 @router.post("/{user_id}/unlock", status_code=status.HTTP_204_NO_CONTENT)
 def unlock_customer(
     user_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _admin: User = Depends(require_admin),
 ) -> None:
     user: User | None = db.get(User, user_id)

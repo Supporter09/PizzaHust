@@ -1,8 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const API_URL = process.env.E2E_API_URL ?? "http://localhost:8000";
-const ADMIN_PHONE = process.env.E2E_ADMIN_PHONE ?? "0900000001";
-const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "admin123";
+import { E2E_ADMIN_PASSWORD, E2E_ADMIN_PHONE, E2E_API_URL } from "./env";
+
+const API_URL = E2E_API_URL;
+const ADMIN_PHONE = E2E_ADMIN_PHONE;
+const ADMIN_PASSWORD = E2E_ADMIN_PASSWORD;
 
 async function loginAsAdmin(page: Page) {
   const res = await page.request.post(`${API_URL}/api/auth/login`, {

@@ -1,12 +1,16 @@
 import { test, expect, type Page } from "@playwright/test";
 
-const BASE = process.env.E2E_BASE_URL ?? "http://localhost:3000";
-// Auth is the backend's concern, not the frontend origin. The page bundle calls
-// the API at NEXT_PUBLIC_API_BASE_URL (:8000); the direct login below must hit the
-// same backend origin or it 404s against the Next.js server.
-const API_URL = process.env.E2E_API_URL ?? "http://localhost:8000";
-const ADMIN_PHONE = process.env.E2E_ADMIN_PHONE ?? "0900000001";
-const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "admin123";
+import {
+  E2E_ADMIN_PASSWORD,
+  E2E_ADMIN_PHONE,
+  E2E_API_URL,
+  E2E_BASE_URL,
+} from "./env";
+
+const BASE = E2E_BASE_URL;
+const API_URL = E2E_API_URL;
+const ADMIN_PHONE = E2E_ADMIN_PHONE;
+const ADMIN_PASSWORD = E2E_ADMIN_PASSWORD;
 
 async function loginAsAdmin(page: Page) {
   // Authenticate via the API; the cookie is shared with the page context.

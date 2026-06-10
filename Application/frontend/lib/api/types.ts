@@ -78,42 +78,6 @@ export interface paths {
         patch: operations["patch_combo_api_admin_combos__combo_id__patch"];
         trace?: never;
     };
-    "/api/admin/crusts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Crusts */
-        get: operations["list_crusts_api_admin_crusts_get"];
-        put?: never;
-        /** Create Crust */
-        post: operations["create_crust_api_admin_crusts_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/crusts/{crust_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete Crust */
-        delete: operations["delete_crust_api_admin_crusts__crust_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch Crust */
-        patch: operations["patch_crust_api_admin_crusts__crust_id__patch"];
-        trace?: never;
-    };
     "/api/admin/customers": {
         parameters: {
             query?: never;
@@ -199,23 +163,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/import/toppings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Import Toppings */
-        post: operations["import_toppings_api_admin_import_toppings_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/admin/items": {
         parameters: {
             query?: never;
@@ -268,6 +215,95 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/admin/items/{product_id}/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Item Options */
+        get: operations["item_options_api_admin_items__product_id__options_get"];
+        /** Replace Item Options */
+        put: operations["replace_item_options_api_admin_items__product_id__options_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/option-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Groups */
+        get: operations["list_groups_api_admin_option_groups_get"];
+        put?: never;
+        /** Create Group */
+        post: operations["create_group_api_admin_option_groups_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/option-groups/{group_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Group */
+        delete: operations["delete_group_api_admin_option_groups__group_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Group */
+        patch: operations["patch_group_api_admin_option_groups__group_id__patch"];
+        trace?: never;
+    };
+    "/api/admin/option-groups/{group_id}/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Option */
+        post: operations["create_option_api_admin_option_groups__group_id__options_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/options/{option_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Option */
+        delete: operations["delete_option_api_admin_options__option_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Option */
+        patch: operations["patch_option_api_admin_options__option_id__patch"];
         trace?: never;
     };
     "/api/admin/orders": {
@@ -342,78 +378,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/api/admin/sizes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Sizes */
-        get: operations["list_sizes_api_admin_sizes_get"];
-        put?: never;
-        /** Create Size */
-        post: operations["create_size_api_admin_sizes_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/sizes/{size_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete Size */
-        delete: operations["delete_size_api_admin_sizes__size_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch Size */
-        patch: operations["patch_size_api_admin_sizes__size_id__patch"];
-        trace?: never;
-    };
-    "/api/admin/toppings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Toppings */
-        get: operations["list_toppings_api_admin_toppings_get"];
-        put?: never;
-        /** Create Topping */
-        post: operations["create_topping_api_admin_toppings_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/toppings/{topping_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete Topping */
-        delete: operations["delete_topping_api_admin_toppings__topping_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch Topping */
-        patch: operations["patch_topping_api_admin_toppings__topping_id__patch"];
         trace?: never;
     };
     "/api/auth/login": {
@@ -676,11 +640,6 @@ export interface components {
             /** File */
             file: string;
         };
-        /** Body_import_toppings_api_admin_import_toppings_post */
-        Body_import_toppings_api_admin_import_toppings_post: {
-            /** File */
-            file: string;
-        };
         /** Body_upload_item_image_api_admin_items__product_id__image_post */
         Body_upload_item_image_api_admin_items__product_id__image_post: {
             /** Image */
@@ -833,23 +792,6 @@ export interface components {
          * @enum {string}
          */
         ComboStatus: "Scheduled" | "Active" | "Expired";
-        /** CrustIn */
-        CrustIn: {
-            /** Name */
-            name: string;
-        };
-        /** CrustOut */
-        CrustOut: {
-            /** Crust Id */
-            crust_id: number;
-            /** Name */
-            name: string;
-        };
-        /** CrustPatch */
-        CrustPatch: {
-            /** Name */
-            name?: string | null;
-        };
         /** CustomerDetailOut */
         CustomerDetailOut: {
             /** Address */
@@ -897,6 +839,54 @@ export interface components {
             /** Service Area */
             service_area: string[];
         };
+        /** GroupIn */
+        GroupIn: {
+            /** Name */
+            name: string;
+            /**
+             * Required
+             * @default false
+             */
+            required: boolean;
+            /**
+             * Select Type
+             * @default multi
+             * @enum {string}
+             */
+            select_type: "single" | "multi";
+            /**
+             * Sort Order
+             * @default 0
+             */
+            sort_order: number;
+        };
+        /** GroupOut */
+        GroupOut: {
+            /** Group Id */
+            group_id: number;
+            /** Name */
+            name: string;
+            /** Required */
+            required: boolean;
+            /**
+             * Select Type
+             * @enum {string}
+             */
+            select_type: "single" | "multi";
+            /** Sort Order */
+            sort_order: number;
+        };
+        /** GroupPatch */
+        GroupPatch: {
+            /** Name */
+            name?: string | null;
+            /** Required */
+            required?: boolean | null;
+            /** Select Type */
+            select_type?: ("single" | "multi") | null;
+            /** Sort Order */
+            sort_order?: number | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -926,6 +916,44 @@ export interface components {
             kind: "pizza" | "side";
             /** Name */
             name: string;
+        };
+        /** ItemOptionGroupOut */
+        ItemOptionGroupOut: {
+            /** Group Id */
+            group_id: number;
+            /** Name */
+            name: string;
+            /** Options */
+            options: components["schemas"]["ItemOptionOut"][];
+            /** Required */
+            required: boolean;
+            /**
+             * Select Type
+             * @enum {string}
+             */
+            select_type: "single" | "multi";
+            /** Sort Order */
+            sort_order: number;
+        };
+        /** ItemOptionOut */
+        ItemOptionOut: {
+            /** Description */
+            description?: string | null;
+            /** Enabled */
+            enabled: boolean;
+            /** Name */
+            name: string;
+            /** Option Id */
+            option_id: number;
+            /** Price Delta Vnd */
+            price_delta_vnd: number;
+            /** Sort Order */
+            sort_order: number;
+        };
+        /** ItemOptionsPut */
+        ItemOptionsPut: {
+            /** Option Ids */
+            option_ids: number[];
         };
         /** ItemOut */
         ItemOut: {
@@ -1007,42 +1035,25 @@ export interface components {
             /** Sort Order */
             sort_order: number;
         };
-        /** MenuCrustOut */
-        MenuCrustOut: {
-            /** Crust Id */
-            crust_id: number;
-            /** Name */
-            name: string;
-        };
         /** MenuItemDetailOut */
         MenuItemDetailOut: {
             /** Base Price Vnd */
             base_price_vnd: number;
             /** Category Id */
             category_id: number;
-            /**
-             * Crusts
-             * @default []
-             */
-            crusts: components["schemas"]["MenuCrustOut"][];
             /** Image Url */
             image_url?: string | null;
             /** Is Pizza */
             is_pizza: boolean;
             /** Name */
             name: string;
+            /**
+             * Option Groups
+             * @default []
+             */
+            option_groups: components["schemas"]["MenuOptionGroupOut"][];
             /** Product Id */
             product_id: number;
-            /**
-             * Sizes
-             * @default []
-             */
-            sizes: components["schemas"]["MenuSizeOut"][];
-            /**
-             * Toppings
-             * @default []
-             */
-            toppings: components["schemas"]["MenuToppingOut"][];
         };
         /** MenuItemOut */
         MenuItemOut: {
@@ -1059,28 +1070,80 @@ export interface components {
             /** Product Id */
             product_id: number;
         };
-        /** MenuSizeOut */
-        MenuSizeOut: {
+        /** MenuOptionGroupOut */
+        MenuOptionGroupOut: {
+            /** Group Id */
+            group_id: number;
             /** Name */
             name: string;
-            /** Price Modifier Vnd */
-            price_modifier_vnd: number;
-            /** Size Id */
-            size_id: number;
+            /** Options */
+            options: components["schemas"]["MenuOptionOut"][];
+            /** Required */
+            required: boolean;
+            /**
+             * Select Type
+             * @enum {string}
+             */
+            select_type: "single" | "multi";
         };
-        /** MenuToppingOut */
-        MenuToppingOut: {
+        /** MenuOptionOut */
+        MenuOptionOut: {
+            /** Description */
+            description?: string | null;
             /** Name */
             name: string;
-            /** Price Vnd */
-            price_vnd: number;
-            /** Topping Id */
-            topping_id: number;
+            /** Option Id */
+            option_id: number;
+            /** Price Delta Vnd */
+            price_delta_vnd: number;
         };
         /** MessageResponse */
         MessageResponse: {
             /** Message */
             message: string;
+        };
+        /** OptionIn */
+        OptionIn: {
+            /** Description */
+            description?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Price Delta Vnd
+             * @default 0
+             */
+            price_delta_vnd: number;
+            /**
+             * Sort Order
+             * @default 0
+             */
+            sort_order: number;
+        };
+        /** OptionOut */
+        OptionOut: {
+            /** Description */
+            description?: string | null;
+            /** Group Id */
+            group_id: number;
+            /** Name */
+            name: string;
+            /** Option Id */
+            option_id: number;
+            /** Price Delta Vnd */
+            price_delta_vnd: number;
+            /** Sort Order */
+            sort_order: number;
+        };
+        /** OptionPatch */
+        OptionPatch: {
+            /** Description */
+            description?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Price Delta Vnd */
+            price_delta_vnd?: number | null;
+            /** Sort Order */
+            sort_order?: number | null;
         };
         /** OrderCancelIn */
         OrderCancelIn: {
@@ -1154,21 +1217,17 @@ export interface components {
         QuoteLineIn: {
             /** Combo Id */
             combo_id?: number | null;
-            /** Crust */
-            crust?: string | null;
             /** Item Id */
             item_id?: number | null;
             /**
              * Kind
              * @enum {string}
              */
-            kind: "pizza" | "side" | "combo";
+            kind: "item" | "combo";
+            /** Option Ids */
+            option_ids?: number[];
             /** Quantity */
             quantity: number;
-            /** Size */
-            size?: string | null;
-            /** Topping Ids */
-            topping_ids?: number[];
         };
         /** QuoteLoyaltyOut */
         QuoteLoyaltyOut: {
@@ -1193,55 +1252,6 @@ export interface components {
         /** RegisterResponse */
         RegisterResponse: {
             user: components["schemas"]["AuthUserDTO"];
-        };
-        /** SizeIn */
-        SizeIn: {
-            /** Name */
-            name: string;
-            /**
-             * Price Modifier Vnd
-             * @default 0
-             */
-            price_modifier_vnd: number;
-        };
-        /** SizeOut */
-        SizeOut: {
-            /** Name */
-            name: string;
-            /** Price Modifier Vnd */
-            price_modifier_vnd: number;
-            /** Size Id */
-            size_id: number;
-        };
-        /** SizePatch */
-        SizePatch: {
-            /** Name */
-            name?: string | null;
-            /** Price Modifier Vnd */
-            price_modifier_vnd?: number | null;
-        };
-        /** ToppingIn */
-        ToppingIn: {
-            /** Name */
-            name: string;
-            /** Price Vnd */
-            price_vnd: number;
-        };
-        /** ToppingOut */
-        ToppingOut: {
-            /** Name */
-            name: string;
-            /** Price Vnd */
-            price_vnd: number;
-            /** Topping Id */
-            topping_id: number;
-        };
-        /** ToppingPatch */
-        ToppingPatch: {
-            /** Name */
-            name?: string | null;
-            /** Price Vnd */
-            price_vnd?: number | null;
         };
         /** UpdateProfileRequest */
         UpdateProfileRequest: {
@@ -1573,123 +1583,6 @@ export interface operations {
             };
         };
     };
-    list_crusts_api_admin_crusts_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CrustOut"][];
-                };
-            };
-        };
-    };
-    create_crust_api_admin_crusts_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CrustIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CrustOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_crust_api_admin_crusts__crust_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                crust_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_crust_api_admin_crusts__crust_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                crust_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CrustPatch"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CrustOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     list_customers_api_admin_customers_get: {
         parameters: {
             query?: {
@@ -1826,39 +1719,6 @@ export interface operations {
         requestBody: {
             content: {
                 "multipart/form-data": components["schemas"]["Body_import_pizzas_api_admin_import_pizzas_post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImportSummary"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    import_toppings_api_admin_import_toppings_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_import_toppings_api_admin_import_toppings_post"];
             };
         };
         responses: {
@@ -2080,6 +1940,288 @@ export interface operations {
             };
         };
     };
+    item_options_api_admin_items__product_id__options_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemOptionGroupOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    replace_item_options_api_admin_items__product_id__options_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemOptionsPut"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemOptionGroupOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_groups_api_admin_option_groups_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupOut"][];
+                };
+            };
+        };
+    };
+    create_group_api_admin_option_groups_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_group_api_admin_option_groups__group_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_group_api_admin_option_groups__group_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_option_api_admin_option_groups__group_id__options_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OptionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OptionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_option_api_admin_options__option_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                option_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_option_api_admin_options__option_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                option_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OptionPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OptionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_orders_api_admin_orders_get: {
         parameters: {
             query?: {
@@ -2194,240 +2336,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_sizes_api_admin_sizes_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SizeOut"][];
-                };
-            };
-        };
-    };
-    create_size_api_admin_sizes_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SizeIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SizeOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_size_api_admin_sizes__size_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                size_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_size_api_admin_sizes__size_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                size_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SizePatch"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SizeOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_toppings_api_admin_toppings_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ToppingOut"][];
-                };
-            };
-        };
-    };
-    create_topping_api_admin_toppings_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ToppingIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ToppingOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_topping_api_admin_toppings__topping_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                topping_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_topping_api_admin_toppings__topping_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                topping_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ToppingPatch"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ToppingOut"];
-                };
             };
             /** @description Validation Error */
             422: {

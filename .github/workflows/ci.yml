@@ -9,11 +9,14 @@ jobs:
   contracts:
     runs-on: ubuntu-latest
     env:
-      # app.openapi() builds the schema from routes without a live DB. Settings only
-      # requires DATABASE_URL + SESSION_SECRET to import; both are dummies here and are
-      # never connected to or used to sign anything.
+      # app.openapi() builds the schema from routes without a live DB. Settings
+      # requires these to import; all are dummies here and are never connected
+      # to, used to sign anything, or seeded into a database.
       DATABASE_URL: mysql+pymysql://ci:ci@localhost:3306/ci
       SESSION_SECRET: ci-dummy-session-secret-unused-1234567890
+      ADMIN_SEED_PASSWORD: ci-dummy-unused
+      KITCHEN_SEED_PASSWORD: ci-dummy-unused
+      DELIVERY_WEBHOOK_SECRET: ci-dummy-webhook-secret-unused
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:

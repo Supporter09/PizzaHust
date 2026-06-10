@@ -1,4 +1,4 @@
-"""A1 – CSV bulk import for pizzas/side dishes and toppings (admin only).
+"""A1 – CSV bulk import for pizzas/side dishes (admin only).
 
 Upsert by name (re-import is idempotent). An unknown ``category_name`` is reported
 as a per-row error and the row is skipped — categories are NEVER auto-created.
@@ -18,7 +18,7 @@ from app.core.errors import APIError
 from app.infra.auth import require_role
 from app.infra.config import get_settings
 from app.infra.db.deps import get_db
-from app.infra.db.models import Category, Product, Topping, User, UserRole
+from app.infra.db.models import Category, Product, User, UserRole
 
 router = APIRouter(prefix="/api/admin/import", tags=["admin-import"])
 require_admin = require_role(UserRole.ADMIN)
@@ -60,7 +60,7 @@ def _parse_int(value: str | None) -> int | None:
 @router.post("/pizzas", response_model=ImportSummary)
 def import_pizzas(
     file: UploadFile = File(...),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> ImportSummary:
     rows = _read_rows(file)
@@ -111,41 +111,6 @@ def import_pizzas(
             existing.category_id = cat.category_id
             existing.base_price_vnd = price
             existing.is_pizza = is_pizza
-            updated += 1
-
-    db.flush()
-    return ImportSummary(created=created, updated=updated, skipped=skipped, errors=errors)
-
-
-@router.post("/toppings", response_model=ImportSummary)
-def import_toppings(
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db),
-    _a: User = Depends(require_admin),
-) -> ImportSummary:
-    rows = _read_rows(file)
-    created = updated = skipped = 0
-    errors: list[str] = []
-
-    for i, row in enumerate(rows, start=1):
-        name = (row.get("name") or "").strip()
-        price = _parse_int(row.get("price_vnd"))
-
-        if not name:
-            errors.append(f"Row {i}: missing name — skipped")
-            skipped += 1
-            continue
-        if price is None:
-            errors.append(f"Row {i}: invalid price_vnd for '{name}' — skipped")
-            skipped += 1
-            continue
-
-        existing = db.scalar(select(Topping).where(Topping.name == name))
-        if existing is None:
-            db.add(Topping(name=name, price_vnd=price))
-            created += 1
-        else:
-            existing.price_vnd = price
             updated += 1
 
     db.flush()

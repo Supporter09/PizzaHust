@@ -47,10 +47,10 @@ class Settings(BaseSettings):
 
     admin_seed_phone: str = Field(default="0900000001", alias="ADMIN_SEED_PHONE")
     kitchen_seed_phone: str = Field(default="0900000002", alias="KITCHEN_SEED_PHONE")
-    # No defaults: privileged seed passwords must come from the environment so no
-    # weak credential is baked into the source. .env.example documents dev values.
-    admin_seed_password: str | None = Field(default=None, alias="ADMIN_SEED_PASSWORD")
-    kitchen_seed_password: str | None = Field(default=None, alias="KITCHEN_SEED_PASSWORD")
+    admin_seed_password: str = Field(min_length=1, alias="ADMIN_SEED_PASSWORD")
+    kitchen_seed_password: str = Field(min_length=1, alias="KITCHEN_SEED_PASSWORD")
+
+    delivery_webhook_secret: str = Field(min_length=1, alias="DELIVERY_WEBHOOK_SECRET")
 
 
 @lru_cache(maxsize=1)

@@ -58,6 +58,8 @@ services:
       DELIVERY_API_KEY: ${DELIVERY_API_KEY:-dev-api-key}
       DELIVERY_WEBHOOK_SECRET: ${DELIVERY_WEBHOOK_SECRET:?set DELIVERY_WEBHOOK_SECRET in .env}
       DELIVERY_FEE_VND: "22000"
+      # Default 5/min/IP; local e2e runs >5 admin logins/min across parallel specs.
+      AUTH_RATE_LIMIT_PER_MINUTE: ${AUTH_RATE_LIMIT_PER_MINUTE:-5}
       LOYALTY_ACCRUAL_RATE: "10000"
       LOYALTY_REDEEM_VALUE_VND: "1000"
       LOYALTY_MAX_REDEEM_PCT: "0.5"

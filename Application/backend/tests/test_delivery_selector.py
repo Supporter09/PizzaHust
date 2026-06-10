@@ -11,7 +11,6 @@ from app.infra.delivery.mock import MockDeliveryAdapter
 
 def _base_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DATABASE_URL", "sqlite+pysqlite:///./selector-test.sqlite3")
-    monkeypatch.setenv("SESSION_SECRET", "test-secret")
     # get_delivery_port is lru_cached on the app-wide singleton; clear both caches
     # so each test re-reads the provider it sets.
     get_settings.cache_clear()
