@@ -55,8 +55,8 @@
       <div class="stack" style="gap:22px">
         <div class="card card-pad">
           <h3 class="h3" style="margin-bottom:8px">Visibility</h3>
-          <div class="tog-row"><div><div class="t">Active</div><div class="s">Category is available for items</div></div><span class="toggle on" onclick="this.classList.toggle('on')"></span></div>
-          <div class="tog-row"><div><div class="t">Visible on menu</div><div class="s">Shows as a filter tab on the customer menu</div></div><span class="toggle on" onclick="this.classList.toggle('on')"></span></div>
+          <div class="tog-row"><div><div class="t">Active</div><div class="s">Category is available for items</div></div><button type="button" class="toggle on" role="switch" aria-checked="true" aria-label="Active" onclick="this.setAttribute('aria-checked', String(this.classList.toggle('on')))"></button></div>
+          <div class="tog-row"><div><div class="t">Visible on menu</div><div class="s">Shows as a filter tab on the customer menu</div></div><button type="button" class="toggle on" role="switch" aria-checked="true" aria-label="Visible on menu" onclick="this.setAttribute('aria-checked', String(this.classList.toggle('on')))"></button></div>
         </div>
         <div class="card card-pad" style="border-color:var(--brand-200)">
           <h3 class="h3" style="margin-bottom:8px">Danger Zone</h3>

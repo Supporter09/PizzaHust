@@ -52,7 +52,7 @@
       <td><div class="cat-name"><span class="cat-ic">${PH_ICON(ic,2)}</span><span class="strong">${n}</span></div></td>
       <td>${count}</td>
       <td><span class="badge ${st==='Active'?'badge-done':'badge-soft'}">${st}</span></td>
-      <td><span class="toggle ${vis?'on':''}" onclick="this.classList.toggle('on')"></span></td>
+      <td><button type="button" class="toggle ${vis?'on':''}" role="switch" aria-checked="${vis?'true':'false'}" aria-label="Visible on menu: ${n}" onclick="this.setAttribute('aria-checked', String(this.classList.toggle('on')))"></button></td>
       <td><div class="acts-cell"><a class="ico-btn" href="admin-category-edit.html">${PH_ICON('edit',2)}</a><button class="ico-btn">${PH_ICON('trash',2)}</button></div></td>
     </tr>`).join('');
 })();

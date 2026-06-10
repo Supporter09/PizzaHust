@@ -94,8 +94,8 @@
         <div class="card card-pad">
           <h3 class="h3" style="margin-bottom:14px">Validity</h3>
           <div class="two">
-            <div class="field"><label>Starts</label><input type="date" value="2026-03-01"></div>
-            <div class="field"><label>Ends</label><input type="date" value="2026-05-15"></div>
+            <div class="field"><label>Starts</label><input type="date" value="2026-06-01"></div>
+            <div class="field"><label>Ends</label><input type="date" value="2026-09-15"></div>
           </div>
           <p class="muted" style="font-size:12.5px;margin-top:12px">Status is derived automatically: <span class="badge badge-soft">Scheduled</span> <span class="badge badge-done">Active</span> <span class="badge badge-soft">Expired</span></p>
         </div>
@@ -130,9 +130,13 @@
     ['Coca Cola', 4],
   ].map(([n,q]) => compRow(n,q)).join('');
 
+  const MIN_COMPONENTS = 2;
   comps.addEventListener('click', e => {
     const rm = e.target.closest('[data-rm]');
-    if (rm) { rm.closest('.comp-row').remove(); return; }
+    if (rm) {
+      if (comps.querySelectorAll('.comp-row').length <= MIN_COMPONENTS) return;
+      rm.closest('.comp-row').remove(); return;
+    }
     const qb = e.target.closest('[data-q]');
     if (qb) {
       const b = qb.parentElement.querySelector('b');

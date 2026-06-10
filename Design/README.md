@@ -11,7 +11,7 @@ the full design conversation (where the intent landed).
 
 ## Layout
 
-- `*.html` — 24 screen mockups (open any in a browser; they share `assets/`).
+- `*.html` — 27 screen mockups (open any in a browser; they share `assets/`).
 - `assets/` — `styles.css` (design tokens + components), `chrome.js`, `data.js` (mock data).
 - `screens/` — 14 reference screenshots of key states (dark mode, scroll positions, pickers).
 - `design-chat.md` — design-session transcript (provenance / intent).

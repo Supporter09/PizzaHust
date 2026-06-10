@@ -51,7 +51,7 @@
           <h3>Order Summary</h3>
           <div class="loyalty-box">
             <div><div class="lt">Use Loyalty Points</div><div class="ls">150 pts available · $15.00 off</div></div>
-            <div class="toggle" id="loyalty"></div>
+            <button type="button" class="toggle" id="loyalty" role="switch" aria-checked="false" aria-label="Use loyalty points"></button>
           </div>
           <div class="sum-row"><span>Subtotal</span><span class="v">$51.45</span></div>
           <div class="sum-row"><span>Tax (8%)</span><span class="v">$4.12</span></div>
@@ -73,7 +73,10 @@
   document.getElementById('t1').innerHTML = PH_ICON('trash', 2);
   document.getElementById('t2').innerHTML = PH_ICON('trash', 2);
   document.getElementById('i-arr').innerHTML = PH_ICON('arrow', 2);
-  document.getElementById('loyalty').addEventListener('click', e => e.currentTarget.classList.toggle('on'));
+  document.getElementById('loyalty').addEventListener('click', e => {
+    const on = e.currentTarget.classList.toggle('on');
+    e.currentTarget.setAttribute('aria-checked', String(on));
+  });
 </script>
 </body>
 </html>

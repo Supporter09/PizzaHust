@@ -26,7 +26,7 @@
   <aside id="sidebar"></aside>
   <main class="admin-main">
     <div class="admin-head">
-      <div><h1 class="h1">Bulk Import</h1><p>Add or update menu items in bulk via CSV, with image uploads.</p></div>
+      <div><h1 class="h1">Bulk Import</h1><p>Add or update menu items in bulk via CSV. Images are attached afterwards from each item's edit screen.</p></div>
       <button class="btn btn-outline"><span id="i-dl"></span> Download CSV template</button>
     </div>
 
@@ -69,7 +69,7 @@ Garlic Bread,Sides,4.99,"Crispy garlic bread…"</code>
 (function(){
   mountSidebar('Import');
   document.getElementById('i-up').innerHTML = PH_ICON('upload');
-  document.getElementById('i-dl').innerHTML = PH_ICON('upload');
+  document.getElementById('i-dl').innerHTML = PH_ICON('download');
   document.getElementById('hist').innerHTML = [
     ['menu-spring-update.csv','Jun 2, 2026','24 rows','<span class="badge badge-done">Imported</span>'],
     ['drinks-refresh.csv','May 18, 2026','6 rows','<span class="badge badge-done">Imported</span>'],

@@ -114,8 +114,8 @@
       <div class="stack" style="gap:22px">
         <div class="card card-pad">
           <h3 class="h3" style="margin-bottom:8px">Visibility</h3>
-          <div class="tog-row"><div><div class="t">Available on menu</div><div class="s">Customers can see and order this dish</div></div><span class="toggle on" onclick="this.classList.toggle('on')"></span></div>
-          <div class="tog-row"><div><div class="t">Featured on home</div><div class="s">Shows in the Featured Pizzas section</div></div><span class="toggle on" onclick="this.classList.toggle('on')"></span></div>
+          <div class="tog-row"><div><div class="t">Available on menu</div><div class="s">Customers can see and order this dish</div></div><button type="button" class="toggle on" role="switch" aria-checked="true" aria-label="Available on menu" onclick="this.setAttribute('aria-checked', String(this.classList.toggle('on')))"></button></div>
+          <div class="tog-row"><div><div class="t">Featured on home</div><div class="s">Shows in the Featured Pizzas section</div></div><button type="button" class="toggle on" role="switch" aria-checked="true" aria-label="Featured on home" onclick="this.setAttribute('aria-checked', String(this.classList.toggle('on')))"></button></div>
         </div>
         <div class="card card-pad" style="border-color:var(--brand-200)">
           <h3 class="h3" style="margin-bottom:8px">Danger Zone</h3>
@@ -154,9 +154,10 @@
   gal.addEventListener('click', e => {
     const b = e.target.closest('[data-act]'); if (!b) return;
     const a = b.dataset.act, i = +b.dataset.i;
-    if (a === 'add') imgs.push({ label: 'new photo' });
+    if (a === 'add') imgs.push({ label: 'new photo', cover: imgs.length === 0 });
     else if (a === 'del') { const wasCover = imgs[i].cover; imgs.splice(i, 1); if (wasCover && imgs[0]) imgs[0].cover = true; }
     else if (a === 'cover') { imgs.forEach(x => x.cover = false); imgs[i].cover = true; }
+    if (imgs.length && !imgs.some(x => x.cover)) imgs[0].cover = true;
     renderGal();
   });
   renderGal();
@@ -189,7 +190,7 @@
 
   const rowHtml = ([n,d,p,on]) => `
     <div class="orow2 ${on?'':'off'}">
-      <span class="toggle sm ${on?'on':''}" data-act="toggle" title="Enable / disable"></span>
+      <button type="button" class="toggle sm ${on?'on':''}" data-act="toggle" role="switch" aria-checked="${on?'true':'false'}" aria-label="Enable / disable option" title="Enable / disable"></button>
       <input class="cell-in" value="${esc(n)}" placeholder="Option name">
       <input class="cell-in desc" value="${esc(d)}" placeholder="Description (optional)">
       <input class="cell-in price" value="${esc(p)}" placeholder="+$0.00">
@@ -222,6 +223,7 @@
     const a = act.dataset.act;
     if (a === 'toggle') {
       act.classList.toggle('on');
+      act.setAttribute('aria-checked', String(act.classList.contains('on')));
       act.closest('.orow2').classList.toggle('off', !act.classList.contains('on'));
     } else if (a === 'del-row') {
       const cat = act.closest('.ocat');
