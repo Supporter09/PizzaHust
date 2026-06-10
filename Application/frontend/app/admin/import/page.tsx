@@ -103,11 +103,6 @@ export default function ImportPage() {
           endpoint="/admin/import/pizzas"
           columns="name, category_name, base_price_vnd, is_pizza"
         />
-        <ImportCard
-          title="Toppings"
-          endpoint="/admin/import/toppings"
-          columns="name, price_vnd"
-        />
       </div>
     </div>
   );
