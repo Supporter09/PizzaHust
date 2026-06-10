@@ -81,7 +81,7 @@
     { "id": "U1",  "name": "Browse Menus",                        "depends_on": ["infra-006", "infra-008"], "status": "done", "owner": "Hoang",  "evidence": "verify.sh green at 3f857a7683f07c16002aefd9906ab67dd14f167d, 2026-06-09T10:34:33Z" },
     { "id": "U2",  "name": "View Item Details",                   "depends_on": ["U1"],                     "status": "done", "owner": "Hoang",  "evidence": "verify.sh green at ebc115b31539c19deaaa77b45c71c5f44f0db427, 2026-06-09T17:05:57Z" },
     { "id": "U3",  "name": "Customize Pizza",                     "depends_on": ["U2"],                     "status": "done", "owner": "Hoang",  "evidence": "verify.sh green at f93e6eac35addf1509d873f9cf7d2ba3f75a763b, 2026-06-09T18:30:35Z" },
-    { "id": "U4",  "name": "View Combo Promotions",               "depends_on": ["U1", "A4"],               "status": "todo", "owner": "Hoang",  "evidence": "" },
+    { "id": "U4",  "name": "View Combo Promotions",               "depends_on": ["U1", "A4"],               "status": "done", "owner": "Hoang",  "evidence": "verify.sh green at 30f0ffdf6befa1c3512b09d3b96d6f4f80ff6efd, 2026-06-09T22:07:47Z" },
     { "id": "U5",  "name": "Manage Cart",                         "depends_on": ["U3", "U4"],               "status": "todo", "owner": "Hoang",  "evidence": "" },
     { "id": "U6",  "name": "Place COD Order",                     "depends_on": ["U5", "infra-006"],        "status": "todo", "owner": "Hung",   "evidence": "" },
     { "id": "U7",  "name": "Track Order",                         "depends_on": ["U6", "infra-005", "T2"],  "status": "todo", "owner": "Hung",   "evidence": "" },
