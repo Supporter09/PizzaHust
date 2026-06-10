@@ -230,8 +230,42 @@ All under `/api/kitchen/`, role=`kitchen` required.
 }
 ```
 
-> `combo` lines are deferred (U4/U5) — a combo example will land with those features.
+> `combo` lines are deferred to **U5** (cart/order support for combos). U4 adds the public read surface only.
 > Omit `address` to receive a preview quote (`delivery_fee_vnd: 0`, no service-area check).
+
+### `GET /api/combos` — response
+
+Returns **Active-only** combos for the current time window. Each entry includes `combo_price_vnd`, server-computed `items_total_vnd` and `savings_vnd` (savings clamped at 0), `target_group`, and `items[]` with `product_id`, `name`, `quantity`, `image_url`, `base_price_vnd`. Validity windows and derived `status` are intentionally omitted.
+
+```json
+[
+  {
+    "combo_id": 1,
+    "name": "Lunch Duo for 2",
+    "description": "2 Medium pizzas + 2 Garlic Breads",
+    "combo_price_vnd": 255000,
+    "target_group": 2,
+    "items_total_vnd": 295000,
+    "savings_vnd": 40000,
+    "items": [
+      {
+        "product_id": 5,
+        "name": "Margherita",
+        "quantity": 2,
+        "image_url": null,
+        "base_price_vnd": 125000
+      },
+      {
+        "product_id": 8,
+        "name": "Garlic Bread",
+        "quantity": 1,
+        "image_url": null,
+        "base_price_vnd": 45000
+      }
+    ]
+  }
+]
+```
 
 ### `POST /api/cart/quote` — response
 

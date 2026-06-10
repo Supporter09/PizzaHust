@@ -519,6 +519,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/combos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Combos */
+        get: operations["list_combos_api_combos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/config/delivery": {
         parameters: {
             query?: never;
@@ -1093,6 +1110,38 @@ export interface components {
             total_amount_vnd: number;
             /** User Id */
             user_id: number | null;
+        };
+        /** PublicComboItemOut */
+        PublicComboItemOut: {
+            /** Base Price Vnd */
+            base_price_vnd: number;
+            /** Image Url */
+            image_url?: string | null;
+            /** Name */
+            name: string;
+            /** Product Id */
+            product_id: number;
+            /** Quantity */
+            quantity: number;
+        };
+        /** PublicComboOut */
+        PublicComboOut: {
+            /** Combo Id */
+            combo_id: number;
+            /** Combo Price Vnd */
+            combo_price_vnd: number;
+            /** Description */
+            description?: string | null;
+            /** Items */
+            items: components["schemas"]["PublicComboItemOut"][];
+            /** Items Total Vnd */
+            items_total_vnd: number;
+            /** Name */
+            name: string;
+            /** Savings Vnd */
+            savings_vnd: number;
+            /** Target Group */
+            target_group?: number | null;
         };
         /** QuoteAddressIn */
         QuoteAddressIn: {
@@ -2579,6 +2628,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MenuCategoryOut"][];
+                };
+            };
+        };
+    };
+    list_combos_api_combos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicComboOut"][];
                 };
             };
         };
