@@ -95,11 +95,21 @@ order at write time; all readers (cart lines, kitchen cards, line-text compositi
 Only options enabled for the dish; groups with zero enabled options omitted. Any dish may
 have options — `is_pizza` no longer gates the options query.
 
-**`POST /api/cart/quote`** line becomes `{kind, product_id, qty, option_ids: [int]}`
+**`POST /api/cart/quote`** line becomes `{kind, item_id, quantity, option_ids: [int]}`
+(existing `item_id`/`quantity` field names kept)
 (drops `size`/`crust`/`topping_ids`; breaking is acceptable — U5 unbuilt). The server
 **dedupes** `option_ids` before validation and pricing (duplicates can never double-charge).
-422 error-envelope codes: `option_not_available`, `required_group_missing`,
-`single_group_conflict`.
+
+`kind` collapses from `pizza|side|combo` to **`item|combo`** — quote resolution is
+product-driven: `option_ids` are validated against the product's enabled set regardless of
+`is_pizza` (a dish with no enabled options rejects any `option_ids`). `combo` stays declared
+and rejected with "not supported yet" until U5/U15 wire it.
+
+Option errors keep the **closed error-code set**: `VALIDATION_FAILED` (400) with a
+machine-readable reason in `details`, e.g.
+`{"code": "VALIDATION_FAILED", "details": {"reason": "option_not_available", "option_id": 7}}`.
+Reasons: `option_not_available`, `required_group_missing`, `single_group_conflict`.
+No new top-level codes; CONTRACTS.md documents the reasons under the cart-quote section.
 
 **Admin** — `/api/admin/sizes|crusts|toppings` routers removed. New:
 
@@ -151,8 +161,10 @@ against order history (snapshot). After route changes, from `Application/backend
 - **Domain unit:** `compute_unit_price`; `validate_option_selection` (required-single missing,
   two picks in single group, id outside enabled set, valid multi).
 - **Backend integration:** item detail group shape (enabled-only, empty groups omitted, dish
-  without options → `[]`); cart quote delta pricing + each 422 code; admin CRUD + 409 dupes;
-  `PUT items/{pid}/options` replaces set; group delete cascades and detaches dishes.
+  without options → `[]`); cart quote delta pricing + each `VALIDATION_FAILED` reason;
+  duplicate `option_ids` in one line do not double-charge; non-pizza dish with enabled
+  options quotes correctly; admin CRUD + 409 dupes; `PUT items/{pid}/options` replaces set;
+  group delete cascades and detaches dishes.
 - **Migration:** pre-migration fixed-option order survives as `order_item_options` snapshots.
 - **Frontend unit (Vitest):** `composeLineText`, `OptionGroupSelector` selection logic.
 - **Playwright:** `item-detail.spec.ts` rewritten for generic chips; new
