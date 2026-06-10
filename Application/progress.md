@@ -311,3 +311,26 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 **Next**
 - `U5` Manage Cart — combo lines in `POST /api/cart/quote` + cart persistence.
+
+## 2026-06-10 — A8 Generic Options Model (verify.sh green at 9ed8bae)
+
+- Replaced fixed `pizza_sizes`/`pizza_crusts`/`toppings` with `option_groups`/`options`
+  (deltas shared) + `product_options` (per-dish enablement) + `order_item_options`
+  (order-history snapshots, no FK). Migration `0005_generic_options` transforms data,
+  backfills history (topping qty multiplied into delta), drops old tables — backfill
+  manually verified against compose MySQL (evidence on PR #19).
+- Cart quote: lines are `{kind: item|combo, item_id, option_ids, quantity}`; server
+  dedupes ids; group rules in `domain/options.py`; `VALIDATION_FAILED` + `details.reason`.
+  Negative deltas rejected at schema (ge=0) and domain.
+- Admin: `/api/admin/option-groups` CRUD, per-dish `GET/PUT /api/admin/items/{id}/options`;
+  dish editor at `/admin/items/[id]` (categories inline, single|multi + required controls,
+  enable toggles, cart-line preview via `composeLineText`); `/admin/pizza-options` and
+  `POST /api/admin/import/toppings` removed. Customizer now renders generic groups.
+- **Cross-cutting fix:** FastAPI 0.118+ runs yield-dependency teardown after the response,
+  so `get_db`'s commit raced immediate follow-up requests. All routers now use
+  `Depends(get_db, scope="function")` (commit before response).
+- SQLite tests now enforce FKs (PRAGMA) so option cascades match MySQL.
+- Local e2e: `AUTH_RATE_LIMIT_PER_MINUTE` overridable via compose (parallel specs exceed
+  5 logins/min); `E2E_*` vars required in `.env`.
+- Unrelated issue noted, not fixed here: none outstanding (seeds `print` replaced with
+  structlog as part of this change since seeds were rewritten anyway).
