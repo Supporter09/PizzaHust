@@ -18,12 +18,15 @@ from app.infra.db.models import (
     Category,
     Combo,
     ComboItem,
+    Option,
+    OptionGroup,
     Order,
     OrderItem,
     OrderItemTopping,
     PizzaCrust,
     PizzaSize,
     Product,
+    ProductOption,
     Topping,
     User,
     UserRole,
@@ -191,4 +194,45 @@ def reference_topping_in_order(topping_id: int) -> None:
                 price_at_time_vnd=1,
             )
         )
+        db.commit()
+
+
+def new_option_group(
+    name: str = "Size", *, select_type: str = "single", required: bool = True, sort_order: int = 0
+) -> int:
+    with create_session_factory()() as db:
+        g = OptionGroup(
+            name=name, select_type=select_type, required=required, sort_order=sort_order
+        )
+        db.add(g)
+        db.commit()
+        db.refresh(g)
+        return g.group_id
+
+
+def new_option(
+    group_id: int,
+    name: str = "M",
+    *,
+    price_delta_vnd: int = 0,
+    description: str | None = None,
+    sort_order: int = 0,
+) -> int:
+    with create_session_factory()() as db:
+        o = Option(
+            group_id=group_id,
+            name=name,
+            description=description,
+            price_delta_vnd=price_delta_vnd,
+            sort_order=sort_order,
+        )
+        db.add(o)
+        db.commit()
+        db.refresh(o)
+        return o.option_id
+
+
+def enable_option(product_id: int, option_id: int) -> None:
+    with create_session_factory()() as db:
+        db.add(ProductOption(product_id=product_id, option_id=option_id))
         db.commit()

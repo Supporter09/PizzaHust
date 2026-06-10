@@ -12,6 +12,7 @@ from app.api.admin.categories import router as admin_categories_router
 from app.api.admin.combos import router as admin_combos_router
 from app.api.admin.customers import router as admin_customers_router
 from app.api.admin.items import router as admin_items_router
+from app.api.admin.option_groups import router as admin_option_groups_router
 from app.api.admin.options import router as admin_options_router
 from app.api.admin.orders import router as admin_orders_router
 from app.api.auth import router as auth_router
@@ -69,6 +70,7 @@ app.include_router(admin_orders_router)
 app.include_router(admin_customers_router)
 app.include_router(admin_items_router)
 app.include_router(admin_categories_router)
+app.include_router(admin_option_groups_router)
 app.include_router(admin_options_router)
 app.include_router(admin_combos_router)
 app.include_router(admin_import_router)
