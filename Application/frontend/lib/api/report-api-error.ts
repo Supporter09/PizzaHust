@@ -6,6 +6,10 @@ export function reportApiError(scope: string, error: unknown): void {
       : new Error(`${scope}: ${String(error)}`, { cause: error });
 
   if (typeof globalThis.reportError === "function") {
-    globalThis.reportError(err);
+    try {
+      globalThis.reportError(err);
+    } catch {
+      // Swallow reporter failures to preserve original control flow.
+    }
   }
 }
