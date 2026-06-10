@@ -4,6 +4,10 @@ Clean cut: creates the generic tables, migrates fixed sizes/crusts/toppings data
 and order history into them, then drops the old structures. Downgrade recreates
 the old tables empty (lossy) — acceptable for the single-node MVP.
 
+Topping snapshots multiply price_at_time_vnd by order_item_toppings.quantity:
+the generic snapshot has no quantity column, so a qty-2 topping row becomes one
+row carrying the full amount (the quote flow never produced qty > 1 in practice).
+
 Revision ID: 0005_generic_options
 Revises: 0004_option_name_unique
 """
@@ -146,7 +150,8 @@ def upgrade() -> None:
     conn.execute(
         sa.text(
             _snap
-            + "SELECT oit.order_item_id, 'Toppings', t.name, oit.price_at_time_vnd "
+            + "SELECT oit.order_item_id, 'Toppings', t.name, "
+            "oit.price_at_time_vnd * oit.quantity "
             "FROM order_item_toppings oit JOIN toppings t ON t.topping_id = oit.topping_id "
             "ORDER BY oit.order_item_id, oit.id"
         )
