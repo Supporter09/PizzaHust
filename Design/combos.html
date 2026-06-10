@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust — Combo Promotions</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .cb-head { background: linear-gradient(180deg, var(--cream-50), var(--bg)); padding-block: 48px 8px; }
+  .cb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; padding-block: 36px 80px; }
+  .cb { overflow: hidden; display: flex; flex-direction: column; }
+  .cb-img { aspect-ratio: 16/6; position: relative; }
+  .cb-img .badge { position: absolute; top: 14px; right: 14px; font-size: 13px; padding: 7px 14px; }
+  .cb-body { padding: 24px 26px 26px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
+  .cb-body h3 { font-size: 22px; }
+  .cb-body .desc { color: var(--ink-500); font-size: 14.5px; margin-top: -6px; }
+  .comp-list { display: grid; gap: 9px; border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; background: var(--bg); }
+  .comp { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--ink-700); }
+  .comp .img-ph { width: 34px; height: 34px; border-radius: 8px; flex: none; }
+  .comp .img-ph::after { display: none; }
+  .comp .qty { font-weight: 700; color: var(--ink-900); min-width: 26px; }
+  .cb-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: auto; padding-top: 6px; }
+  .cb-price { display: flex; align-items: baseline; gap: 12px; }
+  .cb-price .old { color: var(--ink-300); text-decoration: line-through; font-size: 16px; }
+  .cb-price .new { font-size: 30px; font-weight: 800; color: var(--brand-600); }
+  .cb-meta { display: flex; align-items: center; gap: 7px; color: var(--ink-400); font-size: 13px; }
+  .cb-meta svg { width: 15px; height: 15px; }
+  @media (max-width: 920px) { .cb-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="page" data-screen-label="Combos">
+  <header id="nav"></header>
+  <main class="page-body">
+    <section class="cb-head">
+      <div class="container">
+        <h1 class="h1">Combo Promotions</h1>
+        <p class="lead" style="margin-top:8px">Bundle up and save — limited-time combo deals.</p>
+      </div>
+    </section>
+    <div class="container cb-grid">
+      <div class="card cb">
+        <div class="img-ph cb-img" data-label="family feast"><span class="badge badge-amber" id="s1"></span></div>
+        <div class="cb-body">
+          <h3>Family Feast</h3>
+          <p class="desc">Dinner for four, sorted — two large pizzas with sides and drinks for everyone.</p>
+          <div class="comp-list">
+            <div class="comp"><span class="img-ph"></span><span class="qty">2×</span> Large Pizza — your choice of any pizza</div>
+            <div class="comp"><span class="img-ph"></span><span class="qty">1×</span> Garlic Bread</div>
+            <div class="comp"><span class="img-ph"></span><span class="qty">1×</span> Chicken Wings (8 pieces)</div>
+            <div class="comp"><span class="img-ph"></span><span class="qty">4×</span> Coca Cola 500ml</div>
+          </div>
+          <div class="cb-foot">
+            <div>
+              <div class="cb-price"><span class="old tnum">$59.99</span><span class="new tnum">$49.99</span></div>
+              <div class="cb-meta"><span id="c1"></span> Valid until 9/15/2026</div>
+            </div>
+            <a class="btn btn-primary btn-lg" href="combo-customize.html">Order Now</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card cb">
+        <div class="img-ph cb-img" data-label="solo special"><span class="badge badge-amber" id="s2"></span></div>
+        <div class="cb-body">
+          <h3>Solo Special</h3>
+          <p class="desc">A complete meal for one — pizza, a side, and a drink.</p>
+          <div class="comp-list">
+            <div class="comp"><span class="img-ph"></span><span class="qty">1×</span> Medium Pizza — your choice of any pizza</div>
+            <div class="comp"><span class="img-ph"></span><span class="qty">1×</span> Garlic Bread</div>
+            <div class="comp"><span class="img-ph"></span><span class="qty">1×</span> Coca Cola 500ml</div>
+          </div>
+          <div class="cb-foot">
+            <div>
+              <div class="cb-price"><span class="old tnum">$24.99</span><span class="new tnum">$19.99</span></div>
+              <div class="cb-meta"><span id="c2"></span> Valid until 8/30/2026</div>
+            </div>
+            <a class="btn btn-primary btn-lg" href="combo-customize.html">Order Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+</div>
+<script src="assets/chrome.js"></script>
+<script>
+  mountNav('Combos', { cart: 0 });
+  mountFooter();
+  document.getElementById('s1').textContent = 'Save $10.00';
+  document.getElementById('s2').textContent = 'Save $5.00';
+  document.getElementById('c1').innerHTML = PH_ICON('calendar');
+  document.getElementById('c2').innerHTML = PH_ICON('calendar');
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust — Order Confirmed</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .confirm-wrap { display: flex; align-items: center; justify-content: center; padding: 56px 32px; min-height: calc(100vh - var(--nav-h)); }
+  .confirm { max-width: 600px; width: 100%; padding: 44px; text-align: center; }
+  .confirm .check { width: 84px; height: 84px; border-radius: var(--pill); background: var(--green-50); color: var(--green-600); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 22px; }
+  .confirm .check svg { width: 44px; height: 44px; }
+  .confirm h1 { font-size: 34px; }
+  .confirm .sub { color: var(--ink-500); font-size: 16px; margin-top: 10px; }
+  .order-no { background: var(--brand-50); border: 1px solid var(--brand-100); border-radius: var(--r-lg); padding: 20px; margin: 28px 0; }
+  .order-no .l { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-500); font-size: 13.5px; font-weight: 600; }
+  .order-no .l svg { width: 17px; height: 17px; color: var(--brand-600); }
+  .order-no .v { font-size: 26px; font-weight: 800; color: var(--brand-600); letter-spacing: -.01em; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .whats-next { text-align: left; margin: 8px 0 30px; }
+  .whats-next h4 { font-size: 16px; margin-bottom: 14px; }
+  .whats-next ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .whats-next li { display: flex; gap: 12px; align-items: flex-start; color: var(--ink-600,var(--ink-700)); font-size: 15px; }
+  .whats-next .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand-600); margin-top: 8px; flex: none; }
+  .confirm-cta { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+</style>
+</head>
+<body>
+<div class="page" data-screen-label="Order Confirmed">
+  <header id="nav"></header>
+  <main class="page-body">
+    <div class="confirm-wrap">
+      <div class="card confirm">
+        <span class="check" id="i-check"></span>
+        <h1>Order Confirmed!</h1>
+        <p class="sub">Thank you for your order. We're preparing your delicious pizza!</p>
+        <div class="order-no">
+          <span class="l"><span id="i-pkg"></span> Order Number</span>
+          <div class="v">ORD1775486159960</div>
+        </div>
+        <div class="whats-next">
+          <h4>What's Next?</h4>
+          <ul>
+            <li><span class="dot"></span>Your order is being prepared in our kitchen</li>
+            <li><span class="dot"></span>Estimated delivery time: 30–40 minutes</li>
+            <li><span class="dot"></span>You'll receive live updates via SMS</li>
+            <li><span class="dot"></span>Track your order in real-time below</li>
+          </ul>
+        </div>
+        <div class="confirm-cta">
+          <a class="btn btn-primary btn-lg" href="track.html">Track Order</a>
+          <a class="btn btn-outline btn-lg" href="index.html">Back to Home</a>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+</div>
+<script src="assets/chrome.js"></script>
+<script>
+  mountNav(null, { cart: 0, points: 150 });
+  mountFooter();
+  document.getElementById('i-check').innerHTML = PH_ICON('checkCircle');
+  document.getElementById('i-pkg').innerHTML = PH_ICON('package');
+</script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust — Build Your Combo</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .cc { padding-block: 28px 80px; }
+  .cc-grid { display: grid; grid-template-columns: 380px 1fr; gap: 36px; align-items: start; }
+  .cc-side { position: sticky; top: calc(var(--nav-h) + 24px); }
+  .cc-img { aspect-ratio: 16/9; border-radius: var(--r-lg) var(--r-lg) 0 0; border-bottom: none; }
+  .cc-sum { padding: 22px 24px; border-top-left-radius: 0; border-top-right-radius: 0; }
+  .cc-sum h2 { font-size: 22px; }
+  .cc-sum .inc { font-size: 13.5px; color: var(--ink-500); margin-top: 6px; line-height: 1.6; }
+  .cc-price { display: flex; align-items: baseline; gap: 12px; margin-top: 14px; }
+  .cc-price .old { color: var(--ink-300); text-decoration: line-through; }
+  .cc-price .new { font-size: 30px; font-weight: 800; color: var(--brand-600); }
+  .cc-step { margin-bottom: 28px; }
+  .cc-step h3 { font-size: 17px; display: flex; align-items: center; gap: 10px; margin-bottom: 13px; }
+  .step-no { width: 26px; height: 26px; border-radius: 50%; background: var(--brand-600); color: #fff; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pick { display: flex; align-items: center; gap: 12px; border: 1.5px solid var(--line-2); border-radius: var(--r); background: var(--surface); padding: 10px 12px; cursor: pointer; transition: all .14s ease; }
+  .pick:hover { border-color: var(--brand-300); }
+  .pick:focus-visible { outline: 2px solid var(--brand-600); outline-offset: 2px; }
+  .btn.is-disabled { opacity: .55; cursor: not-allowed; }
+  .pick.sel { border-color: var(--brand-600); background: var(--brand-50); }
+  .pick .img-ph { width: 40px; height: 40px; border-radius: 9px; flex: none; }
+  .pick .img-ph::after { display: none; }
+  .pick .n { font-size: 14px; font-weight: 600; color: var(--ink-800); }
+  .pick .s { font-size: 12px; color: var(--ink-400); }
+  .pick .radio { margin-left: auto; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line-2); flex: none; position: relative; }
+  .pick.sel .radio { border-color: var(--brand-600); }
+  .pick.sel .radio::after { content: ''; position: absolute; inset: 3.5px; border-radius: 50%; background: var(--brand-600); }
+  .drink-row { display: flex; align-items: center; gap: 14px; border: 1.5px solid var(--line-2); border-radius: var(--r); background: var(--surface); padding: 10px 14px; }
+  .drink-row + .drink-row { margin-top: 10px; }
+  .drink-row .img-ph { width: 40px; height: 40px; border-radius: 9px; flex: none; }
+  .drink-row .img-ph::after { display: none; }
+  .drink-row .n { font-size: 14.5px; font-weight: 600; }
+  .drink-row .stepper { margin-left: auto; }
+  .drink-row .stepper button { width: 32px; height: 32px; font-size: 16px; }
+  .count-pill { font-size: 12.5px; font-weight: 600; color: var(--ink-500); background: var(--bg-2); border-radius: var(--pill); padding: 5px 12px; }
+  .count-pill.ok { color: var(--green-600); background: var(--green-50); }
+  .subcfg { border: 1.5px dashed var(--line-2); border-radius: var(--r); padding: 14px 18px 16px; margin-top: 12px; background: var(--surface); }
+  .subcfg .t { font-size: 13.5px; font-weight: 700; color: var(--ink-700); }
+  .subcfg .t .nm { color: var(--brand-600); }
+  .cfg-label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-300); margin: 12px 0 7px; }
+  .cfg-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mini-chip { font-family: inherit; font-size: 12.5px; font-weight: 600; color: var(--ink-700); border: 1.5px solid var(--line-2); background: var(--surface); border-radius: var(--pill); padding: 6px 13px; cursor: pointer; transition: all .14s ease; white-space: nowrap; }
+  .mini-chip:hover { border-color: var(--brand-300); }
+  .mini-chip.sel { background: var(--brand-600); border-color: var(--brand-600); color: #fff; }
+  .cc-foot { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 22px; display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+  .cc-foot .tt .l { font-size: 13px; color: var(--ink-400); }
+  .cc-foot .tt .v { font-size: 30px; font-weight: 800; color: var(--brand-600); line-height: 1.1; }
+  @media (max-width: 920px) { .cc-grid { grid-template-columns: 1fr; } .cc-side { position: static; } .pick-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="page" data-screen-label="Combo Customizer">
+  <header id="nav"></header>
+  <main class="page-body">
+    <div class="container cc">
+      <a class="back" href="combos.html" style="margin-bottom:24px"><span id="i-back"></span> Back to Combos</a>
+      <div class="cc-grid">
+        <div class="cc-side">
+          <div class="img-ph cc-img" data-label="family feast"></div>
+          <div class="card cc-sum">
+            <div class="row between"><h2>Family Feast</h2><span class="badge badge-amber">Save $10.00</span></div>
+            <p class="inc">2× Large Pizza · 2× Sides · 4× Drinks</p>
+            <div class="cc-price"><span class="old tnum">$59.99</span><span class="new tnum">$49.99</span></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="cc-step">
+            <h3><span class="step-no">1</span> Choose your first large pizza</h3>
+            <div class="pick-grid" data-single data-pz="0" id="pz1"></div>
+            <div class="subcfg">
+              <div class="t">Options for <span class="nm" id="nm0">Margherita Classic</span></div>
+              <div class="cfg-label">Crust</div>
+              <div class="cfg-row" data-crust="0"></div>
+              <div class="cfg-label">Extra toppings</div>
+              <div class="cfg-row" data-tops="0"></div>
+            </div>
+          </div>
+          <div class="cc-step">
+            <h3><span class="step-no">2</span> Choose your second large pizza</h3>
+            <div class="pick-grid" data-single data-pz="1" id="pz2"></div>
+            <div class="subcfg">
+              <div class="t">Options for <span class="nm" id="nm1">Pepperoni Passion</span></div>
+              <div class="cfg-label">Crust</div>
+              <div class="cfg-row" data-crust="1"></div>
+              <div class="cfg-label">Extra toppings</div>
+              <div class="cfg-row" data-tops="1"></div>
+            </div>
+          </div>
+          <div class="cc-step">
+            <h3><span class="step-no">3</span> Choose your two sides <span class="count-pill ok" id="side-count">2 of 2 selected</span></h3>
+            <div class="pick-grid" id="side"></div>
+          </div>
+          <div class="cc-step">
+            <h3><span class="step-no">4</span> Pick your 4 drinks <span class="count-pill" id="drink-count">4 of 4 selected</span></h3>
+            <div id="drinks"></div>
+          </div>
+
+          <div class="cc-foot">
+            <div class="tt"><div class="l">Combo total</div><div class="v tnum" id="total">$49.99</div></div>
+            <a class="btn btn-primary btn-lg" href="cart.html" id="add-combo"><span id="i-cart"></span> Add Combo to Cart</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+</div>
+<script src="assets/chrome.js"></script>
+<script src="assets/data.js"></script>
+<script>
+(function(){
+  mountNav('Combos', { cart: 0 });
+  mountFooter();
+  document.getElementById('i-back').innerHTML = PH_ICON('back', 2);
+  document.getElementById('i-cart').innerHTML = PH_ICON('cart');
+
+  const pizzas = PH_MENU.filter(m => m.cat === 'Pizzas');
+  const pickHtml = (n, s, sel, role) => `
+    <div class="pick ${sel?'sel':''}" role="${role||'radio'}" tabindex="0" aria-checked="${sel?'true':'false'}">
+      <span class="img-ph"></span>
+      <span><span class="n">${n}</span>${s?`<br><span class="s">${s}</span>`:''}</span>
+      <span class="radio"></span>
+    </div>`;
+  const keyActivate = e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const p = e.target.closest('.pick'); if (!p) return;
+    e.preventDefault(); p.click();
+  };
+  document.getElementById('pz1').innerHTML = pizzas.map((p,i) => pickHtml(p.name, 'included', i===0)).join('');
+  document.getElementById('pz2').innerHTML = pizzas.map((p,i) => pickHtml(p.name, 'included', i===1)).join('');
+  document.getElementById('side').innerHTML = [
+    ['Garlic Bread','included',true],
+    ['Chicken Wings (8 pcs)','included',true],
+    ['Caesar Salad','included',false],
+  ].map(([n,s,sel]) => pickHtml(n, s, sel, 'checkbox')).join('');
+
+  // sides: multi-select, exactly 2
+  const sideGrp = document.getElementById('side');
+  sideGrp.addEventListener('click', e => {
+    const p = e.target.closest('.pick'); if (!p) return;
+    const selCount = sideGrp.querySelectorAll('.pick.sel').length;
+    if (!p.classList.contains('sel') && selCount >= 2) return;
+    p.classList.toggle('sel');
+    p.setAttribute('aria-checked', String(p.classList.contains('sel')));
+    const n = sideGrp.querySelectorAll('.pick.sel').length;
+    const pill = document.getElementById('side-count');
+    pill.textContent = n + ' of 2 selected';
+    pill.classList.toggle('ok', n === 2);
+    updateCanSubmit();
+  });
+  sideGrp.addEventListener('keydown', keyActivate);
+
+  document.querySelectorAll('[data-single]').forEach(grp => {
+    grp.addEventListener('click', e => {
+      const p = e.target.closest('.pick'); if (!p) return;
+      grp.querySelectorAll('.pick').forEach(x => {
+        x.classList.toggle('sel', x === p);
+        x.setAttribute('aria-checked', String(x === p));
+      });
+      if (grp.dataset.pz !== undefined) {
+        document.getElementById('nm' + grp.dataset.pz).textContent = p.querySelector('.n').textContent;
+      }
+    });
+    grp.addEventListener('keydown', keyActivate);
+  });
+
+  /* ---- per-pizza option sub-menus ---- */
+  const crusts = [['Thin Crust',0],['Regular',0],['Thick Crust',1.5],['Stuffed Crust',3]];
+  const tops   = [['Extra Cheese',1.5],['Pepperoni',2],['Mushrooms',1],['Olives',1],['Onions',0.75],['Bacon',2.5]];
+  const chip = (n,d,sel) => `<button type="button" class="mini-chip ${sel?'sel':''}" data-d="${d}">${n}${d?` · +$${d.toFixed(2)}`:''}</button>`;
+  document.querySelectorAll('[data-crust]').forEach(row => {
+    row.innerHTML = crusts.map(([n,d],i) => chip(n,d,i===1)).join('');
+    row.addEventListener('click', e => {
+      const c = e.target.closest('.mini-chip'); if (!c) return;
+      row.querySelectorAll('.mini-chip').forEach(x => x.classList.toggle('sel', x === c));
+      calc();
+    });
+  });
+  document.querySelectorAll('[data-tops]').forEach(row => {
+    row.innerHTML = tops.map(([n,d]) => chip(n,d,false)).join('');
+    row.addEventListener('click', e => {
+      const c = e.target.closest('.mini-chip'); if (!c) return;
+      c.classList.toggle('sel');
+      calc();
+    });
+  });
+  function calc() {
+    let extra = 0;
+    document.querySelectorAll('[data-crust] .mini-chip.sel, [data-tops] .mini-chip.sel')
+      .forEach(c => extra += parseFloat(c.dataset.d) || 0);
+    document.getElementById('total').textContent = '$' + (49.99 + extra).toFixed(2);
+  }
+
+  const drinks = [['Coca Cola 500ml',2],['Sprite 500ml',1],['Orange Juice 300ml',1]];
+  const MAX = 4;
+  document.getElementById('drinks').innerHTML = drinks.map(([n,q],i) => `
+    <div class="drink-row">
+      <span class="img-ph"></span><span class="n">${n}</span>
+      <div class="stepper"><button type="button" data-d="${i}" data-dir="-1">−</button><span class="q" id="dq${i}">${q}</span><button type="button" data-d="${i}" data-dir="1">+</button></div>
+    </div>`).join('');
+  const qty = drinks.map(d => d[1]);
+  document.getElementById('drinks').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const i = +b.dataset.d, dir = +b.dataset.dir;
+    const total = qty.reduce((a,c)=>a+c,0);
+    if (dir > 0 && total >= MAX) return;
+    if (dir < 0 && qty[i] === 0) return;
+    qty[i] += dir;
+    document.getElementById('dq'+i).textContent = qty[i];
+    const t = qty.reduce((a,c)=>a+c,0);
+    const pill = document.getElementById('drink-count');
+    pill.textContent = t + ' of ' + MAX + ' selected';
+    pill.classList.toggle('ok', t === MAX);
+    updateCanSubmit();
+  });
+  document.getElementById('drink-count').classList.add('ok');
+
+  // CTA gating: exactly 2 sides + 4 drinks before the combo can be added
+  const addCombo = document.getElementById('add-combo');
+  function updateCanSubmit() {
+    const sideOk = sideGrp.querySelectorAll('.pick.sel').length === 2;
+    const drinkOk = qty.reduce((a,c)=>a+c,0) === MAX;
+    const ok = sideOk && drinkOk;
+    addCombo.classList.toggle('is-disabled', !ok);
+    addCombo.setAttribute('aria-disabled', String(!ok));
+  }
+  addCombo.addEventListener('click', e => {
+    if (addCombo.getAttribute('aria-disabled') === 'true') e.preventDefault();
+  });
+  updateCanSubmit();
+})();
+</script>
+</body>
+</html>

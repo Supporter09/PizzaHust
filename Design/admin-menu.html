@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust Admin — Menu</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .toolbar { padding: 18px; display: flex; gap: 14px; align-items: center; margin-bottom: 22px; flex-wrap: wrap; }
+  .search { flex: 1; min-width: 240px; position: relative; }
+  .search svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 19px; height: 19px; color: var(--ink-300); }
+  .search input { width: 100%; padding: 12px 16px 12px 44px; border-radius: var(--pill); border: 1.5px solid var(--line-2); background: var(--bg); font-family: inherit; font-size: 14.5px; }
+  .search input:focus { outline: none; border-color: var(--brand-400); background: var(--surface); }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filters .chip { padding: 9px 16px; font-size: 13.5px; }
+  .thumb { width: 56px; height: 56px; border-radius: 10px; }
+  .cat-pill { display: inline-flex; background: var(--brand-50); color: var(--brand-700); font-size: 12.5px; font-weight: 600; padding: 5px 13px; border-radius: var(--pill); }
+  .ico-btn { width: 36px; height: 36px; border-radius: var(--r-sm); border: 1.5px solid var(--line-2); background: var(--surface); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--ink-500); transition: all .15s ease; }
+  .ico-btn svg { width: 17px; height: 17px; }
+  .ico-btn:hover { border-color: var(--brand-300); color: var(--brand-600); }
+  .ico-btn.del:hover { border-color: var(--brand-300); color: var(--brand-600); background: var(--brand-50); }
+  .acts-cell { display: flex; gap: 8px; justify-content: flex-end; }
+</style>
+</head>
+<body>
+<div class="admin" data-screen-label="Admin Menu">
+  <aside id="sidebar"></aside>
+  <main class="admin-main">
+    <div class="admin-head">
+      <div><h1 class="h1">Menu Management</h1><p>Manage your pizzas, sides, and drinks.</p></div>
+      <a class="btn btn-primary" href="admin-item-edit.html"><span id="i-add"></span> Add New Item</a>
+    </div>
+
+    <div class="card toolbar">
+      <div class="search"><span id="i-search"></span><input type="text" placeholder="Search menu items…"></div>
+      <div class="filters">
+        <button class="chip is-active">All Items</button>
+        <button class="chip">Pizzas</button>
+        <button class="chip">Sides</button>
+        <button class="chip">Drinks</button>
+      </div>
+    </div>
+
+    <div class="card" style="overflow:hidden">
+      <table class="tbl">
+        <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Description</th><th style="text-align:right">Actions</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="assets/chrome.js"></script>
+<script src="assets/data.js"></script>
+<script>
+  mountSidebar('Menu Management');
+  document.getElementById('i-add').innerHTML = PH_ICON('plus',2.4);
+  document.getElementById('i-search').innerHTML = PH_ICON('search');
+  document.getElementById('rows').innerHTML = PH_MENU.map(m => `
+    <tr>
+      <td><div class="img-ph thumb" data-label=""></div></td>
+      <td class="strong">${m.name}</td>
+      <td><span class="cat-pill">${m.cat}</span></td>
+      <td class="price tnum">$${m.price}</td>
+      <td class="muted" style="max-width:340px">${m.desc}</td>
+      <td><div class="acts-cell"><a class="ico-btn" href="admin-item-edit.html">${PH_ICON('edit',2)}</a><button class="ico-btn del">${PH_ICON('trash',2)}</button></div></td>
+    </tr>`).join('');
+</script>
+</body>
+</html>

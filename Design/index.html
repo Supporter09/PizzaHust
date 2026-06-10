@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust — Home</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="page" data-screen-label="Home">
+  <header id="nav"></header>
+
+  <main class="page-body">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <span class="eyebrow">Delivered in 30 minutes or less</span>
+          <h1 class="display">Hot &amp; Fresh<br>Pizza Delivered Fast</h1>
+          <p class="lead">Handcrafted pizzas with premium ingredients, baked to order and rushed straight to your door.</p>
+          <div class="hero-cta">
+            <a class="btn btn-on-red-solid btn-lg" href="menu.html">Order Now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a>
+            <a class="btn btn-on-red-outline btn-lg" href="track.html">Track Order</a>
+          </div>
+          <div class="hero-trust">
+            <div class="t"><b>30<span style="font-size:14px">min</span></b> Avg. delivery</div>
+            <div class="t"><b>4.9<span style="font-size:14px">★</span></b> 12k+ reviews</div>
+            <div class="t"><b>50+</b> Toppings</div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-img"><span>hero pizza shot</span></div>
+          <div class="hero-float tl"><span class="ic" id="f-clock"></span><div><b>30 min</b><small>or it's free</small></div></div>
+          <div class="hero-float br"><span class="ic" id="f-truck"></span><div><b>Free delivery</b><small>orders over $25</small></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" style="background:var(--surface)">
+      <div class="container">
+        <div class="features">
+          <div class="feature"><span class="ic" id="ft-clock"></span><h3>30 Min Delivery</h3><p>Get your pizza hot and fresh in 30 minutes or less.</p></div>
+          <div class="feature"><span class="ic" id="ft-shield"></span><h3>Quality Guaranteed</h3><p>Premium ingredients and authentic, time-honored recipes.</p></div>
+          <div class="feature"><span class="ic" id="ft-truck"></span><h3>Free Delivery</h3><p>Free, contactless delivery on every order over $25.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured -->
+    <section class="section" style="background:var(--brand-50)">
+      <div class="container">
+        <div class="section-head">
+          <div><h2 class="h1">Featured Pizzas</h2><p>Our most popular creations</p></div>
+          <a class="btn btn-outline" href="menu.html">View All Menu <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a>
+        </div>
+        <div class="p-grid" id="featured"></div>
+      </div>
+    </section>
+
+    <!-- Combos -->
+    <section class="section" style="background:var(--cream-50)">
+      <div class="container">
+        <div class="section-head"><div><h2 class="h1">Special Combo Deals</h2><p>More pizza, less spend — for a limited time</p></div></div>
+        <div class="combo-grid">
+          <div class="combo">
+            <div class="combo-img"><span>family feast</span></div>
+            <div class="combo-body">
+              <div class="row between"><h3>Family Feast</h3><span class="badge badge-amber">Save $10.00</span></div>
+              <p class="muted" style="font-size:14.5px">2 Large Pizzas + 2 Sides + 4 Drinks</p>
+              <div class="combo-price"><span class="old tnum">$59.99</span><span class="new tnum">$49.99</span></div>
+              <div class="combo-meta"><span id="c1-cal"></span>Valid until 9/15/2026</div>
+              <a class="btn btn-primary btn-block" href="combo-customize.html" style="margin-top:8px">Order Now</a>
+            </div>
+          </div>
+          <div class="combo">
+            <div class="combo-img"><span>solo special</span></div>
+            <div class="combo-body">
+              <div class="row between"><h3>Solo Special</h3><span class="badge badge-amber">Save $5.00</span></div>
+              <p class="muted" style="font-size:14.5px">1 Medium Pizza + 1 Side + 1 Drink</p>
+              <div class="combo-price"><span class="old tnum">$24.99</span><span class="new tnum">$19.99</span></div>
+              <div class="combo-meta"><span id="c2-cal"></span>Valid until 8/30/2026</div>
+              <a class="btn btn-primary btn-block" href="combo-customize.html" style="margin-top:8px">Order Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="footer"></footer>
+</div>
+
+<script src="assets/chrome.js"></script>
+<script src="assets/data.js"></script>
+<script>
+  mountNav('Home', { cart: 0 });
+  mountFooter();
+  document.getElementById('featured').innerHTML = ['margherita','pepperoni','veggie']
+    .map(id => productCard(PH_MENU.find(m => m.id === id))).join('');
+  const setIcon = (id, name) => { const e = document.getElementById(id); if (e) e.innerHTML = PH_ICON(name); };
+  setIcon('f-clock','clock'); setIcon('f-truck','truck');
+  setIcon('ft-clock','clock'); setIcon('ft-shield','shield'); setIcon('ft-truck','truck');
+  setIcon('c1-cal','calendar'); setIcon('c2-cal','calendar');
+</script>
+</body>
+</html>

@@ -338,6 +338,31 @@ delivery fee. No combo discount and (in this sprint) no loyalty redemption.
 }
 ```
 
+## v2 Planned Deltas
+
+Tracked work from `DESIGN_BRIEF.md` (v2). This section is **direction**, not final contract —
+detailed payloads are designed per feature as each is built and land with their own
+`CONTRACTS.md` + OpenAPI update:
+
+- **Generic options (A8).** New `/api/admin/option-groups` + nested options CRUD (`name`,
+  `description`, `price_delta_vnd`, `enabled`) replacing `/api/admin/{sizes,crusts,toppings}`.
+  Item detail (`GET /api/items/{id}`) and the customizer surface option groups instead of fixed
+  size/crust/topping lists. `POST /api/cart/quote` resolves option deltas generically.
+- **Multi-image dishes (A9).** `POST /api/admin/items/{id}/images` (multi), set-cover, delete;
+  item read paths gain `images[]` with a `cover` flag. Single `image_url` stays as the cover.
+- **Combo choice-slots + customization (A10/U15).** `ComboItem` gains a customer's-choice slot
+  (nullable `product_id` + category scope). `POST /api/cart/quote` and `POST /api/orders` accept
+  `kind="combo"` lines carrying resolved per-pizza configs (size/crust/topping/note); combo
+  discount applied via the existing `combo_discount_vnd` pricing param. (Supersedes the
+  "combo lines deferred" note above once shipped.)
+- **Order notes (U16).** Per-line `note` on cart/order lines (reuses `OrderItem.notes`); per-order
+  `delivery_note` on `POST /api/orders`, surfaced to kitchen at Ready-for-Dispatch and to the
+  customer's tracking view.
+- **Profile (U12+).** `PATCH /api/auth/me` gains avatar (multipart, the documented exception) +
+  password-change paths.
+- **Confirm pickup (K4).** `POST /api/kitchen/orders/{id}/pickup` — kitchen fallback driving the
+  existing `ReadyForDispatch → Delivering` transition when the courier scan (T2) is unavailable.
+
 ## OpenAPI Generation
 
 - Backend serves OpenAPI at `/api/openapi.json`.

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust — Checkout</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .form-grid { display: grid; gap: 18px; }
+  .form-grid .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .pay-box { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: start; background: var(--cream-50); border: 1px solid var(--cream-200); border-radius: var(--r); padding: 16px 18px; margin-top: 8px; }
+  .pay-box .ic { width: 44px; height: 44px; border-radius: var(--r); background: #fff; color: var(--brand-600); display: flex; align-items: center; justify-content: center; border: 1px solid var(--cream-200); }
+  .pay-box .ic svg { width: 22px; height: 22px; }
+  .pay-box h4 { font-size: 15.5px; }
+  .pay-box p { font-size: 13.5px; color: var(--ink-500); margin-top: 3px; }
+  .sum-items { display: grid; gap: 12px; padding-bottom: 18px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+  .sum-item { display: flex; justify-content: space-between; font-size: 14.5px; color: var(--ink-700); }
+  .sum-item .tnum { font-weight: 600; color: var(--ink-900); }
+  .redeem { background: var(--cream-50); border: 1px solid var(--cream-200); border-radius: var(--r); padding: 14px 16px; margin-bottom: 14px; }
+  .redeem .rt { font-weight: 600; font-size: 14px; color: var(--ink-900); }
+  .redeem .rrow { display: flex; gap: 10px; margin-top: 10px; }
+  .redeem input { flex: 1; min-width: 0; font-family: inherit; font-size: 14.5px; padding: 9px 12px; border-radius: var(--r-sm); border: 1.5px solid var(--cream-200); background: var(--surface); color: var(--ink-900); }
+  .redeem input:focus { outline: none; border-color: var(--amber-600); }
+  .redeem .rnote { font-size: 12px; color: var(--amber-700); margin-top: 9px; }
+</style>
+</head>
+<body>
+<div class="page" data-screen-label="Checkout">
+  <header id="nav"></header>
+  <main class="page-body">
+    <div class="container" style="padding-block:40px 80px">
+      <h1 class="h1" style="margin-bottom:28px">Checkout</h1>
+      <div class="order-layout">
+        <div class="card card-pad">
+          <h3 style="font-size:21px;margin-bottom:22px">Delivery Information</h3>
+          <form class="form-grid" action="order-confirmed.html">
+            <div class="field"><label>Full Name *</label><input type="text" value="John Doe"></div>
+            <div class="field"><label>Phone Number *</label><input type="tel" value="(555) 123-4567"></div>
+            <div class="field"><label>Street Address *</label><input type="text" value="123 Main Street, Apt 4B"></div>
+            <div class="two">
+              <div class="field"><label>City *</label><input type="text" value="New York"></div>
+              <div class="field"><label>ZIP Code *</label><input type="text" value="10001"></div>
+            </div>
+            <div class="field"><label>Delivery Notes (Optional)</label><textarea rows="2" placeholder="E.g., Ring doorbell twice"></textarea><p class="muted" style="font-size:12.5px;margin-top:7px">For the courier only — the kitchen sees the dish notes you added while customizing.</p></div>
+            <div class="pay-box">
+              <span class="ic" id="i-card"></span>
+              <div><h4>Cash on Delivery</h4><p>Pay with cash when your order arrives. Please have exact change ready.</p></div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:8px">Place Order — $55.57</button>
+          </form>
+        </div>
+
+        <div class="card summary">
+          <h3>Order Summary</h3>
+          <div class="sum-items">
+            <div class="sum-item"><span>2× Margherita Classic <span class="muted">(M)</span></span><span class="tnum">$28.98</span></div>
+            <div class="sum-item"><span>1× Pepperoni Passion <span class="muted">(L)</span></span><span class="tnum">$22.47</span></div>
+          </div>
+          <div class="redeem">
+            <div class="rt">Redeem loyalty points <span class="muted" style="font-weight:500">· 150 available</span></div>
+            <div class="rrow">
+              <input type="number" min="0" max="150" placeholder="0" aria-label="Points to redeem">
+              <button class="btn btn-outline btn-sm" type="button">Apply</button>
+            </div>
+            <div class="rnote">100 pts = $10 off · max 50% of subtotal</div>
+          </div>
+          <div class="sum-row"><span>Subtotal</span><span class="v">$51.45</span></div>
+          <div class="sum-row"><span>Tax (8%)</span><span class="v">$4.12</span></div>
+          <div class="sum-row"><span>Delivery</span><span class="v free">FREE</span></div>
+          <div class="sum-row total"><span>Total</span><span class="v tnum">$55.57</span></div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+</div>
+
+<script src="assets/chrome.js"></script>
+<script>
+  mountNav('Menu', { cart: 2, points: 150 });
+  mountFooter();
+  document.getElementById('i-card').innerHTML = PH_ICON('card');
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@ PizzaHUST web ordering MVP. Next.js + Tailwind frontend, FastAPI backend, MySQL.
 Before writing code, in this order:
 
 1. Read this file.
-2. Read `PRODUCT.md` (locked MVP scope, business constants).
+2. Read `PRODUCT.md` (locked MVP scope, business constants) and `../DESIGN_BRIEF.md` (v2 design source of truth — UX flows + v2 scope extensions A8–A10 / U15–U16 / K4).
 3. Read `ARCHITECTURE.md` (module boundaries, order state machine, contracts).
 4. Read `CONTRACTS.md` (REST endpoints, schemas, error envelope).
 5. Read `session-handoff.md` (where the previous session left off).
@@ -52,6 +52,7 @@ In this order:
 | File | Purpose |
 |---|---|
 | `PRODUCT.md` | Locked MVP scope, actors, use case index, business constants |
+| `../DESIGN_BRIEF.md` | v2 design source of truth: panel inventory, flows, v2 scope extensions |
 | `ARCHITECTURE.md` | Module boundaries, order state machine, kitchen queue, delivery port, auth |
 | `CONTRACTS.md` | REST endpoints, request/response schemas, error envelope |
 | `feature_list.json` | Feature state board (use case IDs U/A/K/T + infra) |
@@ -75,3 +76,5 @@ In this order:
 ## When in doubt
 
 If a request expands MVP scope, push back and link to `PRODUCT.md` out-of-scope list. Do not silently widen scope.
+
+The v2 scope extensions (combo customization, generic options, multi-image, notes, pickup fallback) are **authorized** per the 2026-06-10 decision and tracked as A8–A10 / U15–U16 / K4. Everything in PRODUCT.md's out-of-scope list still stands.

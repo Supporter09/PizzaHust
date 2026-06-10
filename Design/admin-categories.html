@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust Admin — Categories</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .drag { color: var(--ink-300); cursor: grab; display: inline-flex; }
+  .drag svg { width: 18px; height: 18px; }
+  .cat-name { display: flex; align-items: center; gap: 14px; }
+  .cat-ic { width: 42px; height: 42px; border-radius: var(--r-sm); background: var(--brand-50); color: var(--brand-600); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .cat-ic svg { width: 20px; height: 20px; }
+  .ico-btn { width: 36px; height: 36px; border-radius: var(--r-sm); border: 1.5px solid var(--line-2); background: var(--surface); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--ink-500); transition: all .15s ease; }
+  .ico-btn svg { width: 17px; height: 17px; }
+  .ico-btn:hover { border-color: var(--brand-300); color: var(--brand-600); }
+  .acts-cell { display: flex; gap: 8px; justify-content: flex-end; }
+</style>
+</head>
+<body>
+<div class="admin" data-screen-label="Admin Categories">
+  <aside id="sidebar"></aside>
+  <main class="admin-main">
+    <div class="admin-head">
+      <div><h1 class="h1">Menu Categories</h1><p>Organize how items are grouped on the customer menu.</p></div>
+      <button class="btn btn-primary"><span id="i-add"></span> Add Category</button>
+    </div>
+
+    <div class="card" style="overflow:hidden">
+      <table class="tbl">
+        <thead><tr><th style="width:46px"></th><th>Category</th><th>Items</th><th>Status</th><th>Visible on menu</th><th style="text-align:right">Actions</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="assets/chrome.js"></script>
+<script>
+(function(){
+  mountSidebar('Categories');
+  document.getElementById('i-add').innerHTML = PH_ICON('plus',2.4);
+  const gripSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>';
+  const cats = [
+    ['Pizzas','utensils','6 items','Active', true],
+    ['Sides','gift','3 items','Active', true],
+    ['Drinks','bag','3 items','Active', true],
+    ['Desserts','package','0 items','Draft', false],
+  ];
+  document.getElementById('rows').innerHTML = cats.map(([n,ic,count,st,vis],i) => `
+    <tr>
+      <td><span class="drag">${gripSvg}</span></td>
+      <td><div class="cat-name"><span class="cat-ic">${PH_ICON(ic,2)}</span><span class="strong">${n}</span></div></td>
+      <td>${count}</td>
+      <td><span class="badge ${st==='Active'?'badge-done':'badge-soft'}">${st}</span></td>
+      <td><button type="button" class="toggle ${vis?'on':''}" role="switch" aria-checked="${vis?'true':'false'}" aria-label="Visible on menu: ${n}" onclick="this.setAttribute('aria-checked', String(this.classList.toggle('on')))"></button></td>
+      <td><div class="acts-cell"><a class="ico-btn" href="admin-category-edit.html">${PH_ICON('edit',2)}</a><button class="ico-btn">${PH_ICON('trash',2)}</button></div></td>
+    </tr>`).join('');
+})();
+</script>
+</body>
+</html>

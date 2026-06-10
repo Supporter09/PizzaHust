@@ -9,13 +9,14 @@ Web-only online ordering and store management for a single pizza shop. Replaces 
 ## In Scope (MVP)
 
 - Public menu browsing, category filters, item detail pages.
-- Pizza customization: size (S, M, L), crust type, optional toppings.
-- Combo and category management with time-based availability.
+- Pizza customization via admin-defined option groups (e.g. size, crust, toppings — see "v2 Design Additions § Options Model").
+- Combo and category management with time-based availability; combos are customizable and orderable (customer's-choice component slots).
 - Cart and checkout with cash on delivery.
 - Guest checkout with order-code tracking.
-- Customer register, login, profile, order history, loyalty points, redeem at checkout.
-- Admin: pizzas, options/side dishes, categories, combos, customers, order monitoring, basic reports.
-- Kitchen order queue with prioritized display, preparation status updates, and dispatch handoff.
+- Per-dish notes (to kitchen) and per-order delivery notes (to courier) — see "v2 Design Additions § Notes Taxonomy".
+- Customer register, login, profile (incl. avatar + password change), order history, loyalty points, redeem at checkout.
+- Admin: pizzas (multi-image), generic options, categories, combos (choice-slots), customers, order monitoring, basic reports.
+- Kitchen order queue with prioritized display, preparation status updates, dispatch handoff, and manual pickup-confirmation fallback.
 - Mock-first third-party delivery integration with status synchronization.
 - Basic sales and order reports for the store owner.
 
@@ -51,29 +52,34 @@ Source: `Documents/Latex/section3_analysis.tex`. IDs are reused as feature IDs i
 |---|---|---|
 | U1 | Browse Menus | category-based |
 | U2 | View Item Details | pizza shows size/crust/toppings |
-| U3 | Customize Pizza | includes U3.1 size, U3.2 crust; extends with U3.3 toppings |
-| U4 | View Combo Promotions | time-windowed availability |
-| U5 | Manage Cart | session-bound for guest, account-bound for customer |
-| U6 | Place COD Order | includes U6.1 delivery info and U6.2 review/confirm; extended by U14 |
+| U3 | Customize Pizza | size / crust / toppings; live total; per-dish note input (U16) |
+| U4 | View Combo Promotions | time-windowed availability; customizable & orderable via U15 (v2) |
+| U5 | Manage Cart | session-bound for guest, account-bound for customer; lines show options + dish note |
+| U6 | Place COD Order | includes U6.1 delivery info and U6.2 review/confirm; extended by U14; delivery note (U16) |
 | U7 | Track Order | includes U7.1 sync delivery; calls T2 |
 | U8 | Register | customer only |
 | U9 | Log In | customer only |
 | U11 | View Order History | customer only (`U10` reserved for deferred AI flow) |
-| U12 | Manage Profile | customer only |
+| U12 | Manage Profile | customer only; profile + avatar + password change (v2) |
 | U13 | View Loyalty Points | customer only |
 | U14 | Redeem Points for Discount | extends U6, customer only |
+| U15 | Customize Combo | resolve choice-slots + per-pizza options; combos orderable (v2) |
+| U16 | Order Notes | per-dish note → kitchen; per-order delivery note → courier (v2) |
 
 ### Admin (A)
 
 | ID | Name |
 |---|---|
 | A1 | Manage Pizza Catalog |
-| A2 | Manage Pizza Options and Side Dishes |
+| A2 | Manage Pizza Options and Side Dishes (v2: generic Options, embedded in dish editor — see A8) |
 | A3 | Manage Menu Categories |
 | A4 | Manage Combo Campaigns |
 | A5 | Monitor Orders and Delivery Exceptions |
 | A6 | Manage Customer Accounts |
 | A7 | View Sales and Order Reports |
+| A8 | Generic Options Model (v2) |
+| A9 | Multi-image Dishes (v2) |
+| A10 | Combo Choice-Slots and Component Picker (v2) |
 
 ### Kitchen (K)
 
@@ -82,6 +88,7 @@ Source: `Documents/Latex/section3_analysis.tex`. IDs are reused as feature IDs i
 | K1 | View Incoming Orders |
 | K2 | Update Preparation Status |
 | K3 | Mark Order Ready for Dispatch (includes T1) |
+| K4 | Confirm Pickup (fallback) (v2) |
 
 ### Third-Party Delivery (T)
 
@@ -89,6 +96,11 @@ Source: `Documents/Latex/section3_analysis.tex`. IDs are reused as feature IDs i
 |---|---|
 | T1 | Request Delivery Service |
 | T2 | Synchronize Delivery Status |
+
+> **v2 extensions.** `U15`, `U16`, `A8`–`A10`, and `K4` are design-derived extensions from
+> `DESIGN_BRIEF.md` (v2), not in the original `section3_analysis.tex` catalog. They track the
+> combo-customization, generic-options, multi-image, notes, and pickup-fallback work added by
+> the 2026-06-10 scope decision. Details in "v2 Design Additions" below.
 
 ## Business Constants
 
@@ -118,6 +130,8 @@ Received → Preparing → Ready for Dispatch → Delivering → Delivered
 ```
 
 Only transitions in this graph are valid. Any other transition raises a domain error.
+`Ready for Dispatch → Delivering` is triggered by the courier pickup scan (T2) **or** the
+kitchen's manual Confirm Pickup fallback (K4) — the same edge, attributed to a different actor.
 
 ## Loyalty Rules
 
@@ -145,6 +159,59 @@ MVP-only metrics:
 - Delivery success / failure rate
 
 No cohort analysis, no funnels, no retention curves.
+
+## v2 Design Additions
+
+Source: `DESIGN_BRIEF.md` (v2). These extend the locked MVP per the 2026-06-10 team decision.
+Where v2 and the API contracts disagree on payload shapes, contracts win; v2 wins on UX flow.
+
+### Options Model (A8)
+
+Replaces the fixed `PizzaSize` / `PizzaCrust` / `Topping` tables with admin-defined **option
+groups**. A group has a name (e.g. *Sizes*, *Crusts*, *Toppings* — arbitrary; rename/add/delete
+anytime). Each group holds **options** with: name, description, **price delta (VND)**, and an
+enable toggle (disabled options are hidden from the customizer). Price deltas are shared across
+pizzas; *which* options a given pizza offers is per-dish. The same option chips power the combo
+customizer's per-pizza sub-menus (U15). Crusts now carry a price delta (the old fixed
+`PizzaCrust` had none). Pricing still flows through `POST /api/cart/quote` — the frontend never
+computes.
+
+### Notes Taxonomy (U16)
+
+Two distinct notes, never conflated:
+
+| | Dish Note | Delivery Note |
+|---|---|---|
+| Entered | product / combo customizer, **per dish** | checkout, **per order** |
+| Audience | kitchen | courier |
+| Shown | under its line in cart; under the same dish on the kitchen card | kitchen card **only at Ready for Dispatch**; customer's own tracking view |
+| Never | sent to the courier | shown during prep |
+
+Storage: dish note reuses `OrderItem.notes`; delivery note is a new `Order` field.
+
+### Combo Customization (U15, A10)
+
+Combos are **orderable**, not view-only. A combo component (`ComboItem`) is either a fixed
+product or a **customer's-choice slot** scoped to a category (e.g. "any large pizza"). The
+customer resolves each slot and configures each pizza (crust + extra toppings) in the combo
+customizer; premium options add to the combo total. A combo still needs ≥ 2 components; an
+over-priced combo is accepted (UI warns). Savings = `max(0, Σ component base − combo price)`.
+
+### Multi-image Dishes (A9)
+
+A dish carries up to 8 images with one designated **cover** (the image menu cards/combos
+render). Menu/combo read paths keep using a single cover URL; the gallery is an admin/detail
+concern.
+
+### Profile, extended (U12)
+
+Edit Profile adds **avatar upload** and **password change**; phone number stays the locked
+sign-in identifier (extends the v1 full_name + address only).
+
+### Pickup Confirmation (K4)
+
+When the courier's pickup scan (T2) is unavailable, kitchen staff may manually confirm pickup —
+the same `Ready for Dispatch → Delivering` transition, attributed to the kitchen actor.
 
 ## Performance Targets
 

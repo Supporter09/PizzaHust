@@ -59,11 +59,13 @@ Allowed transitions:
 | `Preparing` | `Cancelled` | A5 |
 | `DispatchPending` | `Delivering` | A5 retry delivery (T1 success) |
 | `DispatchPending` | `Cancelled` | A5 |
-| `ReadyForDispatch` | `Delivering` | T2 webhook (`Accepted` / `PickedUp`) |
+| `ReadyForDispatch` | `Delivering` | T2 webhook (`Accepted`/`PickedUp`) **or** K4 kitchen manual Confirm Pickup (fallback) |
 | `Delivering` | `Delivered` | T2 webhook (`Delivered`) |
 | `Delivering` | `DeliveryFailed` | T2 webhook (`Failed`) |
 
 `Delivered`, `DeliveryFailed`, `Cancelled` are terminal. K3 triggers T1 atomically. If T1 fails, the order moves to `DispatchPending` for A5 retry/cancel handling.
+
+**K4 (v2):** when the courier's pickup scan is unavailable, kitchen staff may manually confirm pickup via `POST /api/kitchen/orders/{id}/pickup` — the same `ReadyForDispatch → Delivering` edge, attributed to the kitchen actor. No new state is added.
 
 ## Kitchen Queue Priority
 
@@ -131,6 +133,8 @@ Order of operations:
 
 Frontend never recomputes — it calls `POST /api/cart/quote` and renders the response.
 
+**Options (v2/A8):** line option deltas come from admin-defined option groups (`OptionGroup`/`Option`), replacing the fixed size/crust/topping tables; crusts now carry a price delta. The pipeline above is unchanged — it sums whatever option deltas the quote resolver supplies.
+
 ## Order Code
 
 `backend/app/domain/order_code.py::generate()` returns `PIZZ-` + 6 random chars from Crockford base32 alphabet (excluding `I`, `L`, `O`, `U`), with DB-level uniqueness check and at most 3 retries on collision.
@@ -164,6 +168,7 @@ Frontend reads only `NEXT_PUBLIC_API_BASE_URL`. All other config is server-side.
   - `validity_end`: datetime, must be greater than `validity_start`.
   - `target_group`: nullable int for intended diner count.
   - `status`: derived enum `[Scheduled, Active, Expired]` from the validity window.
+  - ComboItem (v2/A10): a component is either a fixed `product_id` or a **customer's-choice slot** (`product_id` null + a category scope), resolved at order time (U15).
 
 ## Deployment Topology (dev/demo)
 

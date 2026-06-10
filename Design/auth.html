@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust — Sign In</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .auth-wrap { display: flex; align-items: center; justify-content: center; padding: 56px 32px; min-height: calc(100vh - var(--nav-h)); }
+  .auth { width: 100%; max-width: 460px; padding: 36px; }
+  .auth-head { text-align: center; margin-bottom: 26px; }
+  .auth-head .logo { width: 56px; height: 56px; border-radius: 16px; margin-bottom: 14px; }
+  .auth-head .logo svg { width: 32px; height: 32px; }
+  .auth-head h1 { font-size: 26px; }
+  .auth-head p { color: var(--ink-400); font-size: 14.5px; margin-top: 6px; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--bg-2); border-radius: var(--pill); padding: 5px; margin-bottom: 26px; }
+  .tab { border: 0; background: transparent; font-family: inherit; font-size: 14.5px; font-weight: 600; color: var(--ink-500); padding: 10px; border-radius: var(--pill); cursor: pointer; transition: all .15s ease; }
+  .tab.is-active { background: var(--surface); color: var(--brand-600); box-shadow: var(--sh-xs); }
+  .panel { display: none; }
+  .panel.is-active { display: grid; gap: 16px; }
+  .aux { display: flex; justify-content: flex-end; margin-top: -6px; }
+  .aux a { font-size: 13.5px; font-weight: 600; color: var(--brand-600); }
+  .switch-hint { text-align: center; font-size: 14px; color: var(--ink-400); margin-top: 4px; }
+  .switch-hint button { border: 0; background: none; font-family: inherit; font-size: 14px; font-weight: 600; color: var(--brand-600); cursor: pointer; padding: 0; }
+  .opt-label { color: var(--ink-300); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="page" data-screen-label="Login / Register">
+  <header id="nav"></header>
+  <main class="page-body">
+    <div class="auth-wrap">
+      <div class="card auth">
+        <div class="auth-head">
+          <span class="logo" id="a-logo"></span>
+          <h1 id="auth-title">Welcome back</h1>
+          <p id="auth-sub">Sign in to order your favorite pizza faster.</p>
+        </div>
+
+        <div class="tabs" role="tablist">
+          <button class="tab is-active" id="tab-login" type="button">Sign In</button>
+          <button class="tab" id="tab-register" type="button">Create Account</button>
+        </div>
+
+        <form class="panel is-active" id="panel-login" onsubmit="return false">
+          <div class="field"><label>Phone Number</label><input type="tel" placeholder="(555) 123-4567"></div>
+          <div class="field"><label>Password</label><input type="password" placeholder="Your password"></div>
+          <div class="aux"><a href="#">Forgot password?</a></div>
+          <button class="btn btn-primary btn-block btn-lg" type="submit">Sign In</button>
+          <p class="switch-hint">New to PizzaHust? <button type="button" onclick="setTab('register')">Create an account</button></p>
+        </form>
+
+        <form class="panel" id="panel-register" onsubmit="return false">
+          <div class="field"><label>Full Name</label><input type="text" placeholder="John Doe"></div>
+          <div class="field"><label>Phone Number</label><input type="tel" placeholder="(555) 123-4567"></div>
+          <div class="field"><label>Password</label><input type="password" placeholder="At least 8 characters"></div>
+          <div class="field"><label>Address <span class="opt-label">(Optional)</span></label><input type="text" placeholder="123 Main Street, Apt 4B"></div>
+          <button class="btn btn-primary btn-block btn-lg" type="submit">Create Account</button>
+          <p class="switch-hint">Already have an account? <button type="button" onclick="setTab('login')">Sign in</button></p>
+        </form>
+      </div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+</div>
+<script src="assets/chrome.js"></script>
+<script>
+  mountNav(null, {});
+  mountFooter();
+  document.getElementById('a-logo').outerHTML = PH_LOGO.replace('class="logo"', 'class="logo" style="width:56px;height:56px;border-radius:16px"');
+  window.setTab = function (which) {
+    const login = which === 'login';
+    document.getElementById('tab-login').classList.toggle('is-active', login);
+    document.getElementById('tab-register').classList.toggle('is-active', !login);
+    document.getElementById('panel-login').classList.toggle('is-active', login);
+    document.getElementById('panel-register').classList.toggle('is-active', !login);
+    document.getElementById('auth-title').textContent = login ? 'Welcome back' : 'Create your account';
+    document.getElementById('auth-sub').textContent = login ? 'Sign in to order your favorite pizza faster.' : 'Join PizzaHust and start earning loyalty points.';
+  };
+  document.getElementById('tab-login').onclick = () => setTab('login');
+  document.getElementById('tab-register').onclick = () => setTab('register');
+</script>
+</body>
+</html>

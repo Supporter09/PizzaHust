@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust Admin — Edit Combo</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .ce-grid { display: grid; grid-template-columns: 1fr 340px; gap: 22px; align-items: start; }
+  .form-grid { display: grid; gap: 18px; }
+  .field select { width:100%; font-family:inherit; font-size:15px; color:var(--ink-900); padding:12px 14px; border-radius:var(--r); border:1.5px solid var(--line-2); background:var(--bg); }
+  .img-row { display: flex; gap: 18px; align-items: center; }
+  .img-row .img-ph { width: 180px; height: 100px; border-radius: var(--r); flex: none; }
+  .img-row .hint { font-size: 13px; color: var(--ink-400); margin-top: 8px; }
+  .comp-row { display: grid; grid-template-columns: 1fr 130px 40px; gap: 12px; align-items: center; padding: 10px 0; }
+  .comp-row .qty { display: flex; align-items: center; gap: 10px; justify-content: center; }
+  .comp-row .qty button { width: 32px; height: 32px; border-radius: var(--pill); border: 1.5px solid var(--line-2); background: var(--surface); color: var(--ink-800); cursor: pointer; font-size: 16px; }
+  .comp-row .qty b { min-width: 18px; text-align: center; }
+  .trash-btn { width: 38px; height: 38px; border-radius: var(--pill); border: none; background: transparent; color: var(--ink-300); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .trash-btn:hover { background: var(--brand-50); color: var(--brand-600); }
+  .trash-btn svg { width: 18px; height: 18px; }
+  .min-note { font-size: 12.5px; color: var(--ink-400); margin-top: 10px; }
+  .picker { display: none; border: 1.5px dashed var(--line-2); border-radius: var(--r); padding: 14px 16px; margin-top: 6px; background: var(--bg); }
+  .picker.open { display: block; }
+  .picker .field input { background: var(--surface); }
+  .picker-list { max-height: 280px; overflow-y: auto; margin-top: 10px; }
+  .pick-item { display: flex; align-items: center; gap: 12px; padding: 8px 8px; border-radius: 9px; cursor: pointer; transition: background .12s ease; }
+  .pick-item:hover { background: var(--surface); }
+  .pick-item .img-ph { width: 34px; height: 34px; border-radius: 8px; flex: none; }
+  .pick-item .img-ph::after { display: none; }
+  .pick-item .n { font-weight: 600; font-size: 14px; color: var(--ink-900); }
+  .pick-item .cat { font-size: 11px; font-weight: 600; color: var(--brand-700); background: var(--brand-50); border-radius: var(--pill); padding: 2px 9px; }
+  .pick-item .p { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--ink-500); font-variant-numeric: tabular-nums; }
+  .price-line { display: flex; justify-content: space-between; font-size: 14.5px; color: var(--ink-500); padding: 7px 0; }
+  .price-line .v { font-weight: 600; color: var(--ink-800); font-variant-numeric: tabular-nums; }
+  .savings { display: flex; justify-content: space-between; align-items: center; border-top: 1.5px solid var(--line); margin-top: 8px; padding-top: 14px; font-weight: 700; color: var(--ink-900); }
+  .warn { display: none; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--amber-700); background: var(--cream-50); border: 1px solid var(--cream-200); border-radius: var(--r-sm); padding: 10px 13px; margin-top: 12px; }
+  .warn svg { width: 16px; height: 16px; flex: none; margin-top: 1px; }
+  .warn.show { display: flex; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 920px) { .ce-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="admin" data-screen-label="Admin Combo Editor">
+  <aside id="sidebar"></aside>
+  <main class="admin-main">
+    <a class="back" href="admin-combos.html" style="margin-bottom:18px"><span id="i-back"></span> Back to Combos</a>
+    <div class="admin-head" style="margin-top:10px">
+      <div><h1 class="h1">Edit Combo</h1><p>Family Feast · <span class="badge badge-done">Active</span></p></div>
+      <div style="display:flex;gap:12px"><a class="btn btn-outline" href="admin-combos.html">Cancel</a><a class="btn btn-primary" href="admin-combos.html">Save Combo</a></div>
+    </div>
+
+    <div class="ce-grid">
+      <div class="stack" style="gap:22px">
+        <div class="card card-pad">
+          <h3 class="h3" style="margin-bottom:18px">Basics</h3>
+          <div class="form-grid">
+            <div class="field"><label>Combo Name *</label><input type="text" value="Family Feast"></div>
+            <div class="field"><label>Description</label><textarea rows="2">Dinner for four, sorted — two large pizzas with sides and drinks for everyone.</textarea></div>
+            <div>
+              <label style="display:block;font-size:14px;font-weight:600;margin-bottom:10px">Image</label>
+              <div class="img-row">
+                <div class="img-ph" data-label="family feast"></div>
+                <div>
+                  <div style="display:flex;gap:10px"><button class="btn btn-outline btn-sm"><span id="i-up"></span> Upload new</button><button class="btn btn-ghost btn-sm" style="color:var(--brand-600)">Remove</button></div>
+                  <div class="hint">Wide format works best (16:6) — shown on combo cards.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="row between" style="margin-bottom:8px"><h3 class="h3">Components</h3><button class="btn btn-outline btn-sm" id="add-comp-btn"><span id="i-add"></span> Add Component</button></div>
+          <div id="comps"></div>
+          <div class="picker" id="picker">
+            <div class="field"><input type="text" id="picker-q" placeholder="Search dishes…"></div>
+            <div class="picker-list" id="picker-list"></div>
+          </div>
+          <div class="min-note">A combo needs <b>at least 2 component items</b>. “Any pizza” components let the customer pick the pizza (and its options) when ordering.</div>
+        </div>
+      </div>
+
+      <div class="stack" style="gap:22px">
+        <div class="card card-pad">
+          <h3 class="h3" style="margin-bottom:10px">Pricing</h3>
+          <div class="price-line"><span>Components total</span><span class="v">$59.99</span></div>
+          <div class="field" style="margin-top:8px"><label>Combo Price *</label><input type="text" id="combo-price" value="$49.99"></div>
+          <div class="savings"><span>Customer saves</span><span class="badge badge-amber" id="save-badge" style="font-size:13.5px">$10.00</span></div>
+          <div class="warn" id="overprice"><span id="i-warn"></span><span>This combo costs <b>more</b> than its components bought separately. It can still be saved, but customers won't see a savings badge.</span></div>
+        </div>
+
+        <div class="card card-pad">
+          <h3 class="h3" style="margin-bottom:14px">Validity</h3>
+          <div class="two">
+            <div class="field"><label>Starts</label><input type="date" value="2026-06-01"></div>
+            <div class="field"><label>Ends</label><input type="date" value="2026-09-15"></div>
+          </div>
+          <p class="muted" style="font-size:12.5px;margin-top:12px">Status is derived automatically: <span class="badge badge-soft">Scheduled</span> <span class="badge badge-done">Active</span> <span class="badge badge-soft">Expired</span></p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/chrome.js"></script>
+<script src="assets/data.js"></script>
+<script>
+(function(){
+  mountSidebar('Combos & Campaigns');
+  const S=(id,n,sw)=>{const e=document.getElementById(id);if(e)e.innerHTML=PH_ICON(n,sw);};
+  S('i-back','back',2);S('i-up','upload',2);S('i-add','plus',2.4);S('i-warn','alert',2);
+
+  const allOptions = [
+    "Large Pizza — customer's choice", "Medium Pizza — customer's choice",
+    ...PH_MENU.map(m => m.name)
+  ];
+  const compRow = (name, q) => `
+    <div class="comp-row">
+      <div class="field"><select>${allOptions.map(o => `<option ${o===name?'selected':''}>${o}</option>`).join('')}</select></div>
+      <div class="qty"><button type="button" data-q="-1">−</button><b>${q}</b><button type="button" data-q="1">+</button></div>
+      <button class="trash-btn" data-rm>${PH_ICON('trash',2)}</button>
+    </div>`;
+
+  const comps = document.getElementById('comps');
+  comps.innerHTML = [
+    ["Large Pizza — customer's choice", 2],
+    ['Garlic Bread', 1],
+    ['Chicken Wings', 1],
+    ['Coca Cola', 4],
+  ].map(([n,q]) => compRow(n,q)).join('');
+
+  const MIN_COMPONENTS = 2;
+  comps.addEventListener('click', e => {
+    const rm = e.target.closest('[data-rm]');
+    if (rm) {
+      if (comps.querySelectorAll('.comp-row').length <= MIN_COMPONENTS) return;
+      rm.closest('.comp-row').remove(); return;
+    }
+    const qb = e.target.closest('[data-q]');
+    if (qb) {
+      const b = qb.parentElement.querySelector('b');
+      b.textContent = Math.max(1, (+b.textContent) + (+qb.dataset.q));
+    }
+  });
+
+  /* ---- Add Component picker ---- */
+  const picker = document.getElementById('picker');
+  const list = document.getElementById('picker-list');
+  function renderPicker(q) {
+    const ql = (q || '').toLowerCase();
+    const specials = [
+      ["Large Pizza — customer's choice", 'Pizzas', 'from $16.99'],
+      ["Medium Pizza — customer's choice", 'Pizzas', 'from $12.99'],
+    ];
+    const items = [
+      ...specials,
+      ...PH_MENU.map(m => [m.name, m.cat, '$' + m.price]),
+    ].filter(([n]) => n.toLowerCase().includes(ql));
+    list.innerHTML = items.map(([n, cat, p]) => `
+      <div class="pick-item" data-name="${n.replace(/"/g,'&quot;')}">
+        <span class="img-ph"></span><span class="n">${n}</span><span class="cat">${cat}</span><span class="p">${p}</span>
+      </div>`).join('') || '<p class="muted" style="font-size:13.5px;padding:8px">No dishes match.</p>';
+  }
+  document.getElementById('add-comp-btn').addEventListener('click', () => {
+    picker.classList.toggle('open');
+    if (picker.classList.contains('open')) { renderPicker(''); document.getElementById('picker-q').focus(); }
+  });
+  document.getElementById('picker-q').addEventListener('input', e => renderPicker(e.target.value));
+  list.addEventListener('click', e => {
+    const it = e.target.closest('.pick-item'); if (!it) return;
+    comps.insertAdjacentHTML('beforeend', compRow(it.dataset.name, 1));
+    picker.classList.remove('open');
+  });
+
+  // live savings demo: parse combo price vs components total
+  const priceInput = document.getElementById('combo-price');
+  priceInput.addEventListener('input', () => {
+    const v = parseFloat(priceInput.value.replace(/[^0-9.]/g,'')) || 0;
+    const total = 59.99, diff = total - v;
+    const badge = document.getElementById('save-badge');
+    const over = document.getElementById('overprice');
+    if (diff > 0) { badge.textContent = '$' + diff.toFixed(2); badge.style.display=''; over.classList.remove('show'); }
+    else { badge.textContent = 'none'; over.classList.add('show'); }
+  });
+})();
+</script>
+</body>
+</html>

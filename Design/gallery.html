@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust — Refined Screens</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  body { background: var(--bg-2); }
+  .g-hero { background: linear-gradient(135deg, var(--brand-600), var(--brand-800)); color: #fff; padding: 56px 0 64px; }
+  .g-hero .brand { color: #fff; margin-bottom: 22px; }
+  .g-hero h1 { color: #fff; font-size: 42px; }
+  .g-hero p { color: rgba(255,255,255,.9); max-width: 620px; margin-top: 12px; font-size: 17px; }
+  .g-sec { padding-block: 48px; }
+  .g-sec h2 { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--brand-600); margin-bottom: 22px; }
+  .g-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .g-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--sh-sm); transition: transform .16s ease, box-shadow .16s ease; display: block; }
+  .g-card:hover { transform: translateY(-4px); box-shadow: var(--sh-md); }
+  .g-thumb { height: 150px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .g-thumb.cust { background: linear-gradient(135deg, var(--brand-500), var(--brand-700)); }
+  .g-thumb.adm { background: linear-gradient(135deg, var(--ink-700), var(--ink-900)); }
+  .g-thumb::before { content:''; position:absolute; right:-24px; bottom:-24px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.08); }
+  .g-thumb svg { width: 46px; height: 46px; color: #fff; position: relative; }
+  .g-meta { padding: 16px 18px; }
+  .g-meta .t { font-weight: 700; font-size: 16px; color: var(--ink-900); }
+  .g-meta .d { font-size: 13px; color: var(--ink-400); margin-top: 3px; }
+  .tag { display:inline-block; font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: var(--brand-600); background: var(--brand-50); padding: 3px 9px; border-radius: var(--pill); margin-top: 10px; }
+</style>
+</head>
+<body data-screen-label="Gallery">
+  <div class="g-hero">
+    <div class="container">
+      <div class="brand" style="font-size:22px">PizzaHust</div>
+      <h1>Refined Screens</h1>
+      <p>A polished pass across the full product — 27 screens covering customer, kitchen, and admin roles, with consistent navigation, image placeholders, light/dark theming, and corrected pricing. Click any screen to open it full-size.</p>
+    </div>
+  </div>
+
+  <div class="container g-sec">
+    <h2>Customer Experience</h2>
+    <div class="g-grid" id="customer"></div>
+  </div>
+  <div class="container g-sec" style="padding-top:0">
+    <h2>Kitchen</h2>
+    <div class="g-grid" id="kitchen"></div>
+  </div>
+  <div class="container g-sec" style="padding-top:0">
+    <h2>Admin Panel</h2>
+    <div class="g-grid" id="admin"></div>
+  </div>
+
+  <footer id="footer"></footer>
+<script src="assets/chrome.js"></script>
+<script>
+  mountFooter();
+  document.body.insertAdjacentHTML('afterbegin', PH_THEME_BTN('style="position:fixed;top:18px;right:18px;z-index:99;background:var(--surface);border:1px solid var(--line);box-shadow:var(--sh)"'));
+  PH_REFRESH_THEME_BTNS();
+  const customer = [
+    ['index.html','Home','Hero, featured pizzas & combos','home'],
+    ['auth.html','Login / Register','Sign in & create account','user'],
+    ['menu.html','Menu','Filterable product grid','grid'],
+    ['combos.html','Combos','Promo bundles & savings (U4)','gift'],
+    ['combo-customize.html','Combo Customizer','Pick the dishes in a combo','check'],
+    ['product.html','Customize Pizza','Size, crust & toppings builder','edit'],
+    ['cart.html','Cart','Items & order summary','cart'],
+    ['checkout.html','Checkout','Delivery details & payment','card'],
+    ['order-confirmed.html','Order Confirmed','Success & next steps','checkCircle'],
+    ['track.html','Track Order','Lookup & live timeline','truck'],
+    ['account.html','My Account','Profile & quick actions','user'],
+    ['edit-profile.html','Edit Profile','Name, address & password','edit'],
+    ['order-history.html','Order History','Past orders & reorder','package'],
+    ['loyalty.html','Loyalty Points','Balance & points history','award'],
+  ];
+  const admin = [
+    ['admin-dashboard.html','Dashboard','Stats & recent orders','grid'],
+    ['admin-orders.html','Order Management','Full status set + dispatch retry','bag'],
+    ['admin-menu.html','Menu Management','Item catalog editor','utensils'],
+    ['admin-item-edit.html','Dish Editor','Basics, image & pizza options (A1+A2)','sliders'],
+    ['admin-categories.html','Categories','Menu grouping & visibility (A3)','layers'],
+    ['admin-category-edit.html','Category Editor','Name, items & visibility (A3)','edit'],
+    ['admin-combos.html','Combos & Campaigns','Promotional deal manager','gift'],
+    ['admin-combo-edit.html','Combo Editor','Components, pricing & validity (A4)','edit'],
+    ['admin-customers.html','Customer Management','Profiles & loyalty','users'],
+    ['admin-customer-detail.html','Customer Detail','Profile, orders, lock/unlock (A6)','lock'],
+    ['admin-import.html','Bulk Import','CSV upload & history (A1)','upload'],
+    ['admin-reports.html','Reports & Analytics','Charts & top sellers','chart'],
+  ];
+  const kitchen = [
+    ['kitchen.html','Kitchen Queue','Accept → prepare → ready (K1–K3)','flame'],
+  ];
+  const card = (cls) => ([href,t,d,ic]) => `<a class="g-card" href="${href}">
+    <div class="g-thumb ${cls}">${PH_ICON(ic,2)}</div>
+    <div class="g-meta"><div class="t">${t}</div><div class="d">${d}</div><span class="tag">${href}</span></div>
+  </a>`;
+  document.getElementById('customer').innerHTML = customer.map(card('cust')).join('');
+  document.getElementById('admin').innerHTML = admin.map(card('adm')).join('');
+  document.getElementById('kitchen').innerHTML = kitchen.map(card('cust')).join('');
+</script>
+</body>
+</html>

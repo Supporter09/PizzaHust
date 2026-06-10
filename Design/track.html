@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust — Track Order</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .track-wrap { max-width: 760px; margin: 0 auto; padding-block: 44px 80px; }
+  .lookup { padding: 24px; margin-bottom: 26px; }
+  .lookup label { font-weight: 700; font-size: 16px; color: var(--ink-900); display: block; margin-bottom: 12px; }
+  .lookup .row-in { display: flex; gap: 12px; }
+  .lookup input { flex: 1; }
+  .lookup .hint { font-size: 13.5px; color: var(--ink-400); margin-top: 12px; }
+  .order-card { padding: 28px; }
+  .order-card .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; padding-bottom: 22px; border-bottom: 1px solid var(--line); margin-bottom: 26px; }
+  .order-card .top h3 { font-size: 22px; }
+  .order-card .top .who { color: var(--ink-500); font-size: 14.5px; margin-top: 6px; line-height: 1.5; }
+  .order-card .eta { text-align: right; }
+  .order-card .eta .l { font-size: 13px; color: var(--ink-400); }
+  .order-card .eta .v { font-size: 26px; font-weight: 800; color: var(--brand-600); }
+  .timeline { display: grid; gap: 0; }
+  .step { display: grid; grid-template-columns: 48px 1fr; gap: 16px; }
+  .step .rail { display: flex; flex-direction: column; align-items: center; }
+  .step .node { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; }
+  .step .node svg { width: 22px; height: 22px; }
+  .step .bar { width: 2.5px; flex: 1; min-height: 26px; }
+  .step.done .node, .step.active .node { background: var(--brand-600); color: #fff; }
+  .step.done .bar { background: var(--brand-600); }
+  .step.active .node { box-shadow: 0 0 0 6px var(--brand-100); }
+  .step.active .bar { background: linear-gradient(var(--brand-600), var(--line-2)); }
+  .step.pending .node { background: var(--bg-2); color: var(--ink-300); }
+  .step.pending .bar { background: var(--line-2); }
+  .step .body { padding: 11px 0 26px; }
+  .step .body .t { font-weight: 600; font-size: 16px; color: var(--ink-800); }
+  .step.active .body .t { font-weight: 700; color: var(--ink-900); }
+  .step.pending .body .t { color: var(--ink-400); font-weight: 500; }
+  .step .body .s { font-size: 13.5px; font-weight: 600; color: var(--brand-600); margin-top: 2px; }
+  .step:last-child .bar { display: none; }
+  .poll-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-600); display: inline-block; }
+  @media (prefers-reduced-motion: no-preference) { .poll-dot { animation: tpulse 2s infinite; } }
+  @keyframes tpulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+</style>
+</head>
+<body>
+<div class="page" data-screen-label="Track Order">
+  <header id="nav"></header>
+  <main class="page-body">
+    <div class="container track-wrap">
+      <h1 class="h1" style="margin-bottom:24px">Track Your Order</h1>
+
+      <div class="card lookup">
+        <label for="order-code">Enter your order code</label>
+        <div class="row-in field">
+          <input type="text" id="order-code" placeholder="e.g., ORD1712345678">
+          <button class="btn btn-primary">Track Order</button>
+        </div>
+        <p class="hint">You can find your order code in the confirmation email or SMS.</p>
+      </div>
+
+      <div class="card order-card">
+        <div class="top">
+          <div>
+            <h3>Order PIZZ-345680</h3>
+            <div class="who">John D. · phone ending •••4567<br>1•• M••• Street, Apt ••<br><span style="color:var(--ink-300);font-size:13px">Delivery note: “Ring doorbell twice”</span></div>
+            <div style="margin-top:10px"><span class="badge badge-soft" id="guest-note">Guest view — sign in for full details</span></div>
+          </div>
+          <div class="eta"><div class="l">Estimated Time</div><div class="v">10 mins</div>
+            <div style="display:flex;align-items:center;gap:7px;justify-content:flex-end;margin-top:8px;font-size:12.5px;color:var(--ink-400)"><span class="poll-dot"></span> auto-updating</div>
+          </div>
+        </div>
+        <div class="timeline" id="timeline"></div>
+        <a class="btn btn-outline btn-block" href="#" style="margin-top:8px">Track Another Order</a>
+      </div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+</div>
+<script src="assets/chrome.js"></script>
+<script>
+  mountNav('Track Order', { cart: 0, points: 150 });
+  mountFooter();
+  const steps = [
+    ['Order Received','package','done',''],
+    ['Preparing','clock','done',''],
+    ['Ready for Dispatch','checkCircle','done',''],
+    ['Delivering','truck','active','In Progress…'],
+    ['Delivered','home','pending',''],
+  ];
+  document.getElementById('timeline').innerHTML = steps.map(([t,ic,st,sub]) => `
+    <div class="step ${st}">
+      <div class="rail"><div class="node">${PH_ICON(ic,2)}</div><div class="bar"></div></div>
+      <div class="body"><div class="t">${t}</div>${sub?`<div class="s">${sub}</div>`:''}</div>
+    </div>`).join('');
+</script>
+</body>
+</html>

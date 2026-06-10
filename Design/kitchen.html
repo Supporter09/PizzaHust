@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaHust — Kitchen Queue</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .kbar { position: sticky; top: 0; z-index: 50; background: var(--nav-bg); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .kbar-inner { height: 72px; display: flex; align-items: center; gap: 16px; }
+  .kbar .role { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--brand-600); background: var(--brand-50); padding: 6px 13px; border-radius: var(--pill); }
+  .poll { display: flex; align-items: center; gap: 8px; margin-left: auto; font-size: 13px; color: var(--ink-400); }
+  .poll .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-600); }
+  @media (prefers-reduced-motion: no-preference) { .poll .dot { animation: pulse 2s infinite; } }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+  .kwrap { padding-block: 32px 80px; }
+  .kstats { display: flex; gap: 14px; margin-bottom: 26px; flex-wrap: wrap; }
+  .kstat { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--ink-700); background: var(--surface); border: 1px solid var(--line); border-radius: var(--pill); padding: 9px 18px; }
+  .kstat b { font-size: 17px; color: var(--ink-900); }
+  .kgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: start; }
+  .korder { padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+  .korder.urgent { border-color: var(--brand-300); box-shadow: 0 0 0 3px var(--brand-50), var(--sh-sm); }
+  .khead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .khead .code { font-weight: 800; font-size: 16px; color: var(--ink-900); letter-spacing: -.01em; white-space: nowrap; }
+  .kage { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--ink-400); }
+  .kage svg { width: 14px; height: 14px; }
+  .kage.hot { color: var(--brand-600); }
+  .kitems { display: grid; gap: 8px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 13px 0; }
+  .kitem { display: flex; gap: 10px; font-size: 14.5px; color: var(--ink-700); }
+  .kitem .q { font-weight: 800; color: var(--brand-600); min-width: 24px; }
+  .kitem .opts { display: block; font-size: 12.5px; color: var(--ink-400); margin-top: 1px; }
+  .knote { font-size: 13px; color: var(--amber-700); background: var(--cream-50); border: 1px solid var(--cream-200); border-radius: var(--r-sm); padding: 8px 12px; }
+  .kinote { display: inline-block; font-size: 12px; font-weight: 600; color: var(--amber-700); background: var(--cream-50); border: 1px solid var(--cream-200); border-radius: var(--pill); padding: 3px 10px; margin-top: 5px; }
+  .dnote { display: flex; gap: 9px; align-items: flex-start; font-size: 12.5px; color: var(--ink-500); background: var(--bg); border: 1px dashed var(--line-2); border-radius: var(--r-sm); padding: 8px 12px; }
+  .dnote svg { width: 15px; height: 15px; flex: none; margin-top: 1px; color: var(--ink-400); }
+  .dnote b { color: var(--ink-700); }
+  .kfoot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .ready-wait { font-size: 13.5px; font-weight: 600; color: var(--ink-400); display: inline-flex; gap: 8px; align-items: center; }
+  @media (max-width: 1100px) { .kgrid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 720px) { .kgrid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-screen-label="Kitchen Queue">
+  <div class="kbar"><div class="container kbar-inner">
+    <a class="brand" href="index.html" id="kbrand"></a>
+    <span class="role">Kitchen</span>
+    <div class="poll"><span class="dot"></span> Auto-refresh · 3s <span id="ktheme"></span></div>
+  </div></div>
+
+  <div class="container kwrap">
+    <div class="row between" style="margin-bottom:22px;flex-wrap:wrap;gap:14px">
+      <div><h1 class="h1">Incoming Orders</h1><p class="muted" style="margin-top:6px">Oldest first — accept, prepare, and mark ready for dispatch.</p></div>
+    </div>
+    <div class="kstats" id="kstats"></div>
+    <div class="kgrid" id="kgrid"></div>
+  </div>
+
+<script src="assets/chrome.js"></script>
+<script>
+(function(){
+  document.getElementById('kbrand').innerHTML = PH_LOGO + '<span>Pizza<b>Hust</b></span>';
+  document.getElementById('ktheme').outerHTML = PH_THEME_BTN('style="width:36px;height:36px"');
+  PH_REFRESH_THEME_BTNS();
+
+  let orders = [
+    { code:'PIZZ-345682', age:'12 min', hot:true,  status:'Received',
+      items:[['1','Meat Lovers (L)','Stuffed crust · extra cheese','Extra crispy base'],['1','Garlic Bread','','']] },
+    { code:'PIZZ-345683', age:'9 min', hot:true, status:'Received',
+      items:[['2','Margherita Classic (M)','Regular crust','Well-done bake'],['1','Caesar Salad','','']] },
+    { code:'PIZZ-345679', age:'7 min', hot:false, status:'Preparing',
+      items:[['1','Pepperoni Passion (L)','Thin crust · olives','No spicy oil'],['1','Coca Cola 500ml','','']] },
+    { code:'PIZZ-345680', age:'5 min', hot:false, status:'Preparing',
+      items:[['1','BBQ Chicken (M)','Thick crust',''],['1','Veggie Supreme (S)','Onions removed',''],['2','Sprite 500ml','','']] },
+    { code:'PIZZ-345678', age:'2 min', hot:false, status:'ReadyForDispatch',
+      items:[['2','Hawaiian Paradise (M)','Regular crust','']], dnote:'Ring doorbell twice' },
+  ];
+
+  const badge = s => s==='Received' ? '<span class="badge badge-blue">Received</span>'
+    : s==='Preparing' ? '<span class="badge badge-prep">Preparing</span>'
+    : '<span class="badge badge-cyan">Ready for Dispatch</span>';
+
+  const action = (s,i) => s==='Received' ? `<button class="btn btn-primary btn-sm btn-block" onclick="advance(${i})">Accept Order</button>`
+    : s==='Preparing' ? `<button class="btn btn-outline btn-sm btn-block" onclick="advance(${i})">${PH_ICON('check',2.4)} Mark Ready for Dispatch</button>`
+    : `<div style="width:100%">
+         <button class="btn btn-outline btn-sm btn-block" onclick="advance(${i})">${PH_ICON('truck',2)} Confirm Pickup</button>
+         <div style="font-size:11.5px;color:var(--ink-400);text-align:center;margin-top:7px">Usually auto-confirmed when the courier scans the order</div>
+       </div>`;
+
+  function render() {
+    const counts = { Received:0, Preparing:0, ReadyForDispatch:0 };
+    orders.forEach(o => counts[o.status]++);
+    document.getElementById('kstats').innerHTML =
+      `<span class="kstat"><b>${counts.Received}</b> New</span>
+       <span class="kstat"><b>${counts.Preparing}</b> Preparing</span>
+       <span class="kstat"><b>${counts.ReadyForDispatch}</b> Ready for dispatch</span>`;
+    document.getElementById('kgrid').innerHTML = orders.map((o,i) => `
+      <div class="card korder ${o.hot && o.status==='Received' ? 'urgent' : ''}">
+        <div class="khead"><span class="code">${o.code}</span>${badge(o.status)}</div>
+        <div class="kage ${o.hot?'hot':''}">${PH_ICON('clock',2)} placed ${o.age} ago</div>
+        <div class="kitems">${o.items.map(([q,n,opt,note]) => `
+          <div class="kitem"><span class="q">${q}×</span><span>${n}${opt?`<span class="opts">${opt}</span>`:''}${note?`<span class="kinote">Note: ${note}</span>`:''}</span></div>`).join('')}
+        </div>
+        ${o.dnote && o.status==='ReadyForDispatch' ? `<div class="dnote">${PH_ICON('truck',2)}<span><b>Delivery note</b> — for the courier: “${o.dnote}”</span></div>` : ''}
+        <div class="kfoot">${action(o.status,i)}</div>
+      </div>`).join('');
+  }
+  window.advance = function(i){
+    if (orders[i].status === 'ReadyForDispatch') { orders.splice(i, 1); render(); return; }  // picked up → leaves the queue (now Delivering)
+    orders[i].status = orders[i].status === 'Received' ? 'Preparing' : 'ReadyForDispatch';
+    orders[i].hot = false;
+    render();
+  };
+  render();
+})();
+</script>
+</body>
+</html>
