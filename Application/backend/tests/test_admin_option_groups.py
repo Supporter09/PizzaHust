@@ -140,3 +140,19 @@ def test_negative_price_delta_rejected_on_patch():
     r = c.patch(f"/api/admin/options/{oid}", json={"price_delta_vnd": -1})
     assert r.status_code == 400
     assert r.json()["error"]["code"] == "VALIDATION_FAILED"
+
+
+def test_option_delete_cascades_product_enablement():
+    from app.infra.db.models import ProductOption
+    from app.infra.db.session import create_session_factory
+
+    c = admin_client("og-fk-cascade")
+    cid = new_category("Pizza")
+    pid = new_product(cid, "Margherita")
+    gid = new_option_group("Size")
+    oid = new_option(gid, "M", price_delta_vnd=30_000)
+    enable_option(pid, oid)
+
+    assert c.delete(f"/api/admin/options/{oid}").status_code == 204
+    with create_session_factory()() as db:
+        assert db.get(ProductOption, (pid, oid)) is None
