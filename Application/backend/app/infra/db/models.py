@@ -7,7 +7,6 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     DateTime,
-    Enum,
     ForeignKey,
     Index,
     Integer,
@@ -145,47 +144,13 @@ class Product(Base):
     order_items: Mapped[list[OrderItem]] = relationship(back_populates="product")
 
 
-class PizzaSize(Base):
-    __tablename__ = "pizza_sizes"
-
-    size_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(10), nullable=False, unique=True)
-    price_modifier_vnd: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-        default=0,
-        server_default="0",
-    )
-
-    order_items: Mapped[list[OrderItem]] = relationship(back_populates="size")
-
-
-class PizzaCrust(Base):
-    __tablename__ = "pizza_crusts"
-
-    crust_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
-
-    order_items: Mapped[list[OrderItem]] = relationship(back_populates="crust")
-
-
-class Topping(Base):
-    __tablename__ = "toppings"
-
-    topping_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
-    price_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
-
-    order_item_toppings: Mapped[list[OrderItemTopping]] = relationship(back_populates="topping")
-
-
 class OptionGroup(Base):
     __tablename__ = "option_groups"
 
     group_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     select_type: Mapped[str] = mapped_column(
-        Enum("single", "multi", name="option_select_type"),
+        SqlEnum("single", "multi", name="option_select_type"),
         nullable=False,
         default="multi",
         server_default="multi",
@@ -350,8 +315,6 @@ class OrderItem(Base):
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.order_id"), nullable=False)
     product_id: Mapped[int | None] = mapped_column(ForeignKey("products.product_id"), nullable=True)
     combo_id: Mapped[int | None] = mapped_column(ForeignKey("combos.combo_id"), nullable=True)
-    size_id: Mapped[int | None] = mapped_column(ForeignKey("pizza_sizes.size_id"), nullable=True)
-    crust_id: Mapped[int | None] = mapped_column(ForeignKey("pizza_crusts.crust_id"), nullable=True)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
     unit_price_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
     notes: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -359,32 +322,10 @@ class OrderItem(Base):
     order: Mapped[Order] = relationship(back_populates="items")
     product: Mapped[Product | None] = relationship(back_populates="order_items")
     combo: Mapped[Combo | None] = relationship(back_populates="order_items")
-    size: Mapped[PizzaSize | None] = relationship(back_populates="order_items")
-    crust: Mapped[PizzaCrust | None] = relationship(back_populates="order_items")
-    toppings: Mapped[list[OrderItemTopping]] = relationship(
-        back_populates="order_item",
-        cascade="all, delete-orphan",
-    )
     options: Mapped[list[OrderItemOption]] = relationship(
         back_populates="order_item",
         cascade="all, delete-orphan",
     )
-
-
-class OrderItemTopping(Base):
-    __tablename__ = "order_item_toppings"
-    __table_args__ = (Index("ix_order_item_toppings_order_item_id", "order_item_id"),)
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    order_item_id: Mapped[int] = mapped_column(
-        ForeignKey("order_items.order_item_id"), nullable=False
-    )
-    topping_id: Mapped[int] = mapped_column(ForeignKey("toppings.topping_id"), nullable=False)
-    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
-    price_at_time_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
-
-    order_item: Mapped[OrderItem] = relationship(back_populates="toppings")
-    topping: Mapped[Topping] = relationship(back_populates="order_item_toppings")
 
 
 class WebhookEvent(Base):

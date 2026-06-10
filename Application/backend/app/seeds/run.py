@@ -13,14 +13,14 @@ from app.infra.db.models import (
     Category,
     Combo,
     ComboItem,
+    Option,
+    OptionGroup,
     Order,
     OrderItem,
     OrderStatus,
     OrderTracking,
-    PizzaCrust,
-    PizzaSize,
     Product,
-    Topping,
+    ProductOption,
     User,
     UserRole,
 )
@@ -74,31 +74,38 @@ def _upsert_product(db: Session, name: str, **kwargs) -> Product:
     return prod
 
 
-def _upsert_topping(db: Session, name: str, price: int) -> Topping:
-    t = db.scalar(select(Topping).where(Topping.name == name))
-    if t is None:
-        t = Topping(name=name, price_vnd=price)
-        db.add(t)
+def _upsert_option_group(
+    db: Session, name: str, *, select_type: str, required: bool, sort_order: int
+) -> OptionGroup:
+    g = db.scalar(select(OptionGroup).where(OptionGroup.name == name))
+    if g is None:
+        g = OptionGroup(
+            name=name, select_type=select_type, required=required, sort_order=sort_order
+        )
+        db.add(g)
         db.flush()
-    return t
+    else:
+        g.select_type, g.required, g.sort_order = select_type, required, sort_order
+    return g
 
 
-def _upsert_size(db: Session, name: str, modifier: int) -> PizzaSize:
-    s = db.scalar(select(PizzaSize).where(PizzaSize.name == name))
-    if s is None:
-        s = PizzaSize(name=name, price_modifier_vnd=modifier)
-        db.add(s)
+def _upsert_option(
+    db: Session, group: OptionGroup, name: str, *, delta: int, sort_order: int = 0
+) -> Option:
+    o = db.scalar(select(Option).where(Option.group_id == group.group_id, Option.name == name))
+    if o is None:
+        o = Option(group_id=group.group_id, name=name, price_delta_vnd=delta, sort_order=sort_order)
+        db.add(o)
         db.flush()
-    return s
+    else:
+        o.price_delta_vnd, o.sort_order = delta, sort_order
+    return o
 
 
-def _upsert_crust(db: Session, name: str) -> PizzaCrust:
-    c = db.scalar(select(PizzaCrust).where(PizzaCrust.name == name))
-    if c is None:
-        c = PizzaCrust(name=name)
-        db.add(c)
-        db.flush()
-    return c
+def _enable_for(db: Session, product_ids: list[int], option: Option) -> None:
+    for pid in product_ids:
+        if not db.get(ProductOption, (pid, option.option_id)):
+            db.add(ProductOption(product_id=pid, option_id=option.option_id))
 
 
 def main() -> None:
@@ -165,31 +172,6 @@ def _seed(db: Session, settings: Settings) -> None:
     cat_side = _upsert_category(db, "Side Dishes", "Wings, fries, and more", sort_order=2)
     _upsert_category(db, "Drinks", "Soft drinks and juices", sort_order=3)
 
-    # ── Sizes ──────────────────────────────────────────────────────
-    _upsert_size(db, "S", 0)
-    _upsert_size(db, "M", 30_000)
-    _upsert_size(db, "L", 60_000)
-
-    # ── Crusts ─────────────────────────────────────────────────────
-    _upsert_crust(db, "thin")
-    _upsert_crust(db, "cheese-stuffed")
-
-    # ── Toppings ───────────────────────────────────────────────────
-    toppings = [
-        ("Extra Cheese", 15_000),
-        ("Mushroom", 12_000),
-        ("Jalapeño", 10_000),
-        ("Bell Pepper", 10_000),
-        ("Chicken", 18_000),
-        ("Beef", 20_000),
-        ("Olives", 12_000),
-        ("Onion", 8_000),
-        ("Pineapple", 10_000),
-        ("Shrimp", 22_000),
-    ]
-    for name, price in toppings:
-        _upsert_topping(db, name, price)
-
     # ── Pizzas ─────────────────────────────────────────────────────
     pizzas = [
         ("Margherita Classic", 125_000),
@@ -221,6 +203,31 @@ def _seed(db: Session, settings: Settings) -> None:
         )
         for name, price in sides
     ]
+
+    # ── Option groups (A8) ─────────────────────────────────────────
+    pizza_ids = [p.product_id for p in pizza_products]
+    g_size = _upsert_option_group(db, "Size", select_type="single", required=True, sort_order=1)
+    g_crust = _upsert_option_group(db, "Crust", select_type="single", required=True, sort_order=2)
+    g_top = _upsert_option_group(db, "Toppings", select_type="multi", required=False, sort_order=3)
+
+    for i, (name, delta) in enumerate([("S", 0), ("M", 30_000), ("L", 60_000)], start=1):
+        _enable_for(db, pizza_ids, _upsert_option(db, g_size, name, delta=delta, sort_order=i))
+    for i, name in enumerate(["thin", "cheese-stuffed"], start=1):
+        _enable_for(db, pizza_ids, _upsert_option(db, g_crust, name, delta=0, sort_order=i))
+    toppings = [
+        ("Extra Cheese", 15_000),
+        ("Mushroom", 12_000),
+        ("Jalapeño", 10_000),
+        ("Bell Pepper", 10_000),
+        ("Chicken", 18_000),
+        ("Beef", 20_000),
+        ("Olives", 12_000),
+        ("Onion", 8_000),
+        ("Pineapple", 10_000),
+        ("Shrimp", 22_000),
+    ]
+    for i, (name, delta) in enumerate(toppings, start=1):
+        _enable_for(db, pizza_ids, _upsert_option(db, g_top, name, delta=delta, sort_order=i))
 
     # ── Combos ─────────────────────────────────────────────────────
     # naive UTC to match the DateTime(timezone=False) columns (utcnow() is deprecated).

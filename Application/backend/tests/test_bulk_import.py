@@ -57,14 +57,3 @@ def test_oversize_file_rejected(monkeypatch):
     r = _upload(client, "/api/admin/import/pizzas", big)
     assert r.status_code == 400
     assert r.json()["error"]["code"] == "VALIDATION_FAILED"
-
-
-def test_import_toppings_idempotent():
-    client = admin_client("imp-top")
-    csv = "name,price_vnd\nCheese,15000\nMushroom,12000\n"
-    r1 = _upload(client, "/api/admin/import/toppings", csv)
-    assert r1.status_code == 200, r1.text
-    assert r1.json()["created"] == 2
-    r2 = _upload(client, "/api/admin/import/toppings", csv)
-    assert r2.json()["created"] == 0
-    assert r2.json()["updated"] == 2

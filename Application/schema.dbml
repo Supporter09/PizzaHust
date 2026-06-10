@@ -50,21 +50,35 @@ Table products {
   is_active boolean [not null, default: true]
 }
 
-Table pizza_sizes {
-  size_id int [pk, increment]
-  name varchar(10) [not null, unique]
-  price_modifier_vnd int [not null, default: 0]
+Enum option_select_type {
+  single
+  multi
 }
 
-Table pizza_crusts {
-  crust_id int [pk, increment]
-  name varchar(50) [not null, unique]
-}
-
-Table toppings {
-  topping_id int [pk, increment]
+Table option_groups {
+  group_id int [pk, increment]
   name varchar(100) [not null, unique]
-  price_vnd int [not null]
+  select_type option_select_type [not null, default: 'multi']
+  required boolean [not null, default: false]
+  sort_order int [not null, default: 0]
+}
+
+Table options {
+  option_id int [pk, increment]
+  group_id int [not null, ref: > option_groups.group_id]
+  name varchar(100) [not null]
+  description varchar(255)
+  price_delta_vnd int [not null, default: 0]
+  sort_order int [not null, default: 0]
+
+  indexes {
+    (group_id, name) [unique]
+  }
+}
+
+Table product_options {
+  product_id int [pk, ref: > products.product_id]
+  option_id int [pk, ref: > options.option_id]
 }
 
 Table combos {
@@ -107,8 +121,6 @@ Table order_items {
   order_id int [not null, ref: > orders.order_id]
   product_id int [ref: > products.product_id]
   combo_id int [ref: > combos.combo_id]
-  size_id int [ref: > pizza_sizes.size_id]
-  crust_id int [ref: > pizza_crusts.crust_id]
   quantity int [not null, default: 1]
   unit_price_vnd int [not null]
   notes varchar(255)
@@ -116,12 +128,12 @@ Table order_items {
   Note: 'Exactly one of product_id or combo_id must be non-null.'
 }
 
-Table order_item_toppings {
+Table order_item_options {
   id int [pk, increment]
   order_item_id int [not null, ref: > order_items.order_item_id]
-  topping_id int [not null, ref: > toppings.topping_id]
-  quantity int [not null, default: 1]
-  price_at_time_vnd int [not null]
+  group_name varchar(100) [not null]
+  option_name varchar(100) [not null]
+  price_delta_vnd int [not null]
 }
 
 Table order_tracking {

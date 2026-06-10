@@ -22,12 +22,8 @@ from app.infra.db.models import (
     OptionGroup,
     Order,
     OrderItem,
-    OrderItemTopping,
-    PizzaCrust,
-    PizzaSize,
     Product,
     ProductOption,
-    Topping,
     User,
     UserRole,
 )
@@ -109,36 +105,8 @@ def new_combo_with_items(name: str, product_ids: list[int], *, price_vnd: int = 
         return combo.combo_id
 
 
-def new_size(name: str = "M", *, modifier: int = 0) -> int:
-    with create_session_factory()() as db:
-        s = PizzaSize(name=name, price_modifier_vnd=modifier)
-        db.add(s)
-        db.commit()
-        db.refresh(s)
-        return s.size_id
-
-
-def new_crust(name: str = "thin") -> int:
-    with create_session_factory()() as db:
-        c = PizzaCrust(name=name)
-        db.add(c)
-        db.commit()
-        db.refresh(c)
-        return c.crust_id
-
-
-def new_topping(name: str = "Cheese", *, price_vnd: int = 10_000) -> int:
-    with create_session_factory()() as db:
-        t = Topping(name=name, price_vnd=price_vnd)
-        db.add(t)
-        db.commit()
-        db.refresh(t)
-        return t.topping_id
-
-
-def _new_order_item(db, *, size_id: int | None = None, crust_id: int | None = None) -> OrderItem:
-    """Create a minimal valid order + order_item (with its own category/product) so
-    a size/crust/topping can be referenced by historical order data."""
+def _new_order_item(db) -> OrderItem:
+    """Create a minimal valid order + order_item (with its own category/product)."""
     suffix = uuid.uuid4().hex[:6]
     cat = Category(name=f"cat-{suffix}", is_active=True)
     db.add(cat)
@@ -161,40 +129,12 @@ def _new_order_item(db, *, size_id: int | None = None, crust_id: int | None = No
     oi = OrderItem(
         order_id=order.order_id,
         product_id=prod.product_id,
-        size_id=size_id,
-        crust_id=crust_id,
         quantity=1,
         unit_price_vnd=1,
     )
     db.add(oi)
     db.flush()
     return oi
-
-
-def reference_size_in_order(size_id: int) -> None:
-    with create_session_factory()() as db:
-        _new_order_item(db, size_id=size_id)
-        db.commit()
-
-
-def reference_crust_in_order(crust_id: int) -> None:
-    with create_session_factory()() as db:
-        _new_order_item(db, crust_id=crust_id)
-        db.commit()
-
-
-def reference_topping_in_order(topping_id: int) -> None:
-    with create_session_factory()() as db:
-        oi = _new_order_item(db)
-        db.add(
-            OrderItemTopping(
-                order_item_id=oi.order_item_id,
-                topping_id=topping_id,
-                quantity=1,
-                price_at_time_vnd=1,
-            )
-        )
-        db.commit()
 
 
 def new_option_group(
