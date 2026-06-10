@@ -111,14 +111,18 @@ def _require_product(db: Session, product_id: int) -> Product:
 
 
 @router.get("/option-groups", response_model=list[GroupOut])
-def list_groups(db: Session = Depends(get_db), _a: User = Depends(require_admin)) -> list[GroupOut]:
+def list_groups(
+    db: Session = Depends(get_db, scope="function"), _a: User = Depends(require_admin)
+) -> list[GroupOut]:
     rows = db.scalars(select(OptionGroup).order_by(OptionGroup.sort_order, OptionGroup.name)).all()
     return [GroupOut.model_validate(g) for g in rows]
 
 
 @router.post("/option-groups", response_model=GroupOut, status_code=201)
 def create_group(
-    body: GroupIn, db: Session = Depends(get_db), _a: User = Depends(require_admin)
+    body: GroupIn,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
 ) -> GroupOut:
     if db.scalar(select(OptionGroup).where(OptionGroup.name == body.name)):
         raise _conflict("An option group with this name already exists.")
@@ -141,7 +145,7 @@ def create_group(
 def patch_group(
     group_id: int,
     body: GroupPatch,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> GroupOut:
     g = db.get(OptionGroup, group_id)
@@ -171,7 +175,9 @@ def patch_group(
 
 @router.delete("/option-groups/{group_id}", status_code=204)
 def delete_group(
-    group_id: int, db: Session = Depends(get_db), _a: User = Depends(require_admin)
+    group_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
 ) -> None:
     g = db.get(OptionGroup, group_id)
     if g is None:
@@ -184,7 +190,7 @@ def delete_group(
 def create_option(
     group_id: int,
     body: OptionIn,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> OptionOut:
     if db.get(OptionGroup, group_id) is None:
@@ -211,7 +217,7 @@ def create_option(
 def patch_option(
     option_id: int,
     body: OptionPatch,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> OptionOut:
     o = db.get(Option, option_id)
@@ -243,7 +249,9 @@ def patch_option(
 
 @router.delete("/options/{option_id}", status_code=204)
 def delete_option(
-    option_id: int, db: Session = Depends(get_db), _a: User = Depends(require_admin)
+    option_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
 ) -> None:
     o = db.get(Option, option_id)
     if o is None:
@@ -254,7 +262,9 @@ def delete_option(
 
 @router.get("/items/{product_id}/options", response_model=list[ItemOptionGroupOut])
 def item_options(
-    product_id: int, db: Session = Depends(get_db), _a: User = Depends(require_admin)
+    product_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
 ) -> list[ItemOptionGroupOut]:
     _require_product(db, product_id)
     enabled_ids = set(
@@ -295,7 +305,7 @@ def item_options(
 def replace_item_options(
     product_id: int,
     body: ItemOptionsPut,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> list[ItemOptionGroupOut]:
     _require_product(db, product_id)

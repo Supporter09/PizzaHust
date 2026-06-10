@@ -147,13 +147,17 @@ def _to_out(combo: Combo) -> ComboOut:
 
 
 @router.get("", response_model=list[ComboOut])
-def list_combos(db: Session = Depends(get_db), _a: User = Depends(require_admin)) -> list[ComboOut]:
+def list_combos(
+    db: Session = Depends(get_db, scope="function"), _a: User = Depends(require_admin)
+) -> list[ComboOut]:
     return [_to_out(c) for c in db.scalars(select(Combo).order_by(Combo.combo_id)).all()]
 
 
 @router.post("", response_model=ComboOut, status_code=201)
 def create_combo(
-    body: ComboIn, db: Session = Depends(get_db), _a: User = Depends(require_admin)
+    body: ComboIn,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
 ) -> ComboOut:
     _validate_range(body.validity_start, body.validity_end)
     _validate_items(db, body.items)
@@ -175,7 +179,9 @@ def create_combo(
 
 @router.get("/{combo_id}", response_model=ComboOut)
 def get_combo(
-    combo_id: int, db: Session = Depends(get_db), _a: User = Depends(require_admin)
+    combo_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
 ) -> ComboOut:
     combo = db.get(Combo, combo_id)
     if combo is None:
@@ -187,7 +193,7 @@ def get_combo(
 def patch_combo(
     combo_id: int,
     body: ComboPatch,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> ComboOut:
     combo = db.get(Combo, combo_id)
@@ -225,7 +231,9 @@ def patch_combo(
 
 @router.delete("/{combo_id}", status_code=204)
 def delete_combo(
-    combo_id: int, db: Session = Depends(get_db), _a: User = Depends(require_admin)
+    combo_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
 ) -> None:
     combo = db.get(Combo, combo_id)
     if combo is None:

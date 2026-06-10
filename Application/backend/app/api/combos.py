@@ -46,7 +46,7 @@ class PublicComboOut(BaseModel):
 
 
 @router.get("/combos", response_model=list[PublicComboOut])
-def list_combos(db: Session = Depends(get_db)) -> list[PublicComboOut]:
+def list_combos(db: Session = Depends(get_db, scope="function")) -> list[PublicComboOut]:
     now = _now_utc_naive()
     stmt = (
         select(Combo)

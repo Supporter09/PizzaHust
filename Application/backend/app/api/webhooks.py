@@ -43,7 +43,7 @@ def _verify_hmac(body: bytes, signature: str) -> bool:
 async def delivery_webhook(
     request: Request,
     x_signature: str = Header(..., alias="X-Signature"),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
 ) -> None:
     body = await request.body()
 

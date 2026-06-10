@@ -78,7 +78,7 @@ def list_items(
     kind: Literal["pizza", "side"] | None = None,
     category_id: int | None = None,
     active: bool | None = None,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> list[ItemOut]:
     stmt = select(Product)
@@ -94,7 +94,7 @@ def list_items(
 @router.post("", response_model=ItemOut, status_code=201)
 def create_item(
     body: ItemIn,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> ItemOut:
     if _dup_name(db, body.name):
@@ -116,7 +116,7 @@ def create_item(
 @router.get("/{product_id}", response_model=ItemOut)
 def get_item(
     product_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> ItemOut:
     p = db.get(Product, product_id)
@@ -129,7 +129,7 @@ def get_item(
 def patch_item(
     product_id: int,
     body: ItemPatch,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> ItemOut:
     p = db.get(Product, product_id)
@@ -151,7 +151,7 @@ def patch_item(
 @router.delete("/{product_id}", status_code=204)
 def delete_item(
     product_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> None:
     p = db.get(Product, product_id)
@@ -176,7 +176,7 @@ def delete_item(
 def upload_item_image(
     product_id: int,
     image: UploadFile = File(...),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> dict[str, str]:
     p = db.get(Product, product_id)

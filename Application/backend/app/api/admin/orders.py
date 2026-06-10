@@ -45,7 +45,7 @@ def list_orders(
     status: str | None = None,
     page: int = Query(1, ge=1),
     page_size: int = Query(30, ge=1, le=100),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _admin: User = Depends(require_admin),
 ) -> list[OrderSummaryOut]:
     stmt = select(Order)
@@ -63,7 +63,7 @@ def list_orders(
 @router.get("/{order_id}", response_model=OrderSummaryOut)
 def get_order(
     order_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _admin: User = Depends(require_admin),
 ) -> OrderSummaryOut:
     order: Order | None = db.get(Order, order_id)
@@ -76,7 +76,7 @@ def get_order(
 def cancel_order(
     order_id: int,
     body: OrderCancelIn,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     admin: User = Depends(require_admin),
 ) -> None:
     order: Order | None = db.get(Order, order_id)
@@ -102,7 +102,7 @@ def cancel_order(
 @router.post("/{order_id}/retry-dispatch", status_code=204)
 def retry_dispatch(
     order_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     admin: User = Depends(require_admin),
     port: DeliveryPort = Depends(get_delivery_port),
     settings: Settings = Depends(get_settings_dependency),

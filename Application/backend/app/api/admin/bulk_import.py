@@ -60,7 +60,7 @@ def _parse_int(value: str | None) -> int | None:
 @router.post("/pizzas", response_model=ImportSummary)
 def import_pizzas(
     file: UploadFile = File(...),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> ImportSummary:
     rows = _read_rows(file)

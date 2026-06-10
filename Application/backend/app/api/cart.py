@@ -118,7 +118,9 @@ def _resolve_line(db: Session, line: QuoteLineIn) -> CartLine:
 
 
 @router.post("/quote", response_model=CartQuoteOut)
-def quote_cart(payload: CartQuoteIn, db: Session = Depends(get_db)) -> CartQuoteOut:
+def quote_cart(
+    payload: CartQuoteIn, db: Session = Depends(get_db, scope="function")
+) -> CartQuoteOut:
     lines = [_resolve_line(db, line) for line in payload.lines]
     district = payload.address.administrative_unit if payload.address else None
     try:

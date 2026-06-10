@@ -69,7 +69,7 @@ class MenuItemDetailOut(BaseModel):
 
 
 @router.get("/categories", response_model=list[MenuCategoryOut])
-def list_categories(db: Session = Depends(get_db)) -> list[MenuCategoryOut]:
+def list_categories(db: Session = Depends(get_db, scope="function")) -> list[MenuCategoryOut]:
     stmt = (
         select(Category)
         .where(Category.is_active.is_(True))
@@ -79,7 +79,9 @@ def list_categories(db: Session = Depends(get_db)) -> list[MenuCategoryOut]:
 
 
 @router.get("/items", response_model=list[MenuItemOut])
-def list_items(category: int | None = None, db: Session = Depends(get_db)) -> list[MenuItemOut]:
+def list_items(
+    category: int | None = None, db: Session = Depends(get_db, scope="function")
+) -> list[MenuItemOut]:
     stmt = select(Product).where(Product.is_active.is_(True))
     if category is not None:
         stmt = stmt.where(Product.category_id == category)
@@ -88,7 +90,7 @@ def list_items(category: int | None = None, db: Session = Depends(get_db)) -> li
 
 
 @router.get("/items/{product_id}", response_model=MenuItemDetailOut)
-def get_item(product_id: int, db: Session = Depends(get_db)) -> MenuItemDetailOut:
+def get_item(product_id: int, db: Session = Depends(get_db, scope="function")) -> MenuItemDetailOut:
     product = db.scalar(
         select(Product).where(
             Product.product_id == product_id,
