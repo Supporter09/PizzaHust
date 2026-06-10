@@ -7,11 +7,13 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     DateTime,
+    Enum,
     ForeignKey,
     Index,
     Integer,
     String,
     Text,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy import Enum as SqlEnum
@@ -177,6 +179,77 @@ class Topping(Base):
     order_item_toppings: Mapped[list[OrderItemTopping]] = relationship(back_populates="topping")
 
 
+class OptionGroup(Base):
+    __tablename__ = "option_groups"
+
+    group_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    select_type: Mapped[str] = mapped_column(
+        Enum("single", "multi", name="option_select_type"),
+        nullable=False,
+        default="multi",
+        server_default="multi",
+    )
+    required: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="0"
+    )
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+
+    options: Mapped[list[Option]] = relationship(
+        back_populates="group", cascade="all, delete-orphan"
+    )
+
+
+class Option(Base):
+    __tablename__ = "options"
+    __table_args__ = (UniqueConstraint("group_id", "name", name="uq_options_group_name"),)
+
+    option_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    group_id: Mapped[int] = mapped_column(
+        ForeignKey("option_groups.group_id", ondelete="CASCADE"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    price_delta_vnd: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+
+    group: Mapped[OptionGroup] = relationship(back_populates="options")
+
+
+class ProductOption(Base):
+    """Per-dish enablement: row present = option enabled for the product."""
+
+    __tablename__ = "product_options"
+
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.product_id", ondelete="CASCADE"), primary_key=True
+    )
+    option_id: Mapped[int] = mapped_column(
+        ForeignKey("options.option_id", ondelete="CASCADE"), primary_key=True
+    )
+
+
+class OrderItemOption(Base):
+    """Snapshot of one selected option at order time. No FK to options — admin
+    deletes never touch history. Rows are inserted in (group.sort_order,
+    option.sort_order) order; readers order by id."""
+
+    __tablename__ = "order_item_options"
+    __table_args__ = (Index("ix_order_item_options_order_item_id", "order_item_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    order_item_id: Mapped[int] = mapped_column(
+        ForeignKey("order_items.order_item_id"), nullable=False
+    )
+    group_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    option_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    price_delta_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    order_item: Mapped[OrderItem] = relationship(back_populates="options")
+
+
 class Combo(Base):
     __tablename__ = "combos"
     __table_args__ = (
@@ -289,6 +362,10 @@ class OrderItem(Base):
     size: Mapped[PizzaSize | None] = relationship(back_populates="order_items")
     crust: Mapped[PizzaCrust | None] = relationship(back_populates="order_items")
     toppings: Mapped[list[OrderItemTopping]] = relationship(
+        back_populates="order_item",
+        cascade="all, delete-orphan",
+    )
+    options: Mapped[list[OrderItemOption]] = relationship(
         back_populates="order_item",
         cascade="all, delete-orphan",
     )
