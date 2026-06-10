@@ -3,50 +3,46 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from tests.admin_test_utils import (
+    enable_option,
     new_category,
-    new_crust,
+    new_option,
+    new_option_group,
     new_product,
-    new_size,
-    new_topping,
 )
 from tests.auth_test_utils import build_test_app
 
 
-def test_detail_pizza_embeds_ordered_options():
-    app = build_test_app("menu-detail-pizza")
+def test_detail_returns_enabled_option_groups():
+    app = build_test_app("menu-detail-groups")
     cid = new_category("Pizza")
     pid = new_product(cid, "Margherita", base_price_vnd=125_000, is_pizza=True)
-    # Insert sizes out of price order; endpoint must order by price_modifier_vnd.
-    new_size("L", modifier=60_000)
-    new_size("S", modifier=0)
-    new_size("M", modifier=30_000)
-    new_crust("thin")  # crust order = crust_id (creation order)
-    new_crust("cheese-stuffed")
-    new_topping("Cheese", price_vnd=15_000)  # topping order = name
-    new_topping("Beef", price_vnd=20_000)
+    g_size = new_option_group("Size", select_type="single", required=True, sort_order=1)
+    s = new_option(g_size, "S", price_delta_vnd=0, sort_order=1)
+    m = new_option(g_size, "M", price_delta_vnd=30_000, sort_order=2)
+    g_top = new_option_group("Toppings", select_type="multi", required=False, sort_order=2)
+    cheese = new_option(g_top, "Extra Cheese", price_delta_vnd=15_000)
+    g_empty = new_option_group("Sauces", select_type="multi", required=False, sort_order=3)
+    new_option(g_empty, "BBQ", price_delta_vnd=5_000)
+    for oid in (s, m, cheese):
+        enable_option(pid, oid)
 
-    body = TestClient(app).get(f"/api/items/{pid}").json()
-
-    assert body["product_id"] == pid
-    assert body["is_pizza"] is True
-    assert body["base_price_vnd"] == 125_000 and isinstance(body["base_price_vnd"], int)
-    assert [s["name"] for s in body["sizes"]] == ["S", "M", "L"]
-    assert set(body["sizes"][0]) == {"size_id", "name", "price_modifier_vnd"}
-    assert body["sizes"][2]["price_modifier_vnd"] == 60_000
-    assert [c["name"] for c in body["crusts"]] == ["thin", "cheese-stuffed"]
-    assert set(body["crusts"][0]) == {"crust_id", "name"}
-    assert [t["name"] for t in body["toppings"]] == ["Beef", "Cheese"]
-    assert set(body["toppings"][0]) == {"topping_id", "name", "price_vnd"}
+    r = TestClient(app).get(f"/api/items/{pid}")
+    assert r.status_code == 200, r.text
+    groups = r.json()["option_groups"]
+    assert [g["name"] for g in groups] == ["Size", "Toppings"]
+    assert groups[0]["select_type"] == "single" and groups[0]["required"] is True
+    assert [o["name"] for o in groups[0]["options"]] == ["S", "M"]
+    assert groups[0]["options"][1]["price_delta_vnd"] == 30_000
+    assert "sizes" not in r.json()
 
 
-def test_detail_non_pizza_has_empty_options():
-    app = build_test_app("menu-detail-side")
+def test_detail_dish_without_options_returns_empty_list():
+    app = build_test_app("menu-detail-plain")
     cid = new_category("Sides")
     pid = new_product(cid, "Garlic Bread", base_price_vnd=45_000, is_pizza=False)
-    new_size("M", modifier=30_000)  # exists globally but must NOT appear for a non-pizza
-    body = TestClient(app).get(f"/api/items/{pid}").json()
-    assert body["is_pizza"] is False
-    assert body["sizes"] == [] and body["crusts"] == [] and body["toppings"] == []
+    r = TestClient(app).get(f"/api/items/{pid}")
+    assert r.status_code == 200
+    assert r.json()["option_groups"] == []
 
 
 def test_detail_unknown_id_404():

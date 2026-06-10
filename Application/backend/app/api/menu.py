@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import APIError
 from app.infra.db.deps import get_db
-from app.infra.db.models import Category, PizzaCrust, PizzaSize, Product, Topping
+from app.infra.db.models import Category, Option, OptionGroup, Product, ProductOption
 
 router = APIRouter(prefix="/api", tags=["menu"])
 
@@ -37,27 +37,21 @@ class MenuItemOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class MenuSizeOut(BaseModel):
-    size_id: int
+class MenuOptionOut(BaseModel):
+    option_id: int
     name: str
-    price_modifier_vnd: int
+    description: str | None = None
+    price_delta_vnd: int
 
     model_config = {"from_attributes": True}
 
 
-class MenuCrustOut(BaseModel):
-    crust_id: int
+class MenuOptionGroupOut(BaseModel):
+    group_id: int
     name: str
-
-    model_config = {"from_attributes": True}
-
-
-class MenuToppingOut(BaseModel):
-    topping_id: int
-    name: str
-    price_vnd: int
-
-    model_config = {"from_attributes": True}
+    select_type: str
+    required: bool
+    options: list[MenuOptionOut]
 
 
 class MenuItemDetailOut(BaseModel):
@@ -67,9 +61,7 @@ class MenuItemDetailOut(BaseModel):
     base_price_vnd: int
     is_pizza: bool
     image_url: str | None = None
-    sizes: list[MenuSizeOut] = []
-    crusts: list[MenuCrustOut] = []
-    toppings: list[MenuToppingOut] = []
+    option_groups: list[MenuOptionGroupOut] = []
 
     model_config = {"from_attributes": True}
 
@@ -104,24 +96,27 @@ def get_item(product_id: int, db: Session = Depends(get_db)) -> MenuItemDetailOu
     if product is None:
         raise APIError(code="NOT_FOUND", message="Item not found.", status_code=404)
 
-    sizes: list[MenuSizeOut] = []
-    crusts: list[MenuCrustOut] = []
-    toppings: list[MenuToppingOut] = []
-    if product.is_pizza:
-        sizes = [
-            MenuSizeOut.model_validate(s)
-            for s in db.scalars(
-                select(PizzaSize).order_by(PizzaSize.price_modifier_vnd, PizzaSize.name)
-            ).all()
-        ]
-        crusts = [
-            MenuCrustOut.model_validate(c)
-            for c in db.scalars(select(PizzaCrust).order_by(PizzaCrust.crust_id)).all()
-        ]
-        toppings = [
-            MenuToppingOut.model_validate(t)
-            for t in db.scalars(select(Topping).order_by(Topping.name)).all()
-        ]
+    rows = db.execute(
+        select(Option, OptionGroup)
+        .join(OptionGroup, Option.group_id == OptionGroup.group_id)
+        .join(ProductOption, ProductOption.option_id == Option.option_id)
+        .where(ProductOption.product_id == product_id)
+        .order_by(OptionGroup.sort_order, OptionGroup.name, Option.sort_order, Option.name)
+    ).all()
+
+    groups: dict[int, MenuOptionGroupOut] = {}
+    for option, group in rows:
+        bucket = groups.get(group.group_id)
+        if bucket is None:
+            bucket = MenuOptionGroupOut(
+                group_id=group.group_id,
+                name=group.name,
+                select_type=group.select_type,
+                required=group.required,
+                options=[],
+            )
+            groups[group.group_id] = bucket
+        bucket.options.append(MenuOptionOut.model_validate(option))
 
     return MenuItemDetailOut(
         product_id=product.product_id,
@@ -130,7 +125,5 @@ def get_item(product_id: int, db: Session = Depends(get_db)) -> MenuItemDetailOu
         base_price_vnd=product.base_price_vnd,
         is_pizza=product.is_pizza,
         image_url=product.image_url,
-        sizes=sizes,
-        crusts=crusts,
-        toppings=toppings,
+        option_groups=list(groups.values()),
     )
