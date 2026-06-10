@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import os
-
-import pytest
 from sqlalchemy import func, select
 
 from app.infra.db.models import Category, Option, OptionGroup, Order, Product, ProductOption
@@ -20,14 +17,6 @@ def _counts() -> dict[str, int]:
             "option_groups": db.scalar(select(func.count()).select_from(OptionGroup)) or 0,
             "options": db.scalar(select(func.count()).select_from(Option)) or 0,
         }
-
-
-@pytest.fixture(autouse=True)
-def _seed_passwords(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("ADMIN_SEED_PASSWORD", os.environ.get("ADMIN_SEED_PASSWORD", "admin123"))
-    monkeypatch.setenv(
-        "KITCHEN_SEED_PASSWORD", os.environ.get("KITCHEN_SEED_PASSWORD", "kitchen123")
-    )
 
 
 def test_seed_is_idempotent_across_reruns():

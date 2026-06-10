@@ -84,6 +84,10 @@ pushd backend >/dev/null
 popd >/dev/null
 
 step "Smoke: Playwright e2e (browser path)"
+: "${E2E_BASE_URL:?set E2E_BASE_URL in .env}"
+: "${E2E_API_URL:?set E2E_API_URL in .env}"
+: "${E2E_ADMIN_PHONE:?set E2E_ADMIN_PHONE in .env}"
+: "${E2E_ADMIN_PASSWORD:?set E2E_ADMIN_PASSWORD in .env}"
 pushd frontend >/dev/null
   if ! npx playwright test; then
     if [[ -x ~/.local/bin/open-chrome-debug ]]; then

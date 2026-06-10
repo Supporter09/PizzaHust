@@ -1,8 +1,10 @@
 import { test, expect, chromium } from "@playwright/test";
 
+import { E2E_BASE_URL } from "./env";
+
 test("home renders", async () => {
   const cdpUrl = process.env.CHROME_DEBUG_URL;
-  const targetUrl = process.env.E2E_BASE_URL ?? "http://localhost:3000";
+  const targetUrl = E2E_BASE_URL;
 
   if (!cdpUrl) {
     const browser = await chromium.launch();

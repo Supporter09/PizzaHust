@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-import os
 
 import httpx
-import pytest
 from sqlalchemy import select
 
 from app.infra.config import get_settings
@@ -66,11 +64,7 @@ def test_auth_me_profile_and_loyalty_flow() -> None:
     asyncio.run(scenario())
 
 
-def test_seed_creates_admin_and_kitchen_users(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("ADMIN_SEED_PASSWORD", os.environ.get("ADMIN_SEED_PASSWORD", "admin123"))
-    monkeypatch.setenv(
-        "KITCHEN_SEED_PASSWORD", os.environ.get("KITCHEN_SEED_PASSWORD", "kitchen123")
-    )
+def test_seed_creates_admin_and_kitchen_users() -> None:
     build_test_app("seed-accounts")
     run_seeds()
 

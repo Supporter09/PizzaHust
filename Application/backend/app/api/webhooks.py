@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-import os
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
@@ -19,6 +18,7 @@ from app.domain.order_state import (
     status_for_delivery_event,
     transition,
 )
+from app.infra.config import get_settings
 from app.infra.db.deps import get_db
 from app.infra.db.models import Order, OrderStatus, OrderTracking, WebhookEvent
 
@@ -34,11 +34,7 @@ class DeliveryEvent(BaseModel):
 
 
 def _verify_hmac(body: bytes, signature: str) -> bool:
-    secret = os.environ.get("DELIVERY_WEBHOOK_SECRET", "")
-    if not secret:
-        # Fail closed: an unset secret must reject everything, otherwise an
-        # attacker could forge a valid signature using an empty key.
-        return False
+    secret = get_settings().delivery_webhook_secret
     expected = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature)
 

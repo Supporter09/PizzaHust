@@ -110,11 +110,6 @@ def _enable_for(db: Session, product_ids: list[int], option: Option) -> None:
 
 def main() -> None:
     settings = get_settings()
-    if not settings.admin_seed_password or not settings.kitchen_seed_password:
-        raise SystemExit(
-            "ADMIN_SEED_PASSWORD and KITCHEN_SEED_PASSWORD must be set to seed "
-            "privileged accounts (see .env.example)."
-        )
     factory = create_session_factory()
     db: Session = factory()
     try:
