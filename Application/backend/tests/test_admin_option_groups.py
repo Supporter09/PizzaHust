@@ -68,6 +68,26 @@ def test_option_crud_and_dupe_within_group():
     assert c.delete(f"/api/admin/options/{oid}").status_code == 204
 
 
+def test_patch_option_clears_description_with_explicit_null():
+    c = admin_client("og-clear-desc")
+    gid = new_option_group("Toppings", select_type="multi", required=False)
+    r = c.post(
+        f"/api/admin/option-groups/{gid}/options",
+        json={"name": "Extra Cheese", "description": "More mozz"},
+    )
+    oid = r.json()["option_id"]
+    assert r.json()["description"] == "More mozz"
+
+    # Omitting description must leave it untouched.
+    r = c.patch(f"/api/admin/options/{oid}", json={"price_delta_vnd": 1_000})
+    assert r.json()["description"] == "More mozz"
+
+    # Explicit null must clear it.
+    r = c.patch(f"/api/admin/options/{oid}", json={"description": None})
+    assert r.status_code == 200, r.text
+    assert r.json()["description"] is None
+
+
 def test_group_delete_cascades_options():
     c = admin_client("og-cascade")
     gid = new_option_group("Size")

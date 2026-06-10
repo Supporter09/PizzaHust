@@ -23,11 +23,15 @@ export function OptionRow({ option, busy, onCommit, onToggle, onDelete }: Props)
 
   function commit() {
     const patch: { name?: string; description?: string; price_delta_vnd?: number } = {};
-    if (name !== option.name && name.trim()) patch.name = name.trim();
+    const trimmed = name.trim();
+    if (trimmed && trimmed !== option.name) patch.name = trimmed;
+    else if (!trimmed) setName(option.name); // revert empty input
     if (description !== (option.description ?? "")) patch.description = description;
     const parsed = Number(delta);
     if (Number.isFinite(parsed) && parsed >= 0 && parsed !== option.price_delta_vnd) {
       patch.price_delta_vnd = parsed;
+    } else if (!Number.isFinite(parsed) || parsed < 0) {
+      setDelta(String(option.price_delta_vnd)); // revert invalid input
     }
     if (Object.keys(patch).length > 0) onCommit(patch);
   }

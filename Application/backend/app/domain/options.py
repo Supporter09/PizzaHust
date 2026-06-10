@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Literal
 
 
 @dataclass(frozen=True)
@@ -16,13 +17,13 @@ class SelectableOption:
     option_id: int
     group_id: int
     group_name: str
-    select_type: str  # "single" | "multi"
+    select_type: Literal["single", "multi"]
     required: bool
 
 
 @dataclass(frozen=True)
 class OptionSelectionError:
-    reason: str  # option_not_available | required_group_missing | single_group_conflict
+    reason: Literal["option_not_available", "required_group_missing", "single_group_conflict"]
     group_name: str | None = None
     option_id: int | None = None
 

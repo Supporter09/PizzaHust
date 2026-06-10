@@ -233,7 +233,7 @@ def patch_option(
         ):
             raise _conflict("An option with this name already exists in this group.")
         o.name = body.name
-    if body.description is not None:
+    if "description" in body.model_fields_set:
         o.description = body.description
     if body.price_delta_vnd is not None:
         o.price_delta_vnd = body.price_delta_vnd

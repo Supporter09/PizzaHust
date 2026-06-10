@@ -38,6 +38,7 @@ def test_every_seeded_pizza_has_all_options_enabled():
     run_seeds()
     with create_session_factory()() as db:
         pizzas = db.scalars(select(Product).where(Product.is_pizza.is_(True))).all()
+        assert pizzas, "seed produced no pizzas to check options against"
         option_count = db.scalar(select(func.count()).select_from(Option)) or 0
         for p in pizzas:
             enabled = db.scalar(
