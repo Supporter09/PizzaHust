@@ -44,18 +44,6 @@ def compute_unit_price(*, base_price_vnd: int, option_deltas_vnd: Sequence[int])
     return base_price_vnd + sum(option_deltas_vnd)
 
 
-def compute_pizza_unit_price(
-    *,
-    base_price_vnd: int,
-    size_modifier_vnd: int,
-    topping_prices_vnd: list[int],
-) -> int:
-    parts = [base_price_vnd, size_modifier_vnd, *topping_prices_vnd]
-    if any(p < 0 for p in parts):
-        raise PricingError("VALIDATION_FAILED", "Pizza price inputs must be non-negative.")
-    return sum(parts)
-
-
 def compute_order_total(
     *,
     lines: list[CartLine],
