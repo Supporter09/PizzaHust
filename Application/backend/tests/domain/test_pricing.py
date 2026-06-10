@@ -97,3 +97,10 @@ def test_compute_order_total_default_address_is_preview() -> None:
     quote = compute_order_total(lines=[CartLine(unit_price_vnd=50_000, quantity=2)])
     assert quote.delivery_fee_vnd == 0
     assert quote.total_vnd == 100_000
+
+
+def test_compute_unit_price_rejects_negative_inputs():
+    with pytest.raises(PricingError):
+        compute_unit_price(base_price_vnd=-1, option_deltas_vnd=[])
+    with pytest.raises(PricingError):
+        compute_unit_price(base_price_vnd=100_000, option_deltas_vnd=[10_000, -5_000])

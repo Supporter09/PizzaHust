@@ -41,6 +41,8 @@ def _line_subtotal(line: CartLine) -> int:
 
 def compute_unit_price(*, base_price_vnd: int, option_deltas_vnd: Sequence[int]) -> int:
     """Unit price for one item line: base price plus the sum of selected option deltas."""
+    if base_price_vnd < 0 or any(d < 0 for d in option_deltas_vnd):
+        raise PricingError("VALIDATION_FAILED", "Price inputs must be non-negative.")
     return base_price_vnd + sum(option_deltas_vnd)
 
 

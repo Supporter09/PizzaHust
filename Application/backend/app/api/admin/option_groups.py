@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Literal
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -70,14 +70,14 @@ class OptionOut(BaseModel):
 class OptionIn(BaseModel):
     name: str
     description: str | None = None
-    price_delta_vnd: int = 0
+    price_delta_vnd: int = Field(default=0, ge=0)
     sort_order: int = 0
 
 
 class OptionPatch(BaseModel):
     name: str | None = None
     description: str | None = None
-    price_delta_vnd: int | None = None
+    price_delta_vnd: int | None = Field(default=None, ge=0)
     sort_order: int | None = None
 
 

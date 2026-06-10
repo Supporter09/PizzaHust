@@ -120,3 +120,23 @@ def test_item_options_put_unknown_option_404():
     pid = new_product(cid, "Margherita")
     r = c.put(f"/api/admin/items/{pid}/options", json={"option_ids": [12345]})
     assert r.status_code == 404
+
+
+def test_negative_price_delta_rejected_on_create():
+    c = admin_client("og-negdelta")
+    gid = new_option_group("Toppings", select_type="multi", required=False)
+    r = c.post(
+        f"/api/admin/option-groups/{gid}/options",
+        json={"name": "Bad", "price_delta_vnd": -1_000},
+    )
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"
+
+
+def test_negative_price_delta_rejected_on_patch():
+    c = admin_client("og-negdelta-patch")
+    gid = new_option_group("Toppings", select_type="multi", required=False)
+    oid = new_option(gid, "Cheese", price_delta_vnd=15_000)
+    r = c.patch(f"/api/admin/options/{oid}", json={"price_delta_vnd": -1})
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"
