@@ -54,6 +54,10 @@ order_item_options               -- snapshot at order time; replaces size/crust 
   price_delta_vnd  int
 ```
 
+Snapshot ordering contract: rows are inserted in `(group.sort_order, option.sort_order)`
+order at write time; all readers (cart lines, kitchen cards, line-text composition) order by
+`id`. Display stays stable after later group/option renames or deletes — no extra columns.
+
 `order_items.size_id`, `order_items.crust_id`, and table `order_item_toppings` are dropped.
 
 ### Migration `0005_generic_options` (one revision)
@@ -92,8 +96,10 @@ Only options enabled for the dish; groups with zero enabled options omitted. Any
 have options — `is_pizza` no longer gates the options query.
 
 **`POST /api/cart/quote`** line becomes `{kind, product_id, qty, option_ids: [int]}`
-(drops `size`/`crust`/`topping_ids`; breaking is acceptable — U5 unbuilt). 422 error-envelope
-codes: `option_not_available`, `required_group_missing`, `single_group_conflict`.
+(drops `size`/`crust`/`topping_ids`; breaking is acceptable — U5 unbuilt). The server
+**dedupes** `option_ids` before validation and pricing (duplicates can never double-charge).
+422 error-envelope codes: `option_not_available`, `required_group_missing`,
+`single_group_conflict`.
 
 **Admin** — `/api/admin/sizes|crusts|toppings` routers removed. New:
 
@@ -104,9 +110,19 @@ codes: `option_not_available`, `required_group_missing`, `single_group_conflict`
 | `GET /api/admin/items/{pid}/options` | all groups+options with per-dish `enabled` flags (editor view) |
 | `PUT /api/admin/items/{pid}/options` | replace enabled set `{option_ids: []}` |
 
+Group payloads: `POST /api/admin/option-groups` takes
+`{name, select_type: "single"|"multi", required: bool, sort_order?: int}`;
+`PATCH` accepts any subset of the same fields. Option payloads:
+`{name, description?, price_delta_vnd, sort_order?}` (create), partial on `PATCH`.
+
+`POST /api/admin/import/toppings` is **removed** along with the `Topping` model
+(`bulk_import.py` keeps only the dish import — the v2 `Design/admin-import.html` is
+dish-CSV only). Its CONTRACTS.md rows and tests go with it.
+
 409 on duplicate names within scope (mirrors current options router). No delete guards
-against order history (snapshot). After route changes: `python -m app.tools.dump_openapi >
-openapi.json`, `npm run gen:types`, rewrite CONTRACTS.md A2 + item-detail + cart-quote sections.
+against order history (snapshot). After route changes, from `Application/backend` (venv):
+`python -m app.tools.dump_openapi > ../openapi.json`; then from `Application/frontend`:
+`npm run gen:types`. Rewrite CONTRACTS.md A2 + item-detail + cart-quote + bulk-import sections.
 
 ## Frontend (Next.js App Router + Tailwind 4 + generated types — existing stack only)
 
@@ -122,6 +138,9 @@ openapi.json`, `npm run gen:types`, rewrite CONTRACTS.md A2 + item-detail + cart
 - Dish basics + Options section: categories with inline rename, "+ Add Category", delete;
   option rows name/desc/delta editable (edits warn: shared across all dishes);
   per-dish enable toggle dims disabled rows.
+- Category header carries a `single`/`multi` segmented control + `required` checkbox
+  (set at create, editable after). Small extension beyond the mock — the mock shows only
+  rename, but the model needs these to render radio vs checkbox chips.
 - "How it appears in cart & kitchen" preview via `composeLineText(name, selections)` in
   `frontend/lib/` (e.g. `Margherita Classic (M) · Regular crust · Extra Cheese`) — reused by
   cart in U5.
