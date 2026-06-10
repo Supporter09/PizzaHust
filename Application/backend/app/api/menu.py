@@ -6,6 +6,8 @@ directly, mirroring the admin routers (this codebase has no service layer).
 
 from __future__ import annotations
 
+from typing import Literal
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -49,7 +51,7 @@ class MenuOptionOut(BaseModel):
 class MenuOptionGroupOut(BaseModel):
     group_id: int
     name: str
-    select_type: str
+    select_type: Literal["single", "multi"]
     required: bool
     options: list[MenuOptionOut]
 

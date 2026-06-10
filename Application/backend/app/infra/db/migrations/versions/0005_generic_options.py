@@ -80,9 +80,7 @@ def upgrade() -> None:
         sa.Column("option_name", sa.String(100), nullable=False),
         sa.Column("price_delta_vnd", sa.Integer, nullable=False),
     )
-    op.create_index(
-        "ix_order_item_options_order_item_id", "order_item_options", ["order_item_id"]
-    )
+    op.create_index("ix_order_item_options_order_item_id", "order_item_options", ["order_item_id"])
 
     conn = op.get_bind()
 
@@ -130,27 +128,23 @@ def upgrade() -> None:
     )
 
     _snap = (
-        "INSERT INTO order_item_options "
-        "(order_item_id, group_name, option_name, price_delta_vnd) "
+        "INSERT INTO order_item_options (order_item_id, group_name, option_name, price_delta_vnd) "
     )
     conn.execute(
         sa.text(
-            _snap
-            + "SELECT oi.order_item_id, 'Size', ps.name, ps.price_modifier_vnd "
+            _snap + "SELECT oi.order_item_id, 'Size', ps.name, ps.price_modifier_vnd "
             "FROM order_items oi JOIN pizza_sizes ps ON ps.size_id = oi.size_id"
         )
     )
     conn.execute(
         sa.text(
-            _snap
-            + "SELECT oi.order_item_id, 'Crust', pc.name, 0 "
+            _snap + "SELECT oi.order_item_id, 'Crust', pc.name, 0 "
             "FROM order_items oi JOIN pizza_crusts pc ON pc.crust_id = oi.crust_id"
         )
     )
     conn.execute(
         sa.text(
-            _snap
-            + "SELECT oit.order_item_id, 'Toppings', t.name, "
+            _snap + "SELECT oit.order_item_id, 'Toppings', t.name, "
             "oit.price_at_time_vnd * oit.quantity "
             "FROM order_item_toppings oit JOIN toppings t ON t.topping_id = oit.topping_id "
             "ORDER BY oit.order_item_id, oit.id"

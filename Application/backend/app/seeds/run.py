@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
+import structlog
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -115,7 +116,7 @@ def main() -> None:
     try:
         _seed(db, settings)
         db.commit()
-        print("seeds: done")
+        structlog.get_logger().info("seeds_done")
     except Exception:
         db.rollback()
         raise
