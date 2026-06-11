@@ -37,6 +37,15 @@ describe("setPickProduct / setPickOptions", () => {
     expect(s[11][0]).toEqual({ productId: 5, options: { 1: [11] } });
   });
 
+  it("is a no-op when re-picking the already-selected product", () => {
+    let s = initComboSelections(detail);
+    s = setPickProduct(s, 11, 0, 5);
+    s = setPickOptions(s, 11, 0, { 1: [11] });
+    const again = setPickProduct(s, 11, 0, 5);
+    expect(again).toBe(s);
+    expect(again[11][0].options).toEqual({ 1: [11] });
+  });
+
   it("does not mutate the previous state", () => {
     const a = initComboSelections(detail);
     const b = setPickProduct(a, 11, 0, 5);

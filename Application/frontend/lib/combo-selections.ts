@@ -47,6 +47,7 @@ export function setPickProduct(
   unit: number,
   productId: number,
 ): ComboSelections {
+  if (s[comboItemId][unit].productId === productId) return s;
   return updateUnit(s, comboItemId, unit, () => ({ productId, options: null }));
 }
 
