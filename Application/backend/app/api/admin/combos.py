@@ -3,21 +3,25 @@
 Status ([Scheduled, Active, Expired]) is derived at read-time from the validity
 window via app.domain.combos — there is no stored status and no scheduler. Price
 is never rejected (A4 warn-and-override; the frontend warns). A combo must hold
-at least 2 components and every component must be an existing, active product.
+at least 2 component units (sum of quantities) and every fixed component must be
+an existing, active product; choice-slots reference an active category with ≥
+one active product.
 """
 
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.core.errors import APIError
-from app.domain.combos import ComboStatus, combo_status
+from app.domain.combos import ComboStatus, combo_savings_vnd, combo_status
 from app.infra.auth import require_role
+from app.infra.db.combo_queries import slot_availability
 from app.infra.db.deps import get_db
 from app.infra.db.models import Combo, ComboItem, Product, User, UserRole
 
@@ -36,15 +40,32 @@ def _to_naive_utc(value: datetime | None) -> datetime | None:
     return value
 
 
-class ComboItemIn(BaseModel):
+class ProductComboItemIn(BaseModel):
+    kind: Literal["product"]
     product_id: int
-    quantity: int = 1
+    quantity: int = Field(default=1, ge=1)
+
+    model_config = {"extra": "forbid"}
+
+
+class CategoryComboItemIn(BaseModel):
+    kind: Literal["category"]
+    category_id: int
+    quantity: int = Field(default=1, ge=1)
+
+    model_config = {"extra": "forbid"}
+
+
+ComboItemIn = Annotated[ProductComboItemIn | CategoryComboItemIn, Field(discriminator="kind")]
 
 
 class ComboItemOut(BaseModel):
-    product_id: int
+    kind: Literal["product", "category"]
+    product_id: int | None = None
+    category_id: int | None = None
     quantity: int
     name: str
+    from_price_vnd: int | None = None
 
 
 class ComboIn(BaseModel):
@@ -86,6 +107,9 @@ class ComboOut(BaseModel):
     validity_start: datetime | None
     validity_end: datetime | None
     status: ComboStatus
+    image_url: str | None = None
+    items_total_vnd: int | None = None
+    savings_vnd: int | None = None
     items: list[ComboItemOut]
 
 
@@ -101,38 +125,71 @@ def _validate_range(start: datetime | None, end: datetime | None) -> None:
         )
 
 
-def _validate_items(db: Session, items: list[ComboItemIn]) -> None:
-    if len(items) < 2:
+def _validate_items(db: Session, items: list[ProductComboItemIn | CategoryComboItemIn]) -> None:
+    if sum(it.quantity for it in items) < 2:
         raise APIError(
             code="VALIDATION_FAILED",
-            message="A combo must contain at least 2 items.",
+            message="A combo must contain at least 2 component items.",
             status_code=400,
             details={"field": "items"},
         )
+    slot_ids = [it.category_id for it in items if isinstance(it, CategoryComboItemIn)]
+    availability = slot_availability(db, slot_ids)
     for it in items:
-        if it.quantity < 1:
+        if isinstance(it, ProductComboItemIn):
+            prod = db.get(Product, it.product_id)
+            if prod is None or not prod.is_active:
+                raise APIError(
+                    code="VALIDATION_FAILED",
+                    message="Every combo component must be an existing, active product.",
+                    status_code=400,
+                    details={"product_id": it.product_id},
+                )
+        elif availability[it.category_id] is None:
             raise APIError(
                 code="VALIDATION_FAILED",
-                message="Each combo item quantity must be at least 1.",
+                message="Slot category must be active and contain an active product.",
                 status_code=400,
-                details={"product_id": it.product_id, "field": "quantity"},
-            )
-        prod = db.get(Product, it.product_id)
-        if prod is None or not prod.is_active:
-            raise APIError(
-                code="VALIDATION_FAILED",
-                message="Every combo component must be an existing, active product.",
-                status_code=400,
-                details={"product_id": it.product_id},
+                details={"reason": "slot_category_unavailable", "category_id": it.category_id},
             )
 
 
-def _to_out(combo: Combo) -> ComboOut:
+def _to_out(db: Session, combo: Combo) -> ComboOut:
     status = combo_status(combo.validity_start, combo.validity_end, _now_utc_naive())
-    items = [
-        ComboItemOut(product_id=ci.product_id, quantity=ci.quantity, name=ci.product.name)
-        for ci in combo.combo_items
-    ]
+    rows = sorted(combo.combo_items, key=lambda ci: ci.combo_item_id)
+    slot_ids = [ci.category_id for ci in rows if ci.category_id is not None]
+    availability = slot_availability(db, slot_ids)
+    items: list[ComboItemOut] = []
+    for ci in rows:
+        if ci.product_id is not None:
+            items.append(
+                ComboItemOut(
+                    kind="product",
+                    product_id=ci.product_id,
+                    quantity=ci.quantity,
+                    name=ci.product.name,
+                )
+            )
+        else:
+            assert ci.category_id is not None
+            items.append(
+                ComboItemOut(
+                    kind="category",
+                    category_id=ci.category_id,
+                    quantity=ci.quantity,
+                    name=f"{ci.category.name} — customer's choice",
+                    from_price_vnd=availability[ci.category_id],
+                )
+            )
+    items_total: int | None = 0
+    for ci in rows:
+        if ci.product_id is not None:
+            items_total += ci.product.base_price_vnd * ci.quantity
+        elif availability[ci.category_id] is None:
+            items_total = None
+            break
+        else:
+            items_total += availability[ci.category_id] * ci.quantity
     return ComboOut(
         combo_id=combo.combo_id,
         name=combo.name,
@@ -142,6 +199,13 @@ def _to_out(combo: Combo) -> ComboOut:
         validity_start=combo.validity_start,
         validity_end=combo.validity_end,
         status=status,
+        image_url=combo.image_url,
+        items_total_vnd=items_total,
+        savings_vnd=(
+            combo_savings_vnd(combo.combo_price_vnd, items_total)
+            if items_total is not None
+            else None
+        ),
         items=items,
     )
 
@@ -150,7 +214,7 @@ def _to_out(combo: Combo) -> ComboOut:
 def list_combos(
     db: Session = Depends(get_db, scope="function"), _a: User = Depends(require_admin)
 ) -> list[ComboOut]:
-    return [_to_out(c) for c in db.scalars(select(Combo).order_by(Combo.combo_id)).all()]
+    return [_to_out(db, c) for c in db.scalars(select(Combo).order_by(Combo.combo_id)).all()]
 
 
 @router.post("", response_model=ComboOut, status_code=201)
@@ -172,9 +236,16 @@ def create_combo(
     db.add(combo)
     db.flush()
     for it in body.items:
-        db.add(ComboItem(combo_id=combo.combo_id, product_id=it.product_id, quantity=it.quantity))
+        db.add(
+            ComboItem(
+                combo_id=combo.combo_id,
+                product_id=it.product_id if isinstance(it, ProductComboItemIn) else None,
+                category_id=it.category_id if isinstance(it, CategoryComboItemIn) else None,
+                quantity=it.quantity,
+            )
+        )
     db.flush()
-    return _to_out(combo)
+    return _to_out(db, combo)
 
 
 @router.get("/{combo_id}", response_model=ComboOut)
@@ -186,7 +257,7 @@ def get_combo(
     combo = db.get(Combo, combo_id)
     if combo is None:
         raise APIError(code="NOT_FOUND", message="Combo not found.", status_code=404)
-    return _to_out(combo)
+    return _to_out(db, combo)
 
 
 @router.patch("/{combo_id}", response_model=ComboOut)
@@ -223,10 +294,17 @@ def patch_combo(
         db.execute(delete(ComboItem).where(ComboItem.combo_id == combo_id))
         db.flush()
         for it in body.items:
-            db.add(ComboItem(combo_id=combo_id, product_id=it.product_id, quantity=it.quantity))
+            db.add(
+                ComboItem(
+                    combo_id=combo_id,
+                    product_id=it.product_id if isinstance(it, ProductComboItemIn) else None,
+                    category_id=it.category_id if isinstance(it, CategoryComboItemIn) else None,
+                    quantity=it.quantity,
+                )
+            )
         db.flush()
         db.refresh(combo)
-    return _to_out(combo)
+    return _to_out(db, combo)
 
 
 @router.delete("/{combo_id}", status_code=204)
