@@ -107,6 +107,7 @@ export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
                 />
               ) : null}
               {unit.productId !== null ? (
+                /* keyed by product: PickOptions assumes a fixed productId per mount */
                 <PickOptions
                   key={unit.productId}
                   productId={unit.productId}

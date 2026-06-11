@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { OptionGroupSelector } from "@/components/menu/option-group-selector";
 import { fetchItem, type MenuItemDetail } from "@/lib/api/menu";
 import { defaultOptionSelections } from "@/lib/option-defaults";
 
+// The parent MUST remount this component (it keys it by productId) when the
+// pick's product changes — detail loading and options init assume productId
+// is fixed for the component lifetime.
 type Props = {
   productId: number;
   options: Record<number, number[]> | null;
@@ -17,21 +20,23 @@ const detailCache = new Map<number, MenuItemDetail>();
 export function PickOptions({ productId, options, onOptionsChange }: Props) {
   const [detail, setDetail] = useState<MenuItemDetail | null>(detailCache.get(productId) ?? null);
   const [failed, setFailed] = useState(false);
-  const latest = useRef(productId);
 
   useEffect(() => {
-    latest.current = productId;
     if (detailCache.get(productId)) {
       return;
     }
+    let active = true;
     fetchItem(productId)
       .then((d) => {
         detailCache.set(productId, d);
-        if (latest.current === productId) setDetail(d);
+        if (active) setDetail(d);
       })
       .catch(() => {
-        if (latest.current === productId) setFailed(true);
+        if (active) setFailed(true);
       });
+    return () => {
+      active = false;
+    };
   }, [productId]);
 
   useEffect(() => {
