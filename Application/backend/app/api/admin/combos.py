@@ -10,10 +10,12 @@ one active product.
 
 from __future__ import annotations
 
+import os
+import uuid
 from datetime import UTC, datetime
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
@@ -21,12 +23,15 @@ from sqlalchemy.orm import Session
 from app.core.errors import APIError
 from app.domain.combos import ComboStatus, combo_savings_vnd, combo_status
 from app.infra.auth import require_role
+from app.infra.config import get_settings
 from app.infra.db.combo_queries import slot_availability
 from app.infra.db.deps import get_db
 from app.infra.db.models import Combo, ComboItem, Product, User, UserRole
 
 router = APIRouter(prefix="/api/admin/combos", tags=["admin-combos"])
 require_admin = require_role(UserRole.ADMIN)
+
+_ALLOWED_IMAGE_EXT = {"png", "jpg", "jpeg", "webp"}
 
 
 def _now_utc_naive() -> datetime:
@@ -318,3 +323,44 @@ def delete_combo(
         raise APIError(code="NOT_FOUND", message="Combo not found.", status_code=404)
     db.execute(delete(ComboItem).where(ComboItem.combo_id == combo_id))
     db.delete(combo)
+
+
+@router.post("/{combo_id}/image")
+def upload_combo_image(
+    combo_id: int,
+    image: UploadFile = File(...),
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
+) -> dict[str, str]:
+    combo = db.get(Combo, combo_id)
+    if combo is None:
+        raise APIError(code="NOT_FOUND", message="Combo not found.", status_code=404)
+    settings = get_settings()
+    ext = (image.filename or "").rsplit(".", 1)[-1].lower()
+    if ext not in _ALLOWED_IMAGE_EXT:
+        raise APIError(
+            code="VALIDATION_FAILED",
+            message="Unsupported image type. Allowed: png, jpg, jpeg, webp.",
+            status_code=400,
+        )
+    data = image.file.read(settings.image_max_bytes + 1)
+    if len(data) > settings.image_max_bytes:
+        raise APIError(code="VALIDATION_FAILED", message="Image too large.", status_code=400)
+    os.makedirs(settings.image_upload_dir, exist_ok=True)
+    fname = f"{uuid.uuid4().hex}.{ext}"
+    with open(os.path.join(settings.image_upload_dir, fname), "wb") as f:
+        f.write(data)
+    combo.image_url = f"{settings.image_base_url}/{fname}"
+    return {"image_url": combo.image_url}
+
+
+@router.delete("/{combo_id}/image", status_code=204)
+def delete_combo_image(
+    combo_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
+) -> None:
+    combo = db.get(Combo, combo_id)
+    if combo is None:
+        raise APIError(code="NOT_FOUND", message="Combo not found.", status_code=404)
+    combo.image_url = None
