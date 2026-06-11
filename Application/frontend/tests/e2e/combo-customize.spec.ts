@@ -6,7 +6,7 @@ test.describe("U15 — Customize Combo", () => {
     const card = page
       .locator("article")
       .filter({ has: page.getByRole("heading", { name: "Pick-Any Feast" }) });
-    await card.getByRole("link", { name: "Customize" }).click();
+    await card.getByRole("link", { name: "Order Now — Pick-Any Feast" }).click();
     await expect(page).toHaveURL(/\/combos\/\d+$/);
 
     const estimate = page.getByTestId("combo-estimate");

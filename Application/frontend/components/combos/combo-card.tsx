@@ -1,46 +1,70 @@
 import Link from "next/link";
 
 import { formatVnd } from "@/lib/format";
-import { formatComboComponent } from "@/lib/format-combo-component";
 import type { PublicCombo } from "@/lib/api/combos";
 
 export function ComboCard({ combo }: { combo: PublicCombo }) {
-  const cover = combo.items.find((i) => i.image_url)?.image_url ?? null;
+  const cover = combo.image_url ?? combo.items.find((i) => i.image_url)?.image_url ?? null;
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-line bg-card">
-      {cover ? (
-        <img src={cover} alt={combo.name} loading="lazy" className="h-48 w-full object-cover" />
-      ) : (
-        <div className="flex h-48 w-full items-center justify-center bg-surface-active text-sm text-muted">
-          No image
-        </div>
-      )}
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-fg">{combo.name}</h3>
-          {combo.savings_vnd > 0 ? (
-            <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
-              Save {formatVnd(combo.savings_vnd)}
-            </span>
-          ) : null}
-        </div>
+      <div className="relative">
+        {cover ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={cover}
+            alt={combo.name}
+            loading="lazy"
+            className="aspect-[16/7] w-full object-cover"
+          />
+        ) : (
+          <div className="flex aspect-[16/7] w-full items-center justify-center bg-surface-active text-sm text-muted">
+            No image
+          </div>
+        )}
+        {combo.savings_vnd > 0 ? (
+          <span className="absolute right-3 top-3 rounded-full bg-warning-subtle px-3 py-1.5 text-xs font-bold text-warning">
+            Save {formatVnd(combo.savings_vnd)}
+          </span>
+        ) : null}
+      </div>
+      <div className="flex flex-1 flex-col gap-3 p-5">
+        <h3 className="text-xl font-bold text-fg">{combo.name}</h3>
         {combo.description ? <p className="text-sm text-muted">{combo.description}</p> : null}
-        <ul className="text-sm text-muted">
+        <ul className="grid gap-2.5 rounded-xl border border-line bg-surface p-4">
           {combo.items.map((it, i) => (
-            <li key={i}>{formatComboComponent(it)}</li>
+            <li key={i} className="flex items-center gap-3 text-sm text-fg">
+              {it.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={it.image_url}
+                  alt=""
+                  className="h-9 w-9 shrink-0 rounded-lg object-cover"
+                />
+              ) : (
+                <span aria-hidden="true" className="h-9 w-9 shrink-0 rounded-lg bg-surface-active" />
+              )}
+              <span className="min-w-7 font-bold">{it.quantity}×</span>
+              <span>{it.name}</span>
+            </li>
           ))}
         </ul>
-        <div className="mt-auto flex items-center gap-2 pt-2">
-          <span className="text-lg font-bold text-brand">{formatVnd(combo.combo_price_vnd)}</span>
-          {combo.savings_vnd > 0 ? (
-            <span className="text-sm text-muted line-through">{formatVnd(combo.items_total_vnd)}</span>
-          ) : null}
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-1">
+          <p className="flex flex-wrap items-baseline gap-2.5">
+            {combo.savings_vnd > 0 ? (
+              <span className="text-sm text-muted line-through">
+                {formatVnd(combo.items_total_vnd)}
+              </span>
+            ) : null}
+            <span className="text-2xl font-extrabold text-brand-fg">
+              {formatVnd(combo.combo_price_vnd)}
+            </span>
+          </p>
           <Link
             href={`/combos/${combo.combo_id}`}
-            aria-label={`Customize ${combo.name}`}
-            className="btn-primary ml-auto inline-flex h-11 items-center px-4 text-sm"
+            aria-label={`Order Now — ${combo.name}`}
+            className="btn-primary inline-flex h-11 items-center px-5 text-sm"
           >
-            Customize
+            Order Now
           </Link>
         </div>
       </div>

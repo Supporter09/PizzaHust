@@ -28,7 +28,12 @@ export default function CombosPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-3xl font-bold text-fg">Combo Promotions</h1>
+      <header className="rounded-2xl bg-gradient-to-b from-warning-subtle to-surface px-6 py-10 sm:px-8">
+        <h1 className="text-3xl font-extrabold tracking-tight text-fg sm:text-4xl">
+          Combo Promotions
+        </h1>
+        <p className="mt-2 text-muted">Bundle up and save — limited-time combo deals.</p>
+      </header>
 
       {status === "error" ? (
         <div className="rounded-md border border-danger bg-danger-subtle px-4 py-3 text-sm text-fg">
@@ -40,9 +45,9 @@ export default function CombosPage() {
       ) : null}
 
       {status === "loading" ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-80 animate-pulse rounded-2xl bg-surface-active" />
+        <div className="grid gap-6 lg:grid-cols-2">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="h-96 animate-pulse rounded-2xl bg-surface-active" />
           ))}
         </div>
       ) : null}
@@ -52,7 +57,7 @@ export default function CombosPage() {
       ) : null}
 
       {status === "ready" && combos.length > 0 ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-2">
           {combos.map((combo) => (
             <ComboCard key={combo.combo_id} combo={combo} />
           ))}
