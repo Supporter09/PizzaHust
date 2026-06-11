@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { formatVnd } from "@/lib/format";
 import { formatComboComponent } from "@/lib/format-combo-component";
 import type { PublicCombo } from "@/lib/api/combos";
@@ -28,11 +30,17 @@ export function ComboCard({ combo }: { combo: PublicCombo }) {
             <li key={i}>{formatComboComponent(it)}</li>
           ))}
         </ul>
-        <div className="mt-auto flex items-baseline gap-2 pt-2">
+        <div className="mt-auto flex items-center gap-2 pt-2">
           <span className="text-lg font-bold text-brand">{formatVnd(combo.combo_price_vnd)}</span>
           {combo.savings_vnd > 0 ? (
             <span className="text-sm text-muted line-through">{formatVnd(combo.items_total_vnd)}</span>
           ) : null}
+          <Link
+            href={`/combos/${combo.combo_id}`}
+            className="btn-primary ml-auto inline-flex h-11 items-center px-4 text-sm"
+          >
+            Customize
+          </Link>
         </div>
       </div>
     </article>
