@@ -9,6 +9,7 @@ import { ApiClientError } from "@/lib/api/client";
 import { quoteCart } from "@/lib/api/cart";
 import { fetchItem, type MenuItemDetail } from "@/lib/api/menu";
 import { formatVnd } from "@/lib/format";
+import { defaultOptionSelections } from "@/lib/option-defaults";
 
 type Status = "loading" | "ready" | "notfound" | "error";
 
@@ -32,14 +33,7 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
     fetchItem(numericId)
       .then((data) => {
         setItem(data);
-        const initial: Record<number, number[]> = {};
-        for (const g of data.option_groups) {
-          initial[g.group_id] =
-            g.select_type === "single" && g.required && g.options.length > 0
-              ? [g.options[0].option_id]
-              : [];
-        }
-        setSelections(initial);
+        setSelections(defaultOptionSelections(data.option_groups));
         setQuantity(1);
         if (data.option_groups.length === 0) {
           setEstimate(null);
