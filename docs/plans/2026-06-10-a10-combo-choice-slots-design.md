@@ -42,14 +42,21 @@ combos
 
 - `product_id` set → **fixed component** (every existing row, untouched).
 - `category_id` set → **choice slot**: any active product in the category, × quantity.
-- **Reference price** (per slot) = `MIN(base_price_vnd)` over *active* products
-  in the category. Computed at read/quote time. Never stored.
+- A slot is **available** iff its category exists, is **active**
+  (`categories.is_active`), and contains ≥ 1 active product. An unavailable
+  slot makes the combo unpurchasable everywhere (admin validation, public
+  list/detail, cart quote) — one predicate, one definition.
+- **Reference price** (per available slot) = `MIN(base_price_vnd)` over active
+  products in the category. Computed at read/quote time. Never stored.
 - **Surcharge** (per pick) = `max(0, base_price_vnd − reference)`.
 - Component display order everywhere = `combo_item_id` ascending (matches the
   existing public-combos rule).
-- Order history needs no new snapshot tables: resolved picks become
-  `order_items` rows (with `combo_id` already present) and options snapshot via
-  `order_item_options` (A8). Checkout wiring itself is U6, out of A10.
+- **Order persistence is NOT solved by this schema.** `order_items` enforces a
+  strict XOR between `product_id` and `combo_id` (CHECK `product_or_combo`),
+  but a resolved pick needs both the product identity and the combo
+  association. U6 must extend the order schema (e.g. relax the XOR and add a
+  parent-line reference, or add a combo-pick snapshot table). A10 changes no
+  order tables and makes no sufficiency claim.
 
 **Migration `0006_combo_choice_slots`** (single revision):
 1. `combo_items.product_id` → nullable.
@@ -66,6 +73,13 @@ All error responses use the closed envelope: `{code, message, details?}` with
 `code = "VALIDATION_FAILED"` (400) and a **closed** `details.reason` set listed
 below. `NOT_FOUND` (404) / `CONFLICT` (409) as today.
 
+**Schema-level vs semantic validation.** Closed reasons apply to *semantic*
+checks only. Shape failures caught by pydantic (wrong/missing id for a `kind`,
+forbidden extras, bad types) route through `RequestValidationError`, which this
+app serializes as 400 `VALIDATION_FAILED` with `details.errors` (the pydantic
+error list) — same as A8's negative-delta handling. Clients branch on
+`details.reason` only for semantic failures.
+
 ### 2.1 Admin `/api/admin/combos` (existing router, extended)
 
 Component shape gains a `kind` discriminator (mirrors the A8 cart-line style):
@@ -81,8 +95,10 @@ Component shape gains a `kind` discriminator (mirrors the A8 cart-line style):
  "name": "Drinks — customer's choice", "from_price_vnd": 15000}
 ```
 
-- Schema: `kind` decides which id field is required; the other must be absent
-  (pydantic discriminated union or validator — 400 on mismatch).
+- Schema: pydantic **discriminated union** on `kind`
+  (`ProductComboItemIn | CategoryComboItemIn`), `model_config =
+  {"extra": "forbid"}` on both variants — wrong/extra id fields are
+  schema-level failures (`details.errors`, see §2 preamble).
 - `from_price_vnd` present only on `kind:"category"` rows.
 - `ComboOut` gains `image_url: str | null`.
 
@@ -90,9 +106,9 @@ Validation on create/patch (replace-items semantics unchanged):
 - **Rule change vs A4:** minimum is now `sum(quantity) ≥ 2` across components
   (was `len(items) ≥ 2`). "2× any pizza" as one row is a valid combo.
 - Fixed component: product exists and is active (unchanged).
-- Slot component: category must exist **and have ≥ 1 active product** at
-  validation time. Both failures (unknown category, empty category) →
-  `VALIDATION_FAILED` with reason `slot_category_empty` and
+- Slot component: the slot must be **available** (§1: category exists, is
+  active, has ≥ 1 active product) at validation time. All three failures →
+  `VALIDATION_FAILED` with reason `slot_category_unavailable` and
   `details.category_id`, consistent with A4's item validation (no 404s for
   body-referenced ids).
 - `quantity ≥ 1` per component (unchanged).
@@ -100,23 +116,25 @@ Validation on create/patch (replace-items semantics unchanged):
   Σ slot `reference × qty`. Over-priced combos still **accepted** (A4 rule).
 
 **Image:** `POST /api/admin/combos/{combo_id}/image` — multipart, mirrors the
-existing admin item-image endpoint (same size/type limits, same storage dir,
-returns updated `ComboOut`). `DELETE /api/admin/combos/{combo_id}/image`
-clears it. `image_url` is never set directly via `ComboIn`/`ComboPatch`.
+existing admin item-image endpoint exactly (same size/type limits, same
+storage dir, returns `{"image_url": str}` like `items.py`).
+`DELETE /api/admin/combos/{combo_id}/image` clears it → 204. `image_url` is
+never set directly via `ComboIn`/`ComboPatch`.
 
 ### 2.2 Public `GET /api/combos` (existing, extended)
 
 - Slot items: `{"kind": "category", "category_id", "name", "quantity",
   "from_price_vnd"}`; fixed items keep today's shape plus `kind: "product"`.
 - `items_total_vnd` = Σ fixed `base × qty` + Σ slot `reference × qty`.
-- Combo **skipped** when any slot's category has zero active products
-  (mirrors the existing inactive-fixed-product skip).
+- Combo **skipped** when any slot is unavailable (§1 predicate — unknown,
+  inactive, or empty category; mirrors the existing inactive-fixed-product
+  skip).
 - `PublicComboOut` gains `image_url`.
 
 ### 2.3 Public `GET /api/combos/{combo_id}` (new)
 
 Customizer data source. 404 (`NOT_FOUND`) unless the combo is Active and
-purchasable (every fixed product active, every slot category non-empty) — same
+purchasable (every fixed product active, every slot available per §1) — same
 predicate as list inclusion.
 
 ```jsonc
@@ -168,14 +186,19 @@ Semantics:
   pick's product enablement via A8 `validate_option_selection` (A8 reasons
   reused: `option_not_available`, `required_group_missing`,
   `single_group_conflict`).
-- `item_id`/`option_ids` at line level are invalid on combo lines (schema).
+- Line schema becomes an explicit **discriminated union on `kind`**:
+  `ItemQuoteLineIn` (today's fields: `item_id`, `option_ids`, `quantity`) |
+  `ComboQuoteLineIn` (`combo_id`, `selections`, `quantity`), both with
+  `model_config = {"extra": "forbid"}`. `item_id`/line-level `option_ids` on a
+  combo line (or `combo_id`/`selections` on an item line) are schema-level
+  failures → `details.errors`, not a closed reason (§2 preamble).
 
 New closed `details.reason` values (with `combo_item_id` / `product_id`
 context where applicable):
 
 | reason | when |
 |---|---|
-| `combo_not_active` | combo unknown, outside validity window, or not purchasable (inactive fixed product / empty slot category) |
+| `combo_not_active` | combo unknown, outside validity window, or not purchasable (inactive fixed product / unavailable slot per §1) |
 | `component_selection_missing` | a `combo_item_id` has no selection, is duplicated, or is unknown |
 | `pick_count_mismatch` | `len(picks) != component.quantity` |
 | `product_not_in_slot_category` | slot pick outside category or inactive |
@@ -258,12 +281,13 @@ public list/detail, and later U15 real data.
 - **Domain unit:** reference/surcharge math, `combo_line_pricing` arithmetic +
   negative-input guards, `validate_combo_selections` matrix — one test per
   reason plus happy path.
-- **Admin router:** slot CRUD round-trip, `slot_category_empty`,
-  `sum(quantity) ≥ 2` boundary (1 row × qty 2 passes; single qty-1 row fails),
-  kind/id mismatch 400s, image upload + clear, `from_price_vnd` correctness.
+- **Admin router:** slot CRUD round-trip, `slot_category_unavailable` (each of
+  unknown / inactive / empty category), `sum(quantity) ≥ 2` boundary (1 row ×
+  qty 2 passes; single qty-1 row fails), kind/id mismatch → 400 with
+  `details.errors`, image upload + DELETE clear, `from_price_vnd` correctness.
 - **Public:** list shows slot items with `from_price_vnd`; combo skipped when
-  slot category emptied; detail eligible-products + surcharges + 404 for
-  non-Active; `image_url` passthrough.
+  slot category emptied **or deactivated**; detail eligible-products +
+  surcharges + 404 for non-Active; `image_url` passthrough.
 - **Cart quote:** happy path (mixed fixed+slot, option deltas, surcharge,
   quantity > 1), every new reason, discount/subtotal arithmetic, per-pick
   option dedupe, option errors inside picks surface A8 reasons.
@@ -276,7 +300,9 @@ public list/detail, and later U15 real data.
 ## 7. Out of scope
 
 - Customer customizer page (`combo-customize.html`) — U15.
-- Checkout/order persistence of resolved combos — U6 (schema already suffices).
+- Checkout/order persistence of resolved combos — U6, which **must extend the
+  order schema** (`order_items` XOR `product_or_combo` cannot hold a pick that
+  is both combo-associated and product-identified; see §1).
 - Curated per-slot product lists (join table) — possible later extension;
   schema unaffected.
 - Multi-image for combos — A9 territory; single `image_url` only.
