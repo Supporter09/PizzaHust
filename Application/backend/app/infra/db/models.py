@@ -229,6 +229,7 @@ class Combo(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     combo_price_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
     target_group: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    image_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     validity_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
     validity_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
 
@@ -237,15 +238,28 @@ class Combo(Base):
 
 
 class ComboItem(Base):
+    """Fixed component (product_id) XOR choice slot (category_id). A slot means
+    "any active product from this category × quantity"; see domain/combo_slots."""
+
     __tablename__ = "combo_items"
+    __table_args__ = (
+        CheckConstraint(
+            "(product_id IS NULL) != (category_id IS NULL)",
+            name="ck_combo_items_kind",
+        ),
+    )
 
     combo_item_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     combo_id: Mapped[int] = mapped_column(ForeignKey("combos.combo_id"), nullable=False)
-    product_id: Mapped[int] = mapped_column(ForeignKey("products.product_id"), nullable=False)
+    product_id: Mapped[int | None] = mapped_column(ForeignKey("products.product_id"), nullable=True)
+    category_id: Mapped[int | None] = mapped_column(
+        ForeignKey("categories.category_id"), nullable=True
+    )
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
 
     combo: Mapped[Combo] = relationship(back_populates="combo_items")
-    product: Mapped[Product] = relationship(back_populates="combo_items")
+    product: Mapped[Product | None] = relationship(back_populates="combo_items")
+    category: Mapped[Category | None] = relationship()
 
 
 class Order(Base):
