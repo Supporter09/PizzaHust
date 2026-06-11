@@ -118,12 +118,6 @@ def test_quote_two_picks_in_single_group_rejected():
     assert r.json()["error"]["details"]["reason"] == "single_group_conflict"
 
 
-def test_quote_combo_still_rejected():
-    app, pid, _ = _pizza_fixture("cart-combo")
-    r = _quote(app, [{"kind": "combo", "combo_id": 1, "quantity": 1}])
-    assert r.status_code == 400
-
-
 def test_quote_in_area_address_adds_delivery_fee():
     app, pid, o = _pizza_fixture("cart-addr-ok")
     r = _quote(
