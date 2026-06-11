@@ -21,13 +21,9 @@ export function PickOptions({ productId, options, onOptionsChange }: Props) {
 
   useEffect(() => {
     latest.current = productId;
-    const cached = detailCache.get(productId);
-    if (cached) {
-      setDetail(cached);
+    if (detailCache.get(productId)) {
       return;
     }
-    setDetail(null);
-    setFailed(false);
     fetchItem(productId)
       .then((d) => {
         detailCache.set(productId, d);
