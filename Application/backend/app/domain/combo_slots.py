@@ -58,3 +58,71 @@ def combo_line_pricing(
         line_charged_vnd=charged,
         discount_vnd=max(0, full - charged),
     )
+
+
+@dataclass(frozen=True)
+class ComboComponentDef:
+    """One combo component as the validator sees it. Exactly one of
+    fixed_product_id / eligible_product_ids is set (mirrors the DB CHECK);
+    eligible_product_ids holds the slot category's ACTIVE products."""
+
+    combo_item_id: int
+    quantity: int
+    fixed_product_id: int | None
+    eligible_product_ids: frozenset[int] | None
+
+
+@dataclass(frozen=True)
+class SelectionPicks:
+    combo_item_id: int
+    product_ids: list[int]
+
+
+@dataclass(frozen=True)
+class ComboSelectionError:
+    reason: str
+    combo_item_id: int | None = None
+    product_id: int | None = None
+
+
+def validate_combo_selections(
+    components: Sequence[ComboComponentDef],
+    selections: Sequence[SelectionPicks],
+) -> ComboSelectionError | None:
+    """Structural checks for one combo unit: every component selected exactly
+    once, pick counts match quantities, picks belong to the component. Option
+    validation per pick is the caller's job (A8 validate_option_selection)."""
+    by_component: dict[int, SelectionPicks] = {}
+    known = {c.combo_item_id for c in components}
+    for sel in selections:
+        if sel.combo_item_id not in known or sel.combo_item_id in by_component:
+            return ComboSelectionError(
+                reason="component_selection_missing", combo_item_id=sel.combo_item_id
+            )
+        by_component[sel.combo_item_id] = sel
+
+    for comp in components:
+        pick = by_component.get(comp.combo_item_id)
+        if pick is None:
+            return ComboSelectionError(
+                reason="component_selection_missing", combo_item_id=comp.combo_item_id
+            )
+        if len(pick.product_ids) != comp.quantity:
+            return ComboSelectionError(
+                reason="pick_count_mismatch", combo_item_id=comp.combo_item_id
+            )
+        for pid in pick.product_ids:
+            if comp.fixed_product_id is not None:
+                if pid != comp.fixed_product_id:
+                    return ComboSelectionError(
+                        reason="product_mismatch_fixed_component",
+                        combo_item_id=comp.combo_item_id,
+                        product_id=pid,
+                    )
+            elif comp.eligible_product_ids is None or pid not in comp.eligible_product_ids:
+                return ComboSelectionError(
+                    reason="product_not_in_slot_category",
+                    combo_item_id=comp.combo_item_id,
+                    product_id=pid,
+                )
+    return None
