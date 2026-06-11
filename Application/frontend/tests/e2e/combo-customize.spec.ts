@@ -27,8 +27,11 @@ test.describe("U15 — Customize Combo", () => {
     await expect(estimate).toHaveText(/₫/, { timeout: 10_000 });
     const baseline = await estimate.textContent();
 
-    // A premium pick (chip labelled with a surcharge) must raise the total.
-    const premium = page.getByTestId("slot-pick").filter({ hasText: "+" }).first();
+    // A premium pick (chip labelled with a surcharge) must change the total.
+    const premium = page
+      .getByRole("radio", { checked: false })
+      .filter({ hasText: "+" })
+      .first();
     if ((await premium.count()) > 0) {
       await premium.click();
       await expect(estimate).not.toHaveText(baseline ?? "", { timeout: 10_000 });
