@@ -287,17 +287,11 @@ def _seed(db: Session, settings: Settings) -> None:
         )
         db.add(combo3)
         db.flush()
+        db.add(ComboItem(combo_id=combo3.combo_id, category_id=cat_pizza.category_id, quantity=2))
         db.add(
-            ComboItem(combo_id=combo3.combo_id, category_id=cat_pizza.category_id, quantity=2)
+            ComboItem(combo_id=combo3.combo_id, product_id=side_products[0].product_id, quantity=1)
         )
-        db.add(
-            ComboItem(
-                combo_id=combo3.combo_id, product_id=side_products[0].product_id, quantity=1
-            )
-        )
-        db.add(
-            ComboItem(combo_id=combo3.combo_id, category_id=cat_drinks.category_id, quantity=2)
-        )
+        db.add(ComboItem(combo_id=combo3.combo_id, category_id=cat_drinks.category_id, quantity=2))
 
     # ── Demo orders ────────────────────────────────────────────────
     # Deterministic order codes keyed by (user_id, days_ago) so re-seeding is a
