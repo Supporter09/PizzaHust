@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 
 import { AuthProvider } from "@/components/auth-provider";
+import { CartProvider } from "@/components/cart-provider";
 import { ThemeBootstrap } from "@/components/theme-bootstrap";
 import { TopNav } from "@/components/top-nav";
 import { bootstrapTheme } from "@/lib/theme";
@@ -33,8 +34,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <ThemeBootstrap />
         <AuthProvider>
-          <TopNav />
-          <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">{children}</main>
+          <CartProvider>
+            <TopNav />
+            <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">{children}</main>
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

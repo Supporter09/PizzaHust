@@ -21,6 +21,7 @@ from app.domain.order_state import (
 from app.infra.config import get_settings
 from app.infra.db.deps import get_db
 from app.infra.db.models import Order, OrderStatus, OrderTracking, WebhookEvent
+from app.services.orders import accrue_loyalty_on_delivered
 
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
 
@@ -98,3 +99,8 @@ async def delivery_webhook(
             note=f"delivery webhook: {event.state}",
         )
     )
+
+    # Credit loyalty exactly on the Delivering -> Delivered edge. The transition
+    # guard above means a duplicate/late Delivered event is already a no-op here.
+    if new_status == OrderStatus.DELIVERED:
+        accrue_loyalty_on_delivered(db, order)

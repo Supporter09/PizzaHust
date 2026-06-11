@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useAuth } from "@/components/auth-provider";
+import { useCart } from "@/components/cart-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 function navClass(active: boolean): string {
@@ -17,6 +18,7 @@ export function TopNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
+  const { count } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -25,9 +27,23 @@ export function TopNav() {
     router.push("/login");
   };
 
+  // Primary links everyone sees, then role/auth-specific entries.
+  const primaryLinks = [
+    { href: "/menu", label: "Menu" },
+    { href: "/combos", label: "Combos" },
+    { href: "/track", label: "Track" },
+  ];
+  const roleLinks = [
+    ...(user?.role === "kitchen" || user?.role === "admin"
+      ? [{ href: "/kitchen", label: "Kitchen" }]
+      : []),
+    ...(user?.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []),
+    ...(user ? [{ href: "/orders", label: "My Orders" }] : []),
+  ];
   const links = user
-    ? [{ href: "/account", label: "Account" }]
+    ? [...roleLinks, { href: "/account", label: "Account" }]
     : [
+        ...roleLinks,
         { href: "/login", label: "Login" },
         { href: "/register", label: "Register" },
       ];
@@ -46,9 +62,11 @@ export function TopNav() {
           <Link href="/" className={navClass(pathname === "/")}>
             Home
           </Link>
-          <Link href="/combos" className={navClass(pathname === "/combos")}>
-            Combos
-          </Link>
+          {primaryLinks.map((link) => (
+            <Link key={link.href} href={link.href} className={navClass(pathname === link.href)}>
+              {link.label}
+            </Link>
+          ))}
           {links.map((link) => (
             <Link key={link.href} href={link.href} className={navClass(pathname === link.href)}>
               {link.label}
@@ -59,6 +77,18 @@ export function TopNav() {
               Logout
             </button>
           ) : null}
+          <Link
+            href="/cart"
+            className={`relative inline-flex items-center ${navClass(pathname === "/cart")}`}
+            aria-label={`Cart, ${count} item${count === 1 ? "" : "s"}`}
+          >
+            Cart
+            {count > 0 ? (
+              <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-semibold text-on-brand">
+                {count}
+              </span>
+            ) : null}
+          </Link>
           <ThemeToggle />
         </nav>
 
@@ -92,12 +122,22 @@ export function TopNav() {
           >
             Home
           </Link>
+          {primaryLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`${navClass(pathname === link.href)} py-3`}
+              onClick={() => setMenuOpen(false)}
+            >
+              {link.label}
+            </Link>
+          ))}
           <Link
-            href="/combos"
-            className={`${navClass(pathname === "/combos")} py-3`}
+            href="/cart"
+            className={`${navClass(pathname === "/cart")} py-3`}
             onClick={() => setMenuOpen(false)}
           >
-            Combos
+            Cart{count > 0 ? ` (${count})` : ""}
           </Link>
           {links.map((link) => (
             <Link

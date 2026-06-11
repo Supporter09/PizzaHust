@@ -389,6 +389,34 @@ detailed payloads are designed per feature as each is built and land with their 
 - **Confirm pickup (K4).** `POST /api/kitchen/orders/{id}/pickup` — kitchen fallback driving the
   existing `ReadyForDispatch → Delivering` transition when the courier scan (T2) is unavailable.
 
+## Ordering loop (shipped 2026-06-11)
+
+- **Cart quote (U5).** `POST /api/cart/quote` now resolves `kind="combo"` lines (combo
+  must be currently Active with all components active) in addition to `kind="item"`. Body
+  unchanged; the client never supplies money.
+- **Place order (U6).** `POST /api/orders` (201). Body: `lines[]` (`kind`, `item_id|combo_id`,
+  `option_ids[]`, `quantity`, optional `notes`), `recipient_name`, `recipient_phone` (VN
+  format `^(0|\+84)\d{9}$`), `address{administrative_unit, street}`, optional `delivery_note`,
+  `redeem_points`. Guests and logged-in customers both allowed; loyalty only applies to the
+  latter. Out-of-area → `422 OUT_OF_SERVICE_AREA`; bad option/combo → `400 VALIDATION_FAILED`.
+  Returns `order_code` in `PIZZ-XXXXXX` format (per the sprint plan). Redeemed points are
+  deducted at placement; accrual happens on Delivered.
+- **Track order (U7).** `GET /api/orders/track/{order_code}` — public, rate-limited (30/min/IP).
+  Returns status, recipient, address, items (+option snapshots), totals, and the tracking
+  `timeline[]`. Unknown code → `404 NOT_FOUND`.
+- **Order history (U11).** `GET /api/orders/me` — authenticated; the caller's orders newest-first.
+- **Kitchen (K1–K3 / T1).** `GET /api/kitchen/queue` (kitchen|admin) lists Received/Preparing
+  oldest-first. `POST /api/kitchen/orders/{id}/accept` (Received→Preparing).
+  `POST /api/kitchen/orders/{id}/ready` (Preparing→ReadyForDispatch then hands off to the
+  delivery provider → Delivering; provider failure parks the order in DispatchPending for an
+  admin retry, no 5xx). New state edge: `ReadyForDispatch → DispatchPending`.
+- **Loyalty accrual (U14/T2).** The delivery webhook credits points on the
+  `Delivering → Delivered` edge (`(total − delivery_fee) / accrual_rate`); idempotent via the
+  existing transition guard.
+- **Sales reports (A7).** `GET /api/admin/reports/sales?date_from&date_to` (admin) — realized
+  revenue from Delivered orders, daily revenue, status breakdown, top items, AOV.
+  `GET /api/admin/reports/sales.csv` exports the daily table.
+
 ## OpenAPI Generation
 
 - Backend serves OpenAPI at `/api/openapi.json`.

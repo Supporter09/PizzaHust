@@ -380,6 +380,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/reports/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sales Report */
+        get: operations["sales_report_api_admin_reports_sales_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/reports/sales.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sales Report Csv */
+        get: operations["sales_report_csv_api_admin_reports_sales_csv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/login": {
         parameters: {
             query?: never;
@@ -568,6 +602,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/kitchen/orders/{order_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept Order
+         * @description K2: Received -> Preparing.
+         */
+        post: operations["accept_order_api_kitchen_orders__order_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kitchen/orders/{order_id}/ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark Ready
+         * @description K3 + T1: Preparing -> ReadyForDispatch, then hand off to delivery.
+         *
+         *     Success advances to Delivering with a stored reference. A provider failure
+         *     parks the order in DispatchPending for an admin retry (no 5xx — the order is
+         *     safely captured and the kitchen's job is done).
+         */
+        post: operations["mark_ready_api_kitchen_orders__order_id__ready_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kitchen/queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kitchen Queue */
+        get: operations["kitchen_queue_api_kitchen_queue_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/loyalty/me": {
         parameters: {
             query?: never;
@@ -577,6 +672,57 @@ export interface paths {
         };
         /** Loyalty Me */
         get: operations["loyalty_me_api_loyalty_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Order */
+        post: operations["create_order_api_orders_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Orders */
+        get: operations["my_orders_api_orders_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/track/{order_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Track Order */
+        get: operations["track_order_api_orders_track__order_code__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -832,6 +978,15 @@ export interface components {
             /** User Id */
             user_id: number;
         };
+        /** DayRevenueOut */
+        DayRevenueOut: {
+            /** Day */
+            day: string;
+            /** Order Count */
+            order_count: number;
+            /** Revenue Vnd */
+            revenue_vnd: number;
+        };
         /** DeliveryConfigOut */
         DeliveryConfigOut: {
             /** Fee Vnd */
@@ -891,6 +1046,24 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HistoryOrderOut */
+        HistoryOrderOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Current Status */
+            current_status: string;
+            /** Items */
+            items: components["schemas"]["TrackItemOut"][];
+            /** Order Code */
+            order_code: string;
+            /** Order Id */
+            order_id: number;
+            /** Total Amount Vnd */
+            total_amount_vnd: number;
         };
         /** ImportSummary */
         ImportSummary: {
@@ -985,6 +1158,15 @@ export interface components {
             is_active?: boolean | null;
             /** Name */
             name?: string | null;
+        };
+        /** KitchenActionOut */
+        KitchenActionOut: {
+            /** Current Status */
+            current_status: string;
+            /** Order Code */
+            order_code: string;
+            /** Order Id */
+            order_id: number;
         };
         /** LockIn */
         LockIn: {
@@ -1145,10 +1327,35 @@ export interface components {
             /** Sort Order */
             sort_order?: number | null;
         };
+        /** OrderAddressIn */
+        OrderAddressIn: {
+            /** Administrative Unit */
+            administrative_unit: string;
+            /** Street */
+            street: string;
+        };
         /** OrderCancelIn */
         OrderCancelIn: {
             /** Reason */
             reason?: string | null;
+        };
+        /** OrderLineIn */
+        OrderLineIn: {
+            /** Combo Id */
+            combo_id?: number | null;
+            /** Item Id */
+            item_id?: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "item" | "combo";
+            /** Notes */
+            notes?: string | null;
+            /** Option Ids */
+            option_ids?: number[];
+            /** Quantity */
+            quantity: number;
         };
         /** OrderSummaryOut */
         OrderSummaryOut: {
@@ -1173,6 +1380,38 @@ export interface components {
             total_amount_vnd: number;
             /** User Id */
             user_id: number | null;
+        };
+        /** PlaceOrderIn */
+        PlaceOrderIn: {
+            address: components["schemas"]["OrderAddressIn"];
+            /** Delivery Note */
+            delivery_note?: string | null;
+            /** Lines */
+            lines: components["schemas"]["OrderLineIn"][];
+            /** Recipient Name */
+            recipient_name: string;
+            /** Recipient Phone */
+            recipient_phone: string;
+            /**
+             * Redeem Points
+             * @default 0
+             */
+            redeem_points: number;
+        };
+        /** PlaceOrderOut */
+        PlaceOrderOut: {
+            /** Current Status */
+            current_status: string;
+            /** Delivery Fee Vnd */
+            delivery_fee_vnd: number;
+            /** Loyalty Redeemed */
+            loyalty_redeemed: number;
+            /** Order Code */
+            order_code: string;
+            /** Order Id */
+            order_id: number;
+            /** Total Amount Vnd */
+            total_amount_vnd: number;
         };
         /** PublicComboItemOut */
         PublicComboItemOut: {
@@ -1205,6 +1444,36 @@ export interface components {
             savings_vnd: number;
             /** Target Group */
             target_group?: number | null;
+        };
+        /** QueueItemOut */
+        QueueItemOut: {
+            /** Name */
+            name: string;
+            /** Notes */
+            notes: string | null;
+            /** Quantity */
+            quantity: number;
+        };
+        /** QueueOrderOut */
+        QueueOrderOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Current Status */
+            current_status: string;
+            /** Items */
+            items: components["schemas"]["QueueItemOut"][];
+            /** Order Code */
+            order_code: string;
+            /** Order Id */
+            order_id: number;
+            /**
+             * Promised At
+             * Format: date-time
+             */
+            promised_at: string;
         };
         /** QuoteAddressIn */
         QuoteAddressIn: {
@@ -1252,6 +1521,102 @@ export interface components {
         /** RegisterResponse */
         RegisterResponse: {
             user: components["schemas"]["AuthUserDTO"];
+        };
+        /** SalesReportOut */
+        SalesReportOut: {
+            /** Average Order Value Vnd */
+            average_order_value_vnd: number;
+            /** Date From */
+            date_from: string;
+            /** Date To */
+            date_to: string;
+            /** Delivered Order Count */
+            delivered_order_count: number;
+            /** Orders By Status */
+            orders_by_status: components["schemas"]["StatusCountOut"][];
+            /** Revenue By Day */
+            revenue_by_day: components["schemas"]["DayRevenueOut"][];
+            /** Top Items */
+            top_items: components["schemas"]["TopItemOut"][];
+            /** Total Order Count */
+            total_order_count: number;
+            /** Total Revenue Vnd */
+            total_revenue_vnd: number;
+        };
+        /** StatusCountOut */
+        StatusCountOut: {
+            /** Count */
+            count: number;
+            /** Status */
+            status: string;
+        };
+        /** TopItemOut */
+        TopItemOut: {
+            /** Name */
+            name: string;
+            /** Quantity Sold */
+            quantity_sold: number;
+            /** Revenue Vnd */
+            revenue_vnd: number;
+        };
+        /** TrackEventOut */
+        TrackEventOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Note */
+            note: string | null;
+            /** Status */
+            status: string;
+        };
+        /** TrackItemOut */
+        TrackItemOut: {
+            /** Name */
+            name: string;
+            /** Options */
+            options: components["schemas"]["TrackOptionOut"][];
+            /** Quantity */
+            quantity: number;
+            /** Unit Price Vnd */
+            unit_price_vnd: number;
+        };
+        /** TrackOptionOut */
+        TrackOptionOut: {
+            /** Group Name */
+            group_name: string;
+            /** Option Name */
+            option_name: string;
+        };
+        /** TrackOrderOut */
+        TrackOrderOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Current Status */
+            current_status: string;
+            /** Delivery Address */
+            delivery_address: string;
+            /** Delivery Fee Vnd */
+            delivery_fee_vnd: number;
+            /** Items */
+            items: components["schemas"]["TrackItemOut"][];
+            /** Order Code */
+            order_code: string;
+            /**
+             * Promised At
+             * Format: date-time
+             */
+            promised_at: string;
+            /** Recipient Name */
+            recipient_name: string;
+            /** Timeline */
+            timeline: components["schemas"]["TrackEventOut"][];
+            /** Total Amount Vnd */
+            total_amount_vnd: number;
         };
         /** UpdateProfileRequest */
         UpdateProfileRequest: {
@@ -2348,6 +2713,70 @@ export interface operations {
             };
         };
     };
+    sales_report_api_admin_reports_sales_get: {
+        parameters: {
+            query?: {
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sales_report_csv_api_admin_reports_sales_csv_get: {
+        parameters: {
+            query?: {
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     login_api_auth_login_post: {
         parameters: {
             query?: never;
@@ -2662,6 +3091,88 @@ export interface operations {
             };
         };
     };
+    accept_order_api_kitchen_orders__order_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitchenActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_ready_api_kitchen_orders__order_id__ready_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitchenActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    kitchen_queue_api_kitchen_queue_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueueOrderOut"][];
+                };
+            };
+        };
+    };
     loyalty_me_api_loyalty_me_get: {
         parameters: {
             query?: never;
@@ -2678,6 +3189,90 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoyaltyMeResponse"];
+                };
+            };
+        };
+    };
+    create_order_api_orders_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaceOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceOrderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_orders_api_orders_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryOrderOut"][];
+                };
+            };
+        };
+    };
+    track_order_api_orders_track__order_code__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrackOrderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

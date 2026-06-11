@@ -678,6 +678,29 @@
         "title": "CustomerOut",
         "type": "object"
       },
+      "DayRevenueOut": {
+        "properties": {
+          "day": {
+            "title": "Day",
+            "type": "string"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          },
+          "revenue_vnd": {
+            "title": "Revenue Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "day",
+          "revenue_vnd",
+          "order_count"
+        ],
+        "title": "DayRevenueOut",
+        "type": "object"
+      },
       "DeliveryConfigOut": {
         "properties": {
           "fee_vnd": {
@@ -833,6 +856,48 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HistoryOrderOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_status": {
+            "title": "Current Status",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TrackItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "integer"
+          },
+          "total_amount_vnd": {
+            "title": "Total Amount Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "order_id",
+          "order_code",
+          "current_status",
+          "total_amount_vnd",
+          "created_at",
+          "items"
+        ],
+        "title": "HistoryOrderOut",
         "type": "object"
       },
       "ImportSummary": {
@@ -1100,6 +1165,29 @@
           }
         },
         "title": "ItemPatch",
+        "type": "object"
+      },
+      "KitchenActionOut": {
+        "properties": {
+          "current_status": {
+            "title": "Current Status",
+            "type": "string"
+          },
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "order_id",
+          "order_code",
+          "current_status"
+        ],
+        "title": "KitchenActionOut",
         "type": "object"
       },
       "LockIn": {
@@ -1552,6 +1640,28 @@
         "title": "OptionPatch",
         "type": "object"
       },
+      "OrderAddressIn": {
+        "properties": {
+          "administrative_unit": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Administrative Unit",
+            "type": "string"
+          },
+          "street": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Street",
+            "type": "string"
+          }
+        },
+        "required": [
+          "administrative_unit",
+          "street"
+        ],
+        "title": "OrderAddressIn",
+        "type": "object"
+      },
       "OrderCancelIn": {
         "properties": {
           "reason": {
@@ -1567,6 +1677,71 @@
           }
         },
         "title": "OrderCancelIn",
+        "type": "object"
+      },
+      "OrderLineIn": {
+        "properties": {
+          "combo_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Combo Id"
+          },
+          "item_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Id"
+          },
+          "kind": {
+            "enum": [
+              "item",
+              "combo"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "option_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Option Ids",
+            "type": "array"
+          },
+          "quantity": {
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "quantity"
+        ],
+        "title": "OrderLineIn",
         "type": "object"
       },
       "OrderSummaryOut": {
@@ -1628,6 +1803,97 @@
           "user_id"
         ],
         "title": "OrderSummaryOut",
+        "type": "object"
+      },
+      "PlaceOrderIn": {
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/OrderAddressIn"
+          },
+          "delivery_note": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Note"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/OrderLineIn"
+            },
+            "minItems": 1,
+            "title": "Lines",
+            "type": "array"
+          },
+          "recipient_name": {
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Recipient Name",
+            "type": "string"
+          },
+          "recipient_phone": {
+            "maxLength": 15,
+            "minLength": 8,
+            "title": "Recipient Phone",
+            "type": "string"
+          },
+          "redeem_points": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Redeem Points",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lines",
+          "recipient_name",
+          "recipient_phone",
+          "address"
+        ],
+        "title": "PlaceOrderIn",
+        "type": "object"
+      },
+      "PlaceOrderOut": {
+        "properties": {
+          "current_status": {
+            "title": "Current Status",
+            "type": "string"
+          },
+          "delivery_fee_vnd": {
+            "title": "Delivery Fee Vnd",
+            "type": "integer"
+          },
+          "loyalty_redeemed": {
+            "title": "Loyalty Redeemed",
+            "type": "integer"
+          },
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "integer"
+          },
+          "total_amount_vnd": {
+            "title": "Total Amount Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "order_id",
+          "order_code",
+          "current_status",
+          "total_amount_vnd",
+          "delivery_fee_vnd",
+          "loyalty_redeemed"
+        ],
+        "title": "PlaceOrderOut",
         "type": "object"
       },
       "PublicComboItemOut": {
@@ -1730,6 +1996,79 @@
           "items"
         ],
         "title": "PublicComboOut",
+        "type": "object"
+      },
+      "QueueItemOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "quantity",
+          "notes"
+        ],
+        "title": "QueueItemOut",
+        "type": "object"
+      },
+      "QueueOrderOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_status": {
+            "title": "Current Status",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/QueueItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "integer"
+          },
+          "promised_at": {
+            "format": "date-time",
+            "title": "Promised At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "order_code",
+          "current_status",
+          "created_at",
+          "promised_at",
+          "items"
+        ],
+        "title": "QueueOrderOut",
         "type": "object"
       },
       "QuoteAddressIn": {
@@ -1882,6 +2221,255 @@
           "user"
         ],
         "title": "RegisterResponse",
+        "type": "object"
+      },
+      "SalesReportOut": {
+        "properties": {
+          "average_order_value_vnd": {
+            "title": "Average Order Value Vnd",
+            "type": "integer"
+          },
+          "date_from": {
+            "title": "Date From",
+            "type": "string"
+          },
+          "date_to": {
+            "title": "Date To",
+            "type": "string"
+          },
+          "delivered_order_count": {
+            "title": "Delivered Order Count",
+            "type": "integer"
+          },
+          "orders_by_status": {
+            "items": {
+              "$ref": "#/components/schemas/StatusCountOut"
+            },
+            "title": "Orders By Status",
+            "type": "array"
+          },
+          "revenue_by_day": {
+            "items": {
+              "$ref": "#/components/schemas/DayRevenueOut"
+            },
+            "title": "Revenue By Day",
+            "type": "array"
+          },
+          "top_items": {
+            "items": {
+              "$ref": "#/components/schemas/TopItemOut"
+            },
+            "title": "Top Items",
+            "type": "array"
+          },
+          "total_order_count": {
+            "title": "Total Order Count",
+            "type": "integer"
+          },
+          "total_revenue_vnd": {
+            "title": "Total Revenue Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date_from",
+          "date_to",
+          "total_revenue_vnd",
+          "delivered_order_count",
+          "total_order_count",
+          "average_order_value_vnd",
+          "revenue_by_day",
+          "orders_by_status",
+          "top_items"
+        ],
+        "title": "SalesReportOut",
+        "type": "object"
+      },
+      "StatusCountOut": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "count"
+        ],
+        "title": "StatusCountOut",
+        "type": "object"
+      },
+      "TopItemOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "quantity_sold": {
+            "title": "Quantity Sold",
+            "type": "integer"
+          },
+          "revenue_vnd": {
+            "title": "Revenue Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "quantity_sold",
+          "revenue_vnd"
+        ],
+        "title": "TopItemOut",
+        "type": "object"
+      },
+      "TrackEventOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "created_at",
+          "note"
+        ],
+        "title": "TrackEventOut",
+        "type": "object"
+      },
+      "TrackItemOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/TrackOptionOut"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "unit_price_vnd": {
+            "title": "Unit Price Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "quantity",
+          "unit_price_vnd",
+          "options"
+        ],
+        "title": "TrackItemOut",
+        "type": "object"
+      },
+      "TrackOptionOut": {
+        "properties": {
+          "group_name": {
+            "title": "Group Name",
+            "type": "string"
+          },
+          "option_name": {
+            "title": "Option Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "group_name",
+          "option_name"
+        ],
+        "title": "TrackOptionOut",
+        "type": "object"
+      },
+      "TrackOrderOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_status": {
+            "title": "Current Status",
+            "type": "string"
+          },
+          "delivery_address": {
+            "title": "Delivery Address",
+            "type": "string"
+          },
+          "delivery_fee_vnd": {
+            "title": "Delivery Fee Vnd",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TrackItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "promised_at": {
+            "format": "date-time",
+            "title": "Promised At",
+            "type": "string"
+          },
+          "recipient_name": {
+            "title": "Recipient Name",
+            "type": "string"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TrackEventOut"
+            },
+            "title": "Timeline",
+            "type": "array"
+          },
+          "total_amount_vnd": {
+            "title": "Total Amount Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "order_code",
+          "current_status",
+          "recipient_name",
+          "delivery_address",
+          "total_amount_vnd",
+          "delivery_fee_vnd",
+          "created_at",
+          "promised_at",
+          "items",
+          "timeline"
+        ],
+        "title": "TrackOrderOut",
         "type": "object"
       },
       "UpdateProfileRequest": {
@@ -3483,6 +4071,138 @@
         ]
       }
     },
+    "/api/admin/reports/sales": {
+      "get": {
+        "operationId": "sales_report_api_admin_reports_sales_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sales Report",
+        "tags": [
+          "admin-reports"
+        ]
+      }
+    },
+    "/api/admin/reports/sales.csv": {
+      "get": {
+        "operationId": "sales_report_csv_api_admin_reports_sales_csv_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sales Report Csv",
+        "tags": [
+          "admin-reports"
+        ]
+      }
+    },
     "/api/auth/login": {
       "post": {
         "operationId": "login_api_auth_login_post",
@@ -3874,6 +4594,117 @@
         ]
       }
     },
+    "/api/kitchen/orders/{order_id}/accept": {
+      "post": {
+        "description": "K2: Received -> Preparing.",
+        "operationId": "accept_order_api_kitchen_orders__order_id__accept_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "title": "Order Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KitchenActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept Order",
+        "tags": [
+          "kitchen"
+        ]
+      }
+    },
+    "/api/kitchen/orders/{order_id}/ready": {
+      "post": {
+        "description": "K3 + T1: Preparing -> ReadyForDispatch, then hand off to delivery.\n\nSuccess advances to Delivering with a stored reference. A provider failure\nparks the order in DispatchPending for an admin retry (no 5xx \u2014 the order is\nsafely captured and the kitchen's job is done).",
+        "operationId": "mark_ready_api_kitchen_orders__order_id__ready_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "title": "Order Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KitchenActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark Ready",
+        "tags": [
+          "kitchen"
+        ]
+      }
+    },
+    "/api/kitchen/queue": {
+      "get": {
+        "operationId": "kitchen_queue_api_kitchen_queue_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/QueueOrderOut"
+                  },
+                  "title": "Response Kitchen Queue Api Kitchen Queue Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Kitchen Queue",
+        "tags": [
+          "kitchen"
+        ]
+      }
+    },
     "/api/loyalty/me": {
       "get": {
         "operationId": "loyalty_me_api_loyalty_me_get",
@@ -3892,6 +4723,114 @@
         "summary": "Loyalty Me",
         "tags": [
           "loyalty"
+        ]
+      }
+    },
+    "/api/orders": {
+      "post": {
+        "operationId": "create_order_api_orders_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceOrderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceOrderOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Order",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/api/orders/me": {
+      "get": {
+        "operationId": "my_orders_api_orders_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/HistoryOrderOut"
+                  },
+                  "title": "Response My Orders Api Orders Me Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "My Orders",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/api/orders/track/{order_code}": {
+      "get": {
+        "operationId": "track_order_api_orders_track__order_code__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_code",
+            "required": true,
+            "schema": {
+              "title": "Order Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackOrderOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Track Order",
+        "tags": [
+          "orders"
         ]
       }
     },

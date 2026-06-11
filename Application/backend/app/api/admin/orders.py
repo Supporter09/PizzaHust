@@ -15,7 +15,8 @@ from app.infra.config import Settings, get_settings_dependency
 from app.infra.db.deps import get_db
 from app.infra.db.models import Order, OrderStatus, OrderTracking, User, UserRole
 from app.infra.delivery import get_delivery_port
-from app.infra.delivery.port import DeliveryError, DeliveryPort, OrderForDispatch
+from app.infra.delivery.port import DeliveryError, DeliveryPort
+from app.services.orders import dispatch_order
 
 router = APIRouter(prefix="/api/admin/orders", tags=["admin-orders"])
 
@@ -120,31 +121,6 @@ def retry_dispatch(
     if order.current_status != OrderStatus.DISPATCH_PENDING:
         raise HTTPException(status_code=409, detail="CONFLICT")
     try:
-        ref = port.request(
-            OrderForDispatch(
-                order_code=order.order_code,
-                recipient_name=order.recipient_name,
-                recipient_phone=order.recipient_phone,
-                address=order.delivery_address,
-                cod_amount_vnd=order.total_amount_vnd,
-                pickup_address=settings.delivery_pickup_address,
-            )
-        )
+        dispatch_order(db, order=order, port=port, settings=settings, actor_id=admin.user_id)
     except DeliveryError as exc:
         raise HTTPException(status_code=502, detail="DELIVERY_UPSTREAM_ERROR") from exc
-    order.delivery_reference = ref.reference
-    try:
-        new_status = OrderStatus(
-            transition(order.current_status.value, OrderStatus.DELIVERING.value)
-        )
-    except OrderTransitionError:
-        raise HTTPException(status_code=409, detail="CONFLICT") from None
-    order.current_status = new_status
-    db.add(
-        OrderTracking(
-            order_id=order.order_id,
-            updated_by=admin.user_id,
-            status=new_status,
-            note=f"Dispatched to delivery: {ref.reference}",
-        )
-    )

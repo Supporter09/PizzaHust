@@ -28,6 +28,9 @@ _ALLOWED_TRANSITIONS: frozenset[tuple[str, str]] = frozenset(
         (OrderState.DISPATCH_PENDING.value, OrderState.DELIVERING.value),
         (OrderState.DISPATCH_PENDING.value, OrderState.CANCELLED.value),
         (OrderState.READY_FOR_DISPATCH.value, OrderState.DELIVERING.value),
+        # Marked ready, but the delivery provider handoff failed: park it for an
+        # admin retry instead of stranding the order in ReadyForDispatch.
+        (OrderState.READY_FOR_DISPATCH.value, OrderState.DISPATCH_PENDING.value),
         (OrderState.DELIVERING.value, OrderState.DELIVERED.value),
         (OrderState.DELIVERING.value, OrderState.DELIVERY_FAILED.value),
     }

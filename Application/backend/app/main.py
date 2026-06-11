@@ -14,6 +14,7 @@ from app.api.admin.customers import router as admin_customers_router
 from app.api.admin.items import router as admin_items_router
 from app.api.admin.option_groups import router as admin_option_groups_router
 from app.api.admin.orders import router as admin_orders_router
+from app.api.admin.reports import router as admin_reports_router
 from app.api.auth import router as auth_router
 from app.api.cart import router as cart_router
 from app.api.combos import router as combos_router
@@ -24,8 +25,10 @@ from app.api.errors import (
     handle_http_exception,
     handle_validation_error,
 )
+from app.api.kitchen import router as kitchen_router
 from app.api.loyalty import router as loyalty_router
 from app.api.menu import router as menu_router
+from app.api.orders import router as orders_router
 from app.api.webhooks import router as webhooks_router
 from app.infra.config import get_settings
 
@@ -63,9 +66,12 @@ app.include_router(config_router)
 app.include_router(menu_router)
 app.include_router(combos_router)
 app.include_router(cart_router)
+app.include_router(orders_router)
+app.include_router(kitchen_router)
 app.include_router(auth_router)
 app.include_router(loyalty_router)
 app.include_router(admin_orders_router)
+app.include_router(admin_reports_router)
 app.include_router(admin_customers_router)
 app.include_router(admin_items_router)
 app.include_router(admin_categories_router)

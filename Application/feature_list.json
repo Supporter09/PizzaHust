@@ -78,7 +78,7 @@
       ],
       "status": "done",
       "owner": "Minh",
-      "evidence": "merged 9f9b3aa, 2026-06-09T14:38:12+07:00 — ci/contracts green; drift gate proven red-on-drift (run 27191063194); GHCR backend+frontend published (latest, sha-9f9b3aa, main)"
+      "evidence": "merged 9f9b3aa, 2026-06-09T14:38:12+07:00 \u2014 ci/contracts green; drift gate proven red-on-drift (run 27191063194); GHCR backend+frontend published (latest, sha-9f9b3aa, main)"
     },
     {
       "id": "infra-008",
@@ -140,9 +140,9 @@
         "U3",
         "U4"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hoang",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "U6",
@@ -151,9 +151,9 @@
         "U5",
         "infra-006"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "U7",
@@ -163,9 +163,9 @@
         "infra-005",
         "T2"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "U8",
@@ -173,9 +173,9 @@
       "depends_on": [
         "infra-004"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hoang",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "U9",
@@ -183,9 +183,9 @@
       "depends_on": [
         "infra-004"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hoang",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "U11",
@@ -194,9 +194,9 @@
         "U6",
         "U9"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hoang",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "U12",
@@ -204,9 +204,9 @@
       "depends_on": [
         "U9"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hoang",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "U13",
@@ -215,9 +215,9 @@
         "U9",
         "infra-006"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hoang",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "U14",
@@ -226,9 +226,9 @@
         "U6",
         "U13"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "A1",
@@ -238,7 +238,7 @@
       ],
       "status": "done",
       "owner": "Hieu",
-      "evidence": "verify.sh gates green (lint/types/70 tests/alembic/openapi/build) at bbf4679, 2026-06-06T16:43:05+07:00; 6 pre-existing out-of-scope e2e failures (unbuilt public pages + admin-spec origin bug) — see PR"
+      "evidence": "verify.sh gates green (lint/types/70 tests/alembic/openapi/build) at bbf4679, 2026-06-06T16:43:05+07:00; 6 pre-existing out-of-scope e2e failures (unbuilt public pages + admin-spec origin bug) \u2014 see PR"
     },
     {
       "id": "A2",
@@ -248,7 +248,7 @@
       ],
       "status": "done",
       "owner": "Hieu",
-      "evidence": "verify.sh gates green (lint/types/70 tests/alembic/openapi/build) at bbf4679, 2026-06-06T16:43:05+07:00; 6 pre-existing out-of-scope e2e failures (unbuilt public pages + admin-spec origin bug) — see PR"
+      "evidence": "verify.sh gates green (lint/types/70 tests/alembic/openapi/build) at bbf4679, 2026-06-06T16:43:05+07:00; 6 pre-existing out-of-scope e2e failures (unbuilt public pages + admin-spec origin bug) \u2014 see PR"
     },
     {
       "id": "A3",
@@ -258,7 +258,7 @@
       ],
       "status": "done",
       "owner": "Hieu",
-      "evidence": "verify.sh gates green (lint/types/70 tests/alembic/openapi/build) at bbf4679, 2026-06-06T16:43:05+07:00; 6 pre-existing out-of-scope e2e failures (unbuilt public pages + admin-spec origin bug) — see PR"
+      "evidence": "verify.sh gates green (lint/types/70 tests/alembic/openapi/build) at bbf4679, 2026-06-06T16:43:05+07:00; 6 pre-existing out-of-scope e2e failures (unbuilt public pages + admin-spec origin bug) \u2014 see PR"
     },
     {
       "id": "A4",
@@ -269,7 +269,7 @@
       ],
       "status": "done",
       "owner": "Hieu",
-      "evidence": "verify.sh gates green (lint/types/70 tests/alembic/openapi/build) at bbf4679, 2026-06-06T16:43:05+07:00; 6 pre-existing out-of-scope e2e failures (unbuilt public pages + admin-spec origin bug) — see PR"
+      "evidence": "verify.sh gates green (lint/types/70 tests/alembic/openapi/build) at bbf4679, 2026-06-06T16:43:05+07:00; 6 pre-existing out-of-scope e2e failures (unbuilt public pages + admin-spec origin bug) \u2014 see PR"
     },
     {
       "id": "A5",
@@ -278,9 +278,9 @@
         "U6",
         "infra-005"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Thanh",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "A6",
@@ -288,9 +288,9 @@
       "depends_on": [
         "infra-004"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Thanh",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "A7",
@@ -298,9 +298,9 @@
       "depends_on": [
         "U6"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Thanh",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "K1",
@@ -309,9 +309,9 @@
         "U6",
         "infra-003"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "K2",
@@ -319,9 +319,9 @@
       "depends_on": [
         "K1"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "K3",
@@ -330,9 +330,9 @@
         "K2",
         "infra-005"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "T1",
@@ -341,9 +341,9 @@
         "infra-005",
         "K3"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "T2",
@@ -351,9 +351,9 @@
       "depends_on": [
         "T1"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Thanh",
-      "evidence": ""
+      "evidence": "backend 209 passed/1 skipped + frontend tsc/eslint/build green, 2026-06-11"
     },
     {
       "id": "A8",

@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useState } from "react";
 
+import { useCart } from "@/components/cart-provider";
 import { OptionGroupSelector } from "@/components/menu/option-group-selector";
 import { QuantityStepper } from "@/components/menu/quantity-stepper";
 import { ApiClientError } from "@/lib/api/client";
@@ -22,6 +24,10 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
   const [quantity, setQuantity] = useState(1);
   const [estimate, setEstimate] = useState<number | null>(null);
   const [quoting, setQuoting] = useState(false);
+  const [added, setAdded] = useState(false);
+
+  const router = useRouter();
+  const { addLine } = useCart();
 
   const load = useCallback(() => {
     if (!Number.isInteger(numericId) || numericId < 1) {
@@ -91,6 +97,50 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
       window.clearTimeout(handle);
     };
   }, [item, selections, quantity]);
+
+  const buildLine = useCallback(() => {
+    if (!item) return null;
+    const option_ids: number[] = [];
+    const option_labels: string[] = [];
+    for (const g of item.option_groups) {
+      for (const oid of selections[g.group_id] ?? []) {
+        const opt = g.options.find((o) => o.option_id === oid);
+        if (opt) {
+          option_ids.push(opt.option_id);
+          option_labels.push(`${g.name}: ${opt.name}`);
+        }
+      }
+    }
+    const unit =
+      estimate !== null && quantity > 0
+        ? Math.round(estimate / quantity)
+        : item.base_price_vnd;
+    return {
+      kind: "item" as const,
+      item_id: item.product_id,
+      combo_id: null,
+      name: item.name,
+      option_ids,
+      option_labels,
+      unit_price_vnd: unit,
+      quantity,
+    };
+  }, [item, selections, quantity, estimate]);
+
+  const handleAdd = useCallback(
+    (goToCart: boolean) => {
+      const line = buildLine();
+      if (!line) return;
+      addLine(line);
+      if (goToCart) {
+        router.push("/cart");
+        return;
+      }
+      setAdded(true);
+      window.setTimeout(() => setAdded(false), 1800);
+    },
+    [buildLine, addLine, router],
+  );
 
   return (
     <section className="space-y-6">
@@ -173,8 +223,28 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
               </>
             ) : (
-              <p className="text-2xl font-bold text-brand">{formatVnd(item.base_price_vnd)}</p>
+              <div className="flex items-center justify-between gap-4 border-t border-line pt-4">
+                <QuantityStepper value={quantity} onChange={setQuantity} />
+                <p className="text-2xl font-bold text-brand">{formatVnd(item.base_price_vnd)}</p>
+              </div>
             )}
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                className="btn-primary flex-1 px-5 py-3"
+                onClick={() => handleAdd(false)}
+              >
+                {added ? "Added ✓" : "Add to Cart"}
+              </button>
+              <button
+                type="button"
+                className="flex-1 rounded-md border border-line px-5 py-3 font-medium text-fg hover:bg-surface-hover"
+                onClick={() => handleAdd(true)}
+              >
+                Buy Now
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
