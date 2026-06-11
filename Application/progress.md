@@ -380,3 +380,25 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 **Verified**
 - `./verify.sh` exit 0 at `29e7bf9`, `2026-06-11T17:40:17Z`.
+
+---
+
+## 2026-06-12 — U4/U15 Mockup-Fidelity Pass
+
+**Done** (per `matching-design-mockups`; compared rendered screens against `Design/combos.html` and `Design/combo-customize.html`)
+1. Bug: customizer slot headings rendered "…customer's choicecustomer's choice" — API name already carries the suffix; frontend badge removed.
+2. Customizer: two-column layout (sticky summary card with image/Save badge/struck `items_total_vnd`/large price), numbered step circles — one step per pick unit, green "n of n selected" per-slot counters (`slotProgress`, vitest), slot picks as cards (thumbnail, Included/+surcharge, radio circle; testids/roles/44px kept), options panel named "Options for {picked product}" in brand red, mockup bottom bar with disabled "Add Combo to Cart" + "Cart is coming soon".
+3. Combos list: hero band with lead line, component mini-panels (thumbnail + bold qty), Save badge overlaid on cover (warning tokens), CTA renamed Customize → "Order Now" (DESIGN_BRIEF flow map; e2e selectors updated), 2-up wide grid with 16/7 image band, price `text-2xl font-extrabold`, cover fallback fixed (`combo.image_url` → first item image → placeholder).
+4. Quantity stepper removed from the customizer (not in mockup; cart-line quantity is U5 scope — quote uses quantity 1).
+
+**Documented deviations**
+- Accepted partial: "Add Combo to Cart" is rendered disabled — cart ships with U5; no fake interactivity.
+- Accepted: Size option group stays visible (server requires the group; mockup slots are size-scoped, ours aren't).
+- Accepted: no site footer (site-shell scope, not this feature).
+- Contract-driven, not implemented: "Valid until {date}" rows — public combos API exposes no validity field; contracts win on payloads.
+- Data-driven: "No image" placeholders everywhere (seeds carry no image URLs); mockup drink steppers replaced by per-unit radio steps (one pick per unit is the CONTRACTS.md selection model).
+
+**Verified**
+- `npx tsc --noEmit`, `npx eslint .` (no new warnings), `npx vitest run` (41 passed) green.
+- `./verify.sh` exit 0 at `368a36e`, `2026-06-11T18:35:35Z` (20 e2e passed incl. updated combo specs).
+- Screenshots in `Application/docs/superpowers/`: `u15-after-{light,dark,mobile}.png`, `combos-fidelity-after-{light,dark,mobile}.png` (customizer shot in fully-picked state, combo 3).
