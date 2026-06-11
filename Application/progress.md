@@ -334,3 +334,19 @@ Append-only session journal. Each session ends with a dated block. Keep blocks â
   5 logins/min); `E2E_*` vars required in `.env`.
 - Unrelated issue noted, not fixed here: none outstanding (seeds `print` replaced with
   structlog as part of this change since seeds were rewritten anyway).
+
+---
+
+## 2026-06-11 â€” A10 Combo Choice-Slots and Component Picker
+
+**Done**
+- Migration `0006_combo_choice_slots`: `combo_items.category_id` XOR `product_id`, `combos.image_url`.
+- Domain `combo_slots.py` (reference/min price, surcharges, resolved line pricing); admin/public/cart APIs.
+- Admin combo editor + component picker; public combo detail; cart quote for resolved combos; combo images.
+- Seeds: `Pick-Any Feast` (pizza + drinks slots); e2e admin combo editor; menu e2e drinks filter aligned with seed data.
+
+**Verified**
+- `./verify.sh` exit 0 at `697d345`, `2026-06-11T15:05:00+07:00`.
+
+**Next**
+- `U15` Customize Combo UI; order persistence of combo lines remains `U6`.

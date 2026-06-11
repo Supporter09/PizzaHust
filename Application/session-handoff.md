@@ -1,39 +1,30 @@
 # session-handoff.md
 
-**Current state:** `A8` Generic Options Model — **done** on branch `a8-generic-options`
-@ `9ed8bae` (PR #19 open; all review findings resolved, `verify.sh` green, backfill
-evidence posted on the PR). Merge when approved.
+**Current state:** `A10` Combo Choice-Slots and Component Picker — **done** on branch
+`a10-combo-choice-slots` (open PR to `main`; `./verify.sh` green).
 
 **Resume command:**
 
 ```bash
-cd Application && ./init.sh && docker compose up -d --build backend frontend && ./verify.sh
+cd Application && ./init.sh && docker compose up -d backend frontend && ./verify.sh
 ```
 
-**State:** Admin-defined `option_groups`/`options` (deltas shared) with per-dish
-enablement (`product_options`) and order-history snapshots (`order_item_options`).
-Migration `0005_generic_options` is clean-cut (transforms data, backfills history,
-drops `pizza_sizes`/`pizza_crusts`/`toppings`/`order_item_toppings`). Cart quote takes
-`{kind: item|combo, item_id, option_ids, quantity}`. Customizer renders generic chip
-groups; admin dish editor lives at `/admin/items/[id]` (standalone pizza-options page
-removed). Cross-cutting: all routers use `Depends(get_db, scope="function")` — FastAPI
-0.118+ otherwise commits after the response and rapid sequential requests read stale data.
+**State:** Combos support fixed products and category **choice-slots** (`combo_items`
+product XOR category, migration `0006_combo_choice_slots`). Domain pricing in
+`combo_slots.py`; `slot_availability` in `combo_queries.py`. Admin: card grid,
+`/admin/combos/new` + `/admin/combos/[id]` editor with component picker, combo
+images. Public: slot-aware `GET /api/combos`, customizer source `GET /api/combos/{id}`.
+Cart quote prices resolved combo lines (surcharges + A8 option deltas + combo discount).
+Seeds include `Pick-Any Feast` slot combo; Playwright `admin-combo-editor.spec.ts`.
 
-**Deploy note (env hardening, PR #19):** backend now **requires**
-`ADMIN_SEED_PASSWORD`, `KITCHEN_SEED_PASSWORD`, `DELIVERY_WEBHOOK_SECRET` at startup
-(no in-code fallbacks). The GCP startup template already injects all of them from
-Secret Manager (`infra/terraform/deploy/templates/startup.sh.tftpl`) — verified, no
-infra change needed. Local stacks need them in `Application/.env` plus the new
-`E2E_*` vars and (optional) `AUTH_RATE_LIMIT_PER_MINUTE=60` for parallel Playwright.
+**Next feature:** `U15` Customize Combo (`depends_on`: U4, A8, A10 — all done). Reuse
+`GET /api/combos/{id}`, cart combo line shape, `OptionGroupSelector`, `composeLineText`.
 
-**Next feature:** `A10` Combo Choice-Slots and Component Picker (`depends_on`: A4, A8 —
-both done). Then `U15` Customize Combo rides on A10 + the A8 option chips
-(`OptionGroupSelector`, `composeLineText` are reusable as-is). Brainstorm/plan A10 first;
-design slot lines together with the U5 cart shape (see `DESIGN_BRIEF.md` §6 and
-`Design/combo-customize.html` / `Design/admin-combo-edit.html`).
+**U6 follow-up (not U15):** `POST /api/orders` must persist resolved combo picks;
+`order_items` XOR product/combo may need extension (spec §1).
 
 **Known follow-ups (non-blocking):**
 - `redeem_points` inert until U13/U14.
-- Pre-existing: leftover `*.sqlite3` under `backend/tests/`.
-- Public combos router loads all combos then filters in Python — fine for MVP.
-- A9 multi-image deferred; dish editor keeps the single image field.
+- Docker `backend` image: rebuild after code changes (`docker compose build backend`);
+  Dockerfile now upgrades pip before `pip install -e`.
+- A9 multi-image deferred.

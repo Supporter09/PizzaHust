@@ -21,6 +21,9 @@ test.describe("U1 — Browse Menus", () => {
     expect(pizzaCount).toBeLessThan(all);
 
     await page.getByRole("button", { name: "Drinks" }).click();
-    await expect(page.getByText("No items in this category.")).toBeVisible();
+    const drinksCount = await cards.count();
+    expect(drinksCount).toBeGreaterThan(0);
+    expect(drinksCount).toBeLessThan(all);
+    await expect(page.getByText("Cola")).toBeVisible();
   });
 });

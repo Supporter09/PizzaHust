@@ -1,4 +1,5 @@
 import { formatVnd } from "@/lib/format";
+import { formatComboComponent } from "@/lib/format-combo-component";
 import type { PublicCombo } from "@/lib/api/combos";
 
 export function ComboCard({ combo }: { combo: PublicCombo }) {
@@ -23,10 +24,8 @@ export function ComboCard({ combo }: { combo: PublicCombo }) {
         </div>
         {combo.description ? <p className="text-sm text-muted">{combo.description}</p> : null}
         <ul className="text-sm text-muted">
-          {combo.items.map((i) => (
-            <li key={i.product_id}>
-              {i.quantity}× {i.name}
-            </li>
+          {combo.items.map((it, i) => (
+            <li key={i}>{formatComboComponent(it)}</li>
           ))}
         </ul>
         <div className="mt-auto flex items-baseline gap-2 pt-2">

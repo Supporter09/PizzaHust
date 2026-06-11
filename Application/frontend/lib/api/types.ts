@@ -78,6 +78,24 @@ export interface paths {
         patch: operations["patch_combo_api_admin_combos__combo_id__patch"];
         trace?: never;
     };
+    "/api/admin/combos/{combo_id}/image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload Combo Image */
+        post: operations["upload_combo_image_api_admin_combos__combo_id__image_post"];
+        /** Delete Combo Image */
+        delete: operations["delete_combo_image_api_admin_combos__combo_id__image_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/customers": {
         parameters: {
             query?: never;
@@ -500,6 +518,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/combos/{combo_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Combo Detail */
+        get: operations["get_combo_detail_api_combos__combo_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/config/delivery": {
         parameters: {
             query?: never;
@@ -640,6 +675,11 @@ export interface components {
             /** File */
             file: string;
         };
+        /** Body_upload_combo_image_api_admin_combos__combo_id__image_post */
+        Body_upload_combo_image_api_admin_combos__combo_id__image_post: {
+            /** Image */
+            image: string;
+        };
         /** Body_upload_item_image_api_admin_items__product_id__image_post */
         Body_upload_item_image_api_admin_items__product_id__image_post: {
             /** Image */
@@ -649,7 +689,7 @@ export interface components {
         CartQuoteIn: {
             address?: components["schemas"]["QuoteAddressIn"] | null;
             /** Lines */
-            lines: components["schemas"]["QuoteLineIn"][];
+            lines: (components["schemas"]["ItemQuoteLineIn"] | components["schemas"]["ComboQuoteLineIn"])[];
             /**
              * Redeem Points
              * @default 0
@@ -669,6 +709,21 @@ export interface components {
             subtotal_vnd: number;
             /** Total Vnd */
             total_vnd: number;
+        };
+        /** CategoryComboItemIn */
+        CategoryComboItemIn: {
+            /** Category Id */
+            category_id: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "category";
+            /**
+             * Quantity
+             * @default 1
+             */
+            quantity: number;
         };
         /** CategoryIn */
         CategoryIn: {
@@ -711,6 +766,43 @@ export interface components {
             /** Sort Order */
             sort_order?: number | null;
         };
+        /** ComboComponentOut */
+        ComboComponentOut: {
+            /** Base Price Vnd */
+            base_price_vnd?: number | null;
+            /** Category Id */
+            category_id?: number | null;
+            /** Combo Item Id */
+            combo_item_id: number;
+            /** Eligible Products */
+            eligible_products?: components["schemas"]["ComboEligibleProductOut"][] | null;
+            /** From Price Vnd */
+            from_price_vnd?: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "product" | "category";
+            /** Name */
+            name: string;
+            /** Product Id */
+            product_id?: number | null;
+            /** Quantity */
+            quantity: number;
+        };
+        /** ComboEligibleProductOut */
+        ComboEligibleProductOut: {
+            /** Base Price Vnd */
+            base_price_vnd: number;
+            /** Image Url */
+            image_url?: string | null;
+            /** Name */
+            name: string;
+            /** Product Id */
+            product_id: number;
+            /** Surcharge Vnd */
+            surcharge_vnd: number;
+        };
         /** ComboIn */
         ComboIn: {
             /** Combo Price Vnd */
@@ -721,7 +813,7 @@ export interface components {
              * Items
              * @default []
              */
-            items: components["schemas"]["ComboItemIn"][];
+            items: (components["schemas"]["ProductComboItemIn"] | components["schemas"]["CategoryComboItemIn"])[];
             /** Name */
             name: string;
             /** Target Group */
@@ -731,22 +823,21 @@ export interface components {
             /** Validity Start */
             validity_start?: string | null;
         };
-        /** ComboItemIn */
-        ComboItemIn: {
-            /** Product Id */
-            product_id: number;
-            /**
-             * Quantity
-             * @default 1
-             */
-            quantity: number;
-        };
         /** ComboItemOut */
         ComboItemOut: {
+            /** Category Id */
+            category_id?: number | null;
+            /** From Price Vnd */
+            from_price_vnd?: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "product" | "category";
             /** Name */
             name: string;
             /** Product Id */
-            product_id: number;
+            product_id?: number | null;
             /** Quantity */
             quantity: number;
         };
@@ -758,10 +849,16 @@ export interface components {
             combo_price_vnd: number;
             /** Description */
             description: string | null;
+            /** Image Url */
+            image_url?: string | null;
             /** Items */
             items: components["schemas"]["ComboItemOut"][];
+            /** Items Total Vnd */
+            items_total_vnd?: number | null;
             /** Name */
             name: string;
+            /** Savings Vnd */
+            savings_vnd?: number | null;
             status: components["schemas"]["ComboStatus"];
             /** Target Group */
             target_group: number | null;
@@ -777,7 +874,7 @@ export interface components {
             /** Description */
             description?: string | null;
             /** Items */
-            items?: components["schemas"]["ComboItemIn"][] | null;
+            items?: (components["schemas"]["ProductComboItemIn"] | components["schemas"]["CategoryComboItemIn"])[] | null;
             /** Name */
             name?: string | null;
             /** Target Group */
@@ -786,6 +883,34 @@ export interface components {
             validity_end?: string | null;
             /** Validity Start */
             validity_start?: string | null;
+        };
+        /** ComboPickIn */
+        ComboPickIn: {
+            /** Option Ids */
+            option_ids?: number[];
+            /** Product Id */
+            product_id: number;
+        };
+        /** ComboQuoteLineIn */
+        ComboQuoteLineIn: {
+            /** Combo Id */
+            combo_id: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "combo";
+            /** Quantity */
+            quantity: number;
+            /** Selections */
+            selections: components["schemas"]["ComboSelectionIn"][];
+        };
+        /** ComboSelectionIn */
+        ComboSelectionIn: {
+            /** Combo Item Id */
+            combo_item_id: number;
+            /** Picks */
+            picks: components["schemas"]["ComboPickIn"][];
         };
         /**
          * ComboStatus
@@ -986,6 +1111,20 @@ export interface components {
             /** Name */
             name?: string | null;
         };
+        /** ItemQuoteLineIn */
+        ItemQuoteLineIn: {
+            /** Item Id */
+            item_id: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "item";
+            /** Option Ids */
+            option_ids?: number[];
+            /** Quantity */
+            quantity: number;
+        };
         /** LockIn */
         LockIn: {
             /** Reason */
@@ -1174,16 +1313,59 @@ export interface components {
             /** User Id */
             user_id: number | null;
         };
+        /** ProductComboItemIn */
+        ProductComboItemIn: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "product";
+            /** Product Id */
+            product_id: number;
+            /**
+             * Quantity
+             * @default 1
+             */
+            quantity: number;
+        };
+        /** PublicComboDetailOut */
+        PublicComboDetailOut: {
+            /** Combo Id */
+            combo_id: number;
+            /** Combo Price Vnd */
+            combo_price_vnd: number;
+            /** Components */
+            components: components["schemas"]["ComboComponentOut"][];
+            /** Description */
+            description?: string | null;
+            /** Image Url */
+            image_url?: string | null;
+            /** Items Total Vnd */
+            items_total_vnd: number;
+            /** Name */
+            name: string;
+            /** Savings Vnd */
+            savings_vnd: number;
+        };
         /** PublicComboItemOut */
         PublicComboItemOut: {
             /** Base Price Vnd */
-            base_price_vnd: number;
+            base_price_vnd?: number | null;
+            /** Category Id */
+            category_id?: number | null;
+            /** From Price Vnd */
+            from_price_vnd?: number | null;
             /** Image Url */
             image_url?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "product" | "category";
             /** Name */
             name: string;
             /** Product Id */
-            product_id: number;
+            product_id?: number | null;
             /** Quantity */
             quantity: number;
         };
@@ -1195,6 +1377,8 @@ export interface components {
             combo_price_vnd: number;
             /** Description */
             description?: string | null;
+            /** Image Url */
+            image_url?: string | null;
             /** Items */
             items: components["schemas"]["PublicComboItemOut"][];
             /** Items Total Vnd */
@@ -1212,22 +1396,6 @@ export interface components {
             administrative_unit: string;
             /** Street */
             street?: string | null;
-        };
-        /** QuoteLineIn */
-        QuoteLineIn: {
-            /** Combo Id */
-            combo_id?: number | null;
-            /** Item Id */
-            item_id?: number | null;
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "item" | "combo";
-            /** Option Ids */
-            option_ids?: number[];
-            /** Quantity */
-            quantity: number;
         };
         /** QuoteLoyaltyOut */
         QuoteLoyaltyOut: {
@@ -1571,6 +1739,72 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ComboOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_combo_image_api_admin_combos__combo_id__image_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                combo_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_combo_image_api_admin_combos__combo_id__image_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_combo_image_api_admin_combos__combo_id__image_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                combo_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -2556,6 +2790,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicComboOut"][];
+                };
+            };
+        };
+    };
+    get_combo_detail_api_combos__combo_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                combo_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicComboDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

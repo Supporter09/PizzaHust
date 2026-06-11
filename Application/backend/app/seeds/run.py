@@ -166,7 +166,7 @@ def _seed(db: Session, settings: Settings) -> None:
     # ── Categories ─────────────────────────────────────────────────
     cat_pizza = _upsert_category(db, "Pizza", "Handcrafted stone-oven pizzas", sort_order=1)
     cat_side = _upsert_category(db, "Side Dishes", "Wings, fries, and more", sort_order=2)
-    _upsert_category(db, "Drinks", "Soft drinks and juices", sort_order=3)
+    cat_drinks = _upsert_category(db, "Drinks", "Soft drinks and juices", sort_order=3)
 
     # ── Pizzas ─────────────────────────────────────────────────────
     pizzas = [
@@ -199,6 +199,12 @@ def _seed(db: Session, settings: Settings) -> None:
         )
         for name, price in sides
     ]
+
+    drinks = [("Cola", 15_000), ("Orange Juice", 25_000), ("Mineral Water", 10_000)]
+    for name, price in drinks:
+        _upsert_product(
+            db, name, category_id=cat_drinks.category_id, base_price_vnd=price, is_pizza=False
+        )
 
     # ── Option groups (A8) ─────────────────────────────────────────
     pizza_ids = [p.product_id for p in pizza_products]
@@ -269,6 +275,23 @@ def _seed(db: Session, settings: Settings) -> None:
         db.add(
             ComboItem(combo_id=combo2.combo_id, product_id=side_products[2].product_id, quantity=1)
         )
+
+    combo3 = db.scalar(select(Combo).where(Combo.name == "Pick-Any Feast"))
+    if combo3 is None:
+        combo3 = Combo(
+            name="Pick-Any Feast",
+            description="Two pizzas of your choice, garlic bread, and two drinks.",
+            combo_price_vnd=280_000,
+            validity_start=now - timedelta(days=1),
+            validity_end=now + timedelta(days=365),
+        )
+        db.add(combo3)
+        db.flush()
+        db.add(ComboItem(combo_id=combo3.combo_id, category_id=cat_pizza.category_id, quantity=2))
+        db.add(
+            ComboItem(combo_id=combo3.combo_id, product_id=side_products[0].product_id, quantity=1)
+        )
+        db.add(ComboItem(combo_id=combo3.combo_id, category_id=cat_drinks.category_id, quantity=2))
 
     # ── Demo orders ────────────────────────────────────────────────
     # Deterministic order codes keyed by (user_id, days_ago) so re-seeding is a

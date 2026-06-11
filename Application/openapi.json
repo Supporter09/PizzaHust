@@ -54,6 +54,20 @@
         "title": "Body_import_pizzas_api_admin_import_pizzas_post",
         "type": "object"
       },
+      "Body_upload_combo_image_api_admin_combos__combo_id__image_post": {
+        "properties": {
+          "image": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Image",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image"
+        ],
+        "title": "Body_upload_combo_image_api_admin_combos__combo_id__image_post",
+        "type": "object"
+      },
       "Body_upload_item_image_api_admin_items__product_id__image_post": {
         "properties": {
           "image": {
@@ -82,7 +96,21 @@
           },
           "lines": {
             "items": {
-              "$ref": "#/components/schemas/QuoteLineIn"
+              "discriminator": {
+                "mapping": {
+                  "combo": "#/components/schemas/ComboQuoteLineIn",
+                  "item": "#/components/schemas/ItemQuoteLineIn"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ItemQuoteLineIn"
+                },
+                {
+                  "$ref": "#/components/schemas/ComboQuoteLineIn"
+                }
+              ]
             },
             "minItems": 1,
             "title": "Lines",
@@ -136,6 +164,32 @@
           "loyalty"
         ],
         "title": "CartQuoteOut",
+        "type": "object"
+      },
+      "CategoryComboItemIn": {
+        "additionalProperties": false,
+        "properties": {
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "category",
+            "title": "Kind",
+            "type": "string"
+          },
+          "quantity": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "category_id"
+        ],
+        "title": "CategoryComboItemIn",
         "type": "object"
       },
       "CategoryIn": {
@@ -261,6 +315,135 @@
         "title": "CategoryPatch",
         "type": "object"
       },
+      "ComboComponentOut": {
+        "properties": {
+          "base_price_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Price Vnd"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "combo_item_id": {
+            "title": "Combo Item Id",
+            "type": "integer"
+          },
+          "eligible_products": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ComboEligibleProductOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eligible Products"
+          },
+          "from_price_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Price Vnd"
+          },
+          "kind": {
+            "enum": [
+              "product",
+              "category"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "combo_item_id",
+          "kind",
+          "name",
+          "quantity"
+        ],
+        "title": "ComboComponentOut",
+        "type": "object"
+      },
+      "ComboEligibleProductOut": {
+        "properties": {
+          "base_price_vnd": {
+            "title": "Base Price Vnd",
+            "type": "integer"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "integer"
+          },
+          "surcharge_vnd": {
+            "title": "Surcharge Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_id",
+          "name",
+          "base_price_vnd",
+          "surcharge_vnd"
+        ],
+        "title": "ComboEligibleProductOut",
+        "type": "object"
+      },
       "ComboIn": {
         "properties": {
           "combo_price_vnd": {
@@ -281,7 +464,21 @@
           "items": {
             "default": [],
             "items": {
-              "$ref": "#/components/schemas/ComboItemIn"
+              "discriminator": {
+                "mapping": {
+                  "category": "#/components/schemas/CategoryComboItemIn",
+                  "product": "#/components/schemas/ProductComboItemIn"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ProductComboItemIn"
+                },
+                {
+                  "$ref": "#/components/schemas/CategoryComboItemIn"
+                }
+              ]
             },
             "title": "Items",
             "type": "array"
@@ -333,33 +530,52 @@
         "title": "ComboIn",
         "type": "object"
       },
-      "ComboItemIn": {
-        "properties": {
-          "product_id": {
-            "title": "Product Id",
-            "type": "integer"
-          },
-          "quantity": {
-            "default": 1,
-            "title": "Quantity",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "product_id"
-        ],
-        "title": "ComboItemIn",
-        "type": "object"
-      },
       "ComboItemOut": {
         "properties": {
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "from_price_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Price Vnd"
+          },
+          "kind": {
+            "enum": [
+              "product",
+              "category"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
           "name": {
             "title": "Name",
             "type": "string"
           },
           "product_id": {
-            "title": "Product Id",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
           },
           "quantity": {
             "title": "Quantity",
@@ -367,7 +583,7 @@
           }
         },
         "required": [
-          "product_id",
+          "kind",
           "quantity",
           "name"
         ],
@@ -395,6 +611,17 @@
             ],
             "title": "Description"
           },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
           "items": {
             "items": {
               "$ref": "#/components/schemas/ComboItemOut"
@@ -402,9 +629,31 @@
             "title": "Items",
             "type": "array"
           },
+          "items_total_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Items Total Vnd"
+          },
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "savings_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Savings Vnd"
           },
           "status": {
             "$ref": "#/components/schemas/ComboStatus"
@@ -487,7 +736,21 @@
             "anyOf": [
               {
                 "items": {
-                  "$ref": "#/components/schemas/ComboItemIn"
+                  "discriminator": {
+                    "mapping": {
+                      "category": "#/components/schemas/CategoryComboItemIn",
+                      "product": "#/components/schemas/ProductComboItemIn"
+                    },
+                    "propertyName": "kind"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ProductComboItemIn"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CategoryComboItemIn"
+                    }
+                  ]
                 },
                 "type": "array"
               },
@@ -545,6 +808,83 @@
           }
         },
         "title": "ComboPatch",
+        "type": "object"
+      },
+      "ComboPickIn": {
+        "additionalProperties": false,
+        "properties": {
+          "option_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Option Ids",
+            "type": "array"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_id"
+        ],
+        "title": "ComboPickIn",
+        "type": "object"
+      },
+      "ComboQuoteLineIn": {
+        "additionalProperties": false,
+        "properties": {
+          "combo_id": {
+            "title": "Combo Id",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "combo",
+            "title": "Kind",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "selections": {
+            "items": {
+              "$ref": "#/components/schemas/ComboSelectionIn"
+            },
+            "title": "Selections",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "combo_id",
+          "selections",
+          "quantity"
+        ],
+        "title": "ComboQuoteLineIn",
+        "type": "object"
+      },
+      "ComboSelectionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "combo_item_id": {
+            "title": "Combo Item Id",
+            "type": "integer"
+          },
+          "picks": {
+            "items": {
+              "$ref": "#/components/schemas/ComboPickIn"
+            },
+            "title": "Picks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "combo_item_id",
+          "picks"
+        ],
+        "title": "ComboSelectionIn",
         "type": "object"
       },
       "ComboStatus": {
@@ -1102,6 +1442,39 @@
         "title": "ItemPatch",
         "type": "object"
       },
+      "ItemQuoteLineIn": {
+        "additionalProperties": false,
+        "properties": {
+          "item_id": {
+            "title": "Item Id",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "item",
+            "title": "Kind",
+            "type": "string"
+          },
+          "option_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Option Ids",
+            "type": "array"
+          },
+          "quantity": {
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "item_id",
+          "quantity"
+        ],
+        "title": "ItemQuoteLineIn",
+        "type": "object"
+      },
       "LockIn": {
         "properties": {
           "reason": {
@@ -1630,11 +2003,59 @@
         "title": "OrderSummaryOut",
         "type": "object"
       },
-      "PublicComboItemOut": {
+      "ProductComboItemIn": {
+        "additionalProperties": false,
         "properties": {
-          "base_price_vnd": {
-            "title": "Base Price Vnd",
+          "kind": {
+            "const": "product",
+            "title": "Kind",
+            "type": "string"
+          },
+          "product_id": {
+            "title": "Product Id",
             "type": "integer"
+          },
+          "quantity": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "product_id"
+        ],
+        "title": "ProductComboItemIn",
+        "type": "object"
+      },
+      "PublicComboDetailOut": {
+        "properties": {
+          "combo_id": {
+            "title": "Combo Id",
+            "type": "integer"
+          },
+          "combo_price_vnd": {
+            "title": "Combo Price Vnd",
+            "type": "integer"
+          },
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/ComboComponentOut"
+            },
+            "title": "Components",
+            "type": "array"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
           },
           "image_url": {
             "anyOf": [
@@ -1647,13 +2068,98 @@
             ],
             "title": "Image Url"
           },
+          "items_total_vnd": {
+            "title": "Items Total Vnd",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "savings_vnd": {
+            "title": "Savings Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "combo_id",
+          "name",
+          "combo_price_vnd",
+          "items_total_vnd",
+          "savings_vnd",
+          "components"
+        ],
+        "title": "PublicComboDetailOut",
+        "type": "object"
+      },
+      "PublicComboItemOut": {
+        "properties": {
+          "base_price_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Price Vnd"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "from_price_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Price Vnd"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "kind": {
+            "enum": [
+              "product",
+              "category"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
           "name": {
             "title": "Name",
             "type": "string"
           },
           "product_id": {
-            "title": "Product Id",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
           },
           "quantity": {
             "title": "Quantity",
@@ -1661,10 +2167,9 @@
           }
         },
         "required": [
-          "product_id",
+          "kind",
           "name",
-          "quantity",
-          "base_price_vnd"
+          "quantity"
         ],
         "title": "PublicComboItemOut",
         "type": "object"
@@ -1689,6 +2194,17 @@
               }
             ],
             "title": "Description"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
           },
           "items": {
             "items": {
@@ -1754,58 +2270,6 @@
           "administrative_unit"
         ],
         "title": "QuoteAddressIn",
-        "type": "object"
-      },
-      "QuoteLineIn": {
-        "properties": {
-          "combo_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Combo Id"
-          },
-          "item_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Item Id"
-          },
-          "kind": {
-            "enum": [
-              "item",
-              "combo"
-            ],
-            "title": "Kind",
-            "type": "string"
-          },
-          "option_ids": {
-            "items": {
-              "type": "integer"
-            },
-            "title": "Option Ids",
-            "type": "array"
-          },
-          "quantity": {
-            "minimum": 1.0,
-            "title": "Quantity",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "kind",
-          "quantity"
-        ],
-        "title": "QuoteLineIn",
         "type": "object"
       },
       "QuoteLoyaltyOut": {
@@ -2345,6 +2809,95 @@
           }
         },
         "summary": "Patch Combo",
+        "tags": [
+          "admin-combos"
+        ]
+      }
+    },
+    "/api/admin/combos/{combo_id}/image": {
+      "delete": {
+        "operationId": "delete_combo_image_api_admin_combos__combo_id__image_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "combo_id",
+            "required": true,
+            "schema": {
+              "title": "Combo Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Combo Image",
+        "tags": [
+          "admin-combos"
+        ]
+      },
+      "post": {
+        "operationId": "upload_combo_image_api_admin_combos__combo_id__image_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "combo_id",
+            "required": true,
+            "schema": {
+              "title": "Combo Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_combo_image_api_admin_combos__combo_id__image_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Upload Combo Image Api Admin Combos  Combo Id  Image Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload Combo Image",
         "tags": [
           "admin-combos"
         ]
@@ -3732,6 +4285,48 @@
           }
         },
         "summary": "List Combos",
+        "tags": [
+          "combos"
+        ]
+      }
+    },
+    "/api/combos/{combo_id}": {
+      "get": {
+        "operationId": "get_combo_detail_api_combos__combo_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "combo_id",
+            "required": true,
+            "schema": {
+              "title": "Combo Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicComboDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Combo Detail",
         "tags": [
           "combos"
         ]

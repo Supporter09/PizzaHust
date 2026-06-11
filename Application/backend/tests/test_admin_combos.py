@@ -13,13 +13,21 @@ def _two_pizzas(price: int = 100_000):
 
 
 def _items(*product_ids):
-    return [{"product_id": pid, "quantity": 1} for pid in product_ids]
+    return [{"kind": "product", "product_id": pid, "quantity": 1} for pid in product_ids]
 
 
 def _post(client, **overrides):
     body = {"name": "Combo", "combo_price_vnd": 150_000}
     body.update(overrides)
     return client.post("/api/admin/combos", json=body)
+
+
+def _slot(category_id, qty=1):
+    return {"kind": "category", "category_id": category_id, "quantity": qty}
+
+
+def _fixed(product_id, qty=1):
+    return {"kind": "product", "product_id": product_id, "quantity": qty}
 
 
 def test_create_active_when_no_window():
@@ -118,7 +126,7 @@ def test_patch_replaces_items():
     combo_id = _post(client, items=_items(p1, p2)).json()["combo_id"]
     r = client.patch(f"/api/admin/combos/{combo_id}", json={"items": _items(p1, p3)})
     assert r.status_code == 200, r.text
-    returned = {i["product_id"] for i in r.json()["items"]}
+    returned = {i["product_id"] for i in r.json()["items"] if i["kind"] == "product"}
     assert returned == {p1, p3}
 
 
@@ -137,3 +145,88 @@ def test_delete_returns_204():
     combo_id = _post(client, items=_items(p1, p2)).json()["combo_id"]
     assert client.delete(f"/api/admin/combos/{combo_id}").status_code == 204
     assert client.get(f"/api/admin/combos/{combo_id}").status_code == 404
+
+
+def test_create_combo_with_slot_returns_kind_and_from_price():
+    client = admin_client("combo-slot-create")
+    cat = new_category("Drinks2")
+    new_product(cat, "Cola", base_price_vnd=15_000, is_pizza=False)
+    new_product(cat, "Juice", base_price_vnd=25_000, is_pizza=False)
+    p1, p2 = _two_pizzas()
+    r = _post(client, items=[_fixed(p1), _fixed(p2), _slot(cat, qty=2)])
+    assert r.status_code == 201, r.text
+    body = r.json()
+    items = body["items"]
+    slot = next(i for i in items if i["kind"] == "category")
+    assert slot["category_id"] == cat
+    assert slot["from_price_vnd"] == 15_000
+    assert slot["name"] == "Drinks2 — customer's choice"
+    fixed = next(i for i in items if i["kind"] == "product")
+    assert fixed["from_price_vnd"] is None
+    assert body["items_total_vnd"] == 230_000
+    assert body["savings_vnd"] == 80_000
+
+
+def test_slot_only_combo_with_quantity_two_is_valid():
+    client = admin_client("combo-slot-sumqty")
+    cat = new_category("Pizzas2")
+    new_product(cat, "Pz", base_price_vnd=100_000)
+    r = _post(client, items=[_slot(cat, qty=2)])
+    assert r.status_code == 201, r.text
+
+
+def test_single_unit_combo_rejected_by_sum_quantity():
+    client = admin_client("combo-one-unit")
+    cat = new_category("Pizzas3")
+    new_product(cat, "Pz", base_price_vnd=100_000)
+    r = _post(client, items=[_slot(cat, qty=1)])
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"
+
+
+def test_slot_unknown_category_unavailable():
+    client = admin_client("combo-slot-unknown")
+    p1, p2 = _two_pizzas()
+    r = _post(client, items=[_fixed(p1), _slot(99_999)])
+    assert r.status_code == 400
+    assert r.json()["error"]["details"]["reason"] == "slot_category_unavailable"
+
+
+def test_slot_inactive_category_unavailable():
+    client = admin_client("combo-slot-inactive")
+    cat = new_category("Hidden2", is_active=False)
+    new_product(cat, "X", base_price_vnd=10_000)
+    p1, p2 = _two_pizzas()
+    r = _post(client, items=[_fixed(p1), _slot(cat)])
+    assert r.status_code == 400
+    assert r.json()["error"]["details"]["reason"] == "slot_category_unavailable"
+
+
+def test_slot_empty_category_unavailable():
+    client = admin_client("combo-slot-empty")
+    cat = new_category("Empty2")
+    p1, p2 = _two_pizzas()
+    r = _post(client, items=[_fixed(p1), _slot(cat)])
+    assert r.status_code == 400
+    assert r.json()["error"]["details"]["reason"] == "slot_category_unavailable"
+
+
+def test_item_kind_id_mismatch_is_schema_error():
+    client = admin_client("combo-kind-mismatch")
+    r = _post(client, items=[{"kind": "category", "product_id": 1, "quantity": 2}])
+    assert r.status_code == 400
+    body = r.json()["error"]
+    assert body["code"] == "VALIDATION_FAILED"
+    assert "errors" in body["details"]
+
+
+def test_patch_replaces_with_slot():
+    client = admin_client("combo-patch-slot")
+    p1, p2 = _two_pizzas()
+    combo_id = _post(client, items=[_fixed(p1), _fixed(p2)]).json()["combo_id"]
+    cat = new_category("Sides2")
+    new_product(cat, "Fries", base_price_vnd=35_000, is_pizza=False)
+    r = client.patch(f"/api/admin/combos/{combo_id}", json={"items": [_fixed(p1), _slot(cat, 2)]})
+    assert r.status_code == 200, r.text
+    kinds = sorted(i["kind"] for i in r.json()["items"])
+    assert kinds == ["category", "product"]
