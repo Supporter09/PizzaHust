@@ -29,7 +29,7 @@ test.describe("U15 — Customize Combo", () => {
 
     // A premium pick (chip labelled with a surcharge) must change the total.
     const premium = page
-      .getByRole("radio", { checked: false })
+      .locator('[data-testid="slot-pick"][aria-checked="false"]')
       .filter({ hasText: "+" })
       .first();
     if ((await premium.count()) > 0) {
