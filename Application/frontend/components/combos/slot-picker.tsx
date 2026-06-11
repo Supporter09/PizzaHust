@@ -1,4 +1,4 @@
-import { formatVnd } from "@/lib/format";
+import { SlotPickCard } from "@/components/combos/slot-pick-card";
 import type { ComboEligibleProduct } from "@/lib/api/combos";
 
 type Props = {
@@ -10,28 +10,20 @@ type Props = {
 
 export function SlotPicker({ label, products, selectedProductId, onPick }: Props) {
   return (
-    <div role="radiogroup" aria-label={label} data-testid="slot-group" className="flex flex-wrap gap-2">
-      {products.map((p) => {
-        const selected = p.product_id === selectedProductId;
-        return (
-          <button
-            key={p.product_id}
-            type="button"
-            role="radio"
-            aria-checked={selected}
-            data-testid="slot-pick"
-            onClick={() => onPick(p.product_id)}
-            className={`inline-flex h-11 items-center rounded-full px-4 text-sm font-medium transition-colors ${
-              selected
-                ? "bg-brand text-on-brand"
-                : "bg-surface-active text-fg hover:bg-surface-hover"
-            }`}
-          >
-            {p.name}
-            {p.surcharge_vnd > 0 ? ` +${formatVnd(p.surcharge_vnd)}` : ""}
-          </button>
-        );
-      })}
+    <div
+      role="radiogroup"
+      aria-label={label}
+      data-testid="slot-group"
+      className="grid gap-2.5 sm:grid-cols-2"
+    >
+      {products.map((p) => (
+        <SlotPickCard
+          key={p.product_id}
+          product={p}
+          selected={p.product_id === selectedProductId}
+          onPick={() => onPick(p.product_id)}
+        />
+      ))}
     </div>
   );
 }
