@@ -47,7 +47,7 @@ export default function ComboPricingColumn({
             className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm"
           />
         </div>
-        {savings > 0 && priceNum <= componentsTotal && (
+        {savings > 0 && (
           <div className="mt-4 flex justify-between border-t border-line pt-3 text-sm font-semibold text-fg">
             <span>Customer saves</span>
             <span>{formatVnd(savings)}</span>

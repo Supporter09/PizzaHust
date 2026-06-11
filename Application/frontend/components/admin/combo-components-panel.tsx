@@ -79,7 +79,7 @@ export default function ComboComponentsPanel({
       <ul className="space-y-2">
         {rows.map((r, i) => (
           <li
-            key={`${r.item.kind}-${r.item.kind === "product" ? r.item.product_id : r.item.category_id}-${i}`}
+            key={`${r.item.kind}-${r.item.kind === "product" ? r.item.product_id : r.item.category_id}`}
             className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line px-3 py-2"
           >
             <span className="text-sm font-medium text-fg">{rowLabel(r)}</span>
