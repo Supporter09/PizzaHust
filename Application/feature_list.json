@@ -394,9 +394,9 @@
         "A8",
         "A10"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hoang",
-      "evidence": ""
+      "evidence": "verify.sh green at 368a36e, 2026-06-11T18:35:35Z"
     },
     {
       "id": "U16",

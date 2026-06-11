@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 
 import { OptionGroupSelector } from "@/components/menu/option-group-selector";
 import { QuantityStepper } from "@/components/menu/quantity-stepper";
@@ -9,6 +9,7 @@ import { ApiClientError } from "@/lib/api/client";
 import { quoteCart } from "@/lib/api/cart";
 import { fetchItem, type MenuItemDetail } from "@/lib/api/menu";
 import { formatVnd } from "@/lib/format";
+import { defaultOptionSelections } from "@/lib/option-defaults";
 
 type Status = "loading" | "ready" | "notfound" | "error";
 
@@ -23,6 +24,9 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
   const [estimate, setEstimate] = useState<number | null>(null);
   const [quoting, setQuoting] = useState(false);
 
+  // Guards async continuations (incl. Try-again clicks) after unmount.
+  const alive = useRef(true);
+
   const load = useCallback(() => {
     if (!Number.isInteger(numericId) || numericId < 1) {
       setStatus("notfound");
@@ -31,15 +35,9 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
     setStatus("loading");
     fetchItem(numericId)
       .then((data) => {
+        if (!alive.current) return;
         setItem(data);
-        const initial: Record<number, number[]> = {};
-        for (const g of data.option_groups) {
-          initial[g.group_id] =
-            g.select_type === "single" && g.required && g.options.length > 0
-              ? [g.options[0].option_id]
-              : [];
-        }
-        setSelections(initial);
+        setSelections(defaultOptionSelections(data.option_groups));
         setQuantity(1);
         if (data.option_groups.length === 0) {
           setEstimate(null);
@@ -48,13 +46,18 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
         setStatus("ready");
       })
       .catch((e) => {
+        if (!alive.current) return;
         setStatus(e instanceof ApiClientError && e.status === 404 ? "notfound" : "error");
       });
   }, [numericId]);
 
   useEffect(() => {
+    alive.current = true;
     const timer = window.setTimeout(load, 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      alive.current = false;
+      window.clearTimeout(timer);
+    };
   }, [load]);
 
   useEffect(() => {
