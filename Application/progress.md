@@ -350,3 +350,17 @@ Append-only session journal. Each session ends with a dated block. Keep blocks â
 
 **Next**
 - `U15` Customize Combo UI; order persistence of combo lines remains `U6`.
+
+---
+
+## 2026-06-11 â€” U15 Customize Combo
+
+**Done**
+- Public combo detail client; `/combos/[id]` customizer with slot picks, per-pick A8 options, debounced cart quote, savings, expiry and selection-error states.
+- `combo-selections` model + `buildComboLine`; combo cards link to customizer; vitest + Playwright `combo-customize.spec.ts`.
+
+**Verified**
+- `./verify.sh` exit 0 (e2e fix: premium surcharge chip must be unchecked before click).
+
+**Next**
+- `U5` Manage Cart (`buildComboLine` persistence); `U6` persists resolved combo lines on `POST /api/orders`.
