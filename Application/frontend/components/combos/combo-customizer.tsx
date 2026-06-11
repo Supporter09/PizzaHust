@@ -87,9 +87,6 @@ export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
           <h2 className="font-semibold text-fg">
             {c.quantity > 1 ? `${c.quantity}× ` : ""}
             {c.name}
-            {c.kind === "category" ? (
-              <span className="ml-2 text-xs font-medium text-muted">customer&apos;s choice</span>
-            ) : null}
           </h2>
           {selections[c.combo_item_id].map((unit, i) => (
             <div key={i} className="space-y-3">
