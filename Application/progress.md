@@ -379,7 +379,7 @@ Append-only session journal. Each session ends with a dated block. Keep blocks â
 7. `package-lock.json` peer-flag/dedupe churn restored (no real dependency changes).
 
 **Verified**
-- `./verify.sh` exit 0 at `29e7bf9`, `2026-06-11T17:40:17Z`.
+- `./verify.sh` exit 0 at `29e7bf9`, `2026-06-11T17:40:17Z` (UTC; = 2026-06-12 00:40 +07 â€” matches the header's local date).
 
 ---
 
@@ -400,5 +400,5 @@ Append-only session journal. Each session ends with a dated block. Keep blocks â
 
 **Verified**
 - `npx tsc --noEmit`, `npx eslint .` (no new warnings), `npx vitest run` (41 passed) green.
-- `./verify.sh` exit 0 at `368a36e`, `2026-06-11T18:35:35Z` (20 e2e passed incl. updated combo specs).
+- `./verify.sh` exit 0 at `368a36e`, `2026-06-11T18:35:35Z` (UTC; = 2026-06-12 01:35 +07 â€” matches the header's local date; 20 e2e passed incl. updated combo specs).
 - Screenshots in `Application/docs/superpowers/`: `u15-after-{light,dark,mobile}.png`, `combos-fidelity-after-{light,dark,mobile}.png` (customizer shot in fully-picked state, combo 3).
