@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 
 import { ComboCustomizer } from "@/components/combos/combo-customizer";
 import { ComboSummaryCard } from "@/components/combos/combo-summary-card";
@@ -16,6 +16,8 @@ export default function ComboCustomizePage({ params }: { params: Promise<{ id: s
 
   const [combo, setCombo] = useState<ComboDetail | null>(null);
   const [status, setStatus] = useState<Status>("loading");
+  // Guards async continuations (incl. Try-again clicks) after unmount.
+  const alive = useRef(true);
 
   const load = useCallback(() => {
     if (!Number.isInteger(numericId) || numericId < 1) {
@@ -25,17 +27,23 @@ export default function ComboCustomizePage({ params }: { params: Promise<{ id: s
     setStatus("loading");
     fetchComboDetail(numericId)
       .then((data) => {
+        if (!alive.current) return;
         setCombo(data);
         setStatus("ready");
       })
       .catch((e) => {
+        if (!alive.current) return;
         setStatus(e instanceof ApiClientError && e.status === 404 ? "notfound" : "error");
       });
   }, [numericId]);
 
   useEffect(() => {
+    alive.current = true;
     const timer = window.setTimeout(load, 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      alive.current = false;
+      window.clearTimeout(timer);
+    };
   }, [load]);
 
   return (

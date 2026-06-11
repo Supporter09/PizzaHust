@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 
 import { OptionGroupSelector } from "@/components/menu/option-group-selector";
 import { QuantityStepper } from "@/components/menu/quantity-stepper";
@@ -24,6 +24,9 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
   const [estimate, setEstimate] = useState<number | null>(null);
   const [quoting, setQuoting] = useState(false);
 
+  // Guards async continuations (incl. Try-again clicks) after unmount.
+  const alive = useRef(true);
+
   const load = useCallback(() => {
     if (!Number.isInteger(numericId) || numericId < 1) {
       setStatus("notfound");
@@ -32,6 +35,7 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
     setStatus("loading");
     fetchItem(numericId)
       .then((data) => {
+        if (!alive.current) return;
         setItem(data);
         setSelections(defaultOptionSelections(data.option_groups));
         setQuantity(1);
@@ -42,13 +46,18 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
         setStatus("ready");
       })
       .catch((e) => {
+        if (!alive.current) return;
         setStatus(e instanceof ApiClientError && e.status === 404 ? "notfound" : "error");
       });
   }, [numericId]);
 
   useEffect(() => {
+    alive.current = true;
     const timer = window.setTimeout(load, 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      alive.current = false;
+      window.clearTimeout(timer);
+    };
   }, [load]);
 
   useEffect(() => {

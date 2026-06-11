@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ComboCard } from "@/components/combos/combo-card";
 import { fetchCombos, type PublicCombo } from "@/lib/api/combos";
@@ -10,20 +10,29 @@ type Status = "loading" | "ready" | "error";
 export default function CombosPage() {
   const [combos, setCombos] = useState<PublicCombo[]>([]);
   const [status, setStatus] = useState<Status>("loading");
+  // Guards async continuations (incl. Try-again clicks) after unmount.
+  const alive = useRef(true);
 
   const load = useCallback(() => {
     setStatus("loading");
     fetchCombos()
       .then((list) => {
+        if (!alive.current) return;
         setCombos(list);
         setStatus("ready");
       })
-      .catch(() => setStatus("error"));
+      .catch(() => {
+        if (alive.current) setStatus("error");
+      });
   }, []);
 
   useEffect(() => {
+    alive.current = true;
     const timer = window.setTimeout(load, 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      alive.current = false;
+      window.clearTimeout(timer);
+    };
   }, [load]);
 
   return (
