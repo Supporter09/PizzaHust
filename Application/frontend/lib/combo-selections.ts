@@ -62,6 +62,15 @@ export function setPickOptions(
   return updateUnit(s, comboItemId, unit, (u) => ({ ...u, options }));
 }
 
+export type SlotProgress = { picked: number; total: number; complete: boolean };
+
+// Wayfinding counter for one slot ("2 of 2 selected"). Counts product picks only;
+// option loading is a readiness concern (isQuoteReady), not a wayfinding one.
+export function slotProgress(units: PickUnit[]): SlotProgress {
+  const picked = units.filter((u) => u.productId !== null).length;
+  return { picked, total: units.length, complete: picked === units.length };
+}
+
 export function isQuoteReady(s: ComboSelections): boolean {
   return Object.values(s).every((units) =>
     units.every((u) => u.productId !== null && u.options !== null),

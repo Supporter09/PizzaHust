@@ -11,13 +11,14 @@ import { defaultOptionSelections } from "@/lib/option-defaults";
 // is fixed for the component lifetime.
 type Props = {
   productId: number;
+  productName: string;
   options: Record<number, number[]> | null;
   onOptionsChange: (options: Record<number, number[]>) => void;
 };
 
 const detailCache = new Map<number, MenuItemDetail>();
 
-export function PickOptions({ productId, options, onOptionsChange }: Props) {
+export function PickOptions({ productId, productName, options, onOptionsChange }: Props) {
   const [detail, setDetail] = useState<MenuItemDetail | null>(detailCache.get(productId) ?? null);
   const [failed, setFailed] = useState(false);
 
@@ -55,13 +56,16 @@ export function PickOptions({ productId, options, onOptionsChange }: Props) {
     return null;
   }
   return (
-    <div className="space-y-3 border-l-2 border-line pl-4">
+    <div className="space-y-3 rounded-xl border border-dashed border-line bg-card p-4">
+      <h3 className="text-sm font-bold text-fg">
+        Options for <span className="text-brand-fg">{productName}</span>
+      </h3>
       {detail.option_groups.map((g) => (
         <div key={g.group_id} className="space-y-1.5">
-          <h3 className="text-xs font-semibold text-muted">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted">
             {g.name}
             {g.select_type === "multi" ? " (Optional)" : ""}
-          </h3>
+          </h4>
           <OptionGroupSelector
             group={g}
             selectedIds={options[g.group_id] ?? []}

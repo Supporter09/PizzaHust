@@ -4,9 +4,9 @@ import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
 
 import { ComboCustomizer } from "@/components/combos/combo-customizer";
+import { ComboSummaryCard } from "@/components/combos/combo-summary-card";
 import { ApiClientError } from "@/lib/api/client";
 import { fetchComboDetail, type ComboDetail } from "@/lib/api/combos";
-import { formatVnd } from "@/lib/format";
 
 type Status = "loading" | "ready" | "notfound" | "error";
 
@@ -65,20 +65,10 @@ export default function ComboCustomizePage({ params }: { params: Promise<{ id: s
       ) : null}
 
       {status === "ready" && combo ? (
-        <>
-          <header className="space-y-1">
-            <h1 className="text-3xl font-bold text-fg">{combo.name}</h1>
-            <p className="text-lg font-semibold text-brand">
-              {formatVnd(combo.combo_price_vnd)}
-              {combo.savings_vnd > 0 ? (
-                <span className="ml-2 text-sm font-medium text-muted line-through">
-                  {formatVnd(combo.items_total_vnd)}
-                </span>
-              ) : null}
-            </p>
-          </header>
+        <div className="grid gap-8 lg:grid-cols-[380px_1fr] lg:items-start">
+          <ComboSummaryCard combo={combo} />
           <ComboCustomizer combo={combo} />
-        </>
+        </div>
       ) : null}
     </section>
   );

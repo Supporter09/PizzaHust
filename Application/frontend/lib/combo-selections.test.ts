@@ -6,6 +6,7 @@ import {
   isQuoteReady,
   setPickOptions,
   setPickProduct,
+  slotProgress,
   type ComboSelections,
 } from "@/lib/combo-selections";
 
@@ -65,6 +66,29 @@ describe("isQuoteReady", () => {
     s = setPickOptions(s, 11, 0, { 1: [11] });
     s = setPickOptions(s, 11, 1, {});
     expect(isQuoteReady(s)).toBe(true);
+  });
+});
+
+describe("slotProgress", () => {
+  it("counts picked units against the slot quantity", () => {
+    let s = initComboSelections(detail);
+    expect(slotProgress(s[11])).toEqual({ picked: 0, total: 2, complete: false });
+    s = setPickProduct(s, 11, 0, 5);
+    expect(slotProgress(s[11])).toEqual({ picked: 1, total: 2, complete: false });
+    s = setPickProduct(s, 11, 1, 6);
+    expect(slotProgress(s[11])).toEqual({ picked: 2, total: 2, complete: true });
+  });
+
+  it("treats prefilled fixed components as already picked", () => {
+    const s = initComboSelections(detail);
+    expect(slotProgress(s[10])).toEqual({ picked: 1, total: 1, complete: true });
+  });
+
+  it("ignores options state — progress is about product picks only", () => {
+    let s = initComboSelections(detail);
+    s = setPickProduct(s, 11, 0, 5);
+    s = setPickOptions(s, 11, 0, { 1: [11] });
+    expect(slotProgress(s[11])).toEqual({ picked: 1, total: 2, complete: false });
   });
 });
 

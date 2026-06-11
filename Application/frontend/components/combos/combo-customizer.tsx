@@ -5,25 +5,33 @@ import { useEffect, useState } from "react";
 
 import { PickOptions } from "@/components/combos/pick-options";
 import { SlotPicker } from "@/components/combos/slot-picker";
-import { QuantityStepper } from "@/components/menu/quantity-stepper";
+import { StepHeader } from "@/components/combos/step-header";
 import { quoteCart } from "@/lib/api/cart";
-import type { ComboDetail } from "@/lib/api/combos";
+import type { ComboComponent, ComboDetail } from "@/lib/api/combos";
 import {
   buildComboLine,
   initComboSelections,
   isQuoteReady,
   setPickOptions,
   setPickProduct,
+  slotProgress,
   type ComboSelections,
+  type PickUnit,
 } from "@/lib/combo-selections";
 import { formatVnd } from "@/lib/format";
 import { isComboNoLongerActive, isSelectionRuleViolation } from "@/lib/quote-errors";
+
+function pickedProductName(c: ComboComponent, unit: PickUnit): string {
+  if (c.kind === "product") return c.name;
+  return (
+    c.eligible_products?.find((p) => p.product_id === unit.productId)?.name ?? c.name
+  );
+}
 
 export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
   const [selections, setSelections] = useState<ComboSelections>(() =>
     initComboSelections(combo),
   );
-  const [quantity, setQuantity] = useState(1);
   const [estimate, setEstimate] = useState<{ total: number; savings: number } | null>(null);
   const [quoting, setQuoting] = useState(false);
   const [expired, setExpired] = useState(false);
@@ -43,7 +51,7 @@ export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
       setQuoting(true);
       quoteCart({
         redeem_points: 0,
-        lines: [buildComboLine(combo.combo_id, selections, quantity)],
+        lines: [buildComboLine(combo.combo_id, selections, 1)],
       })
         .then((q) => {
           if (!active) return;
@@ -64,7 +72,7 @@ export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
       active = false;
       window.clearTimeout(handle);
     };
-  }, [combo.combo_id, selections, quantity, canQuote]);
+  }, [combo.combo_id, selections, canQuote]);
 
   if (expired) {
     return (
@@ -80,42 +88,45 @@ export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
     );
   }
 
+  // The mockup numbers every pick as its own step, so flatten (component, unit)
+  // pairs into one numbered list.
+  const steps = combo.components.flatMap((c) =>
+    selections[c.combo_item_id].map((unit, unitIndex) => ({ component: c, unit, unitIndex })),
+  );
+
   return (
-    <div className="space-y-6">
-      {combo.components.map((c) => (
-        <section key={c.combo_item_id} className="space-y-4 rounded-2xl border border-line bg-card p-4">
-          <h2 className="font-semibold text-fg">
-            {c.quantity > 1 ? `${c.quantity}× ` : ""}
-            {c.name}
-          </h2>
-          {selections[c.combo_item_id].map((unit, i) => (
-            <div key={i} className="space-y-3">
-              {c.quantity > 1 ? (
-                <p className="text-xs font-semibold text-muted">Pick {i + 1}</p>
-              ) : null}
-              {c.kind === "category" ? (
-                <SlotPicker
-                  label={`${c.name} pick ${i + 1}`}
-                  products={c.eligible_products ?? []}
-                  selectedProductId={unit.productId}
-                  onPick={(pid) =>
-                    setSelections((s) => setPickProduct(s, c.combo_item_id, i, pid))
-                  }
-                />
-              ) : null}
-              {unit.productId !== null ? (
-                /* keyed by product: PickOptions assumes a fixed productId per mount */
-                <PickOptions
-                  key={unit.productId}
-                  productId={unit.productId}
-                  options={unit.options}
-                  onOptionsChange={(o) =>
-                    setSelections((s) => setPickOptions(s, c.combo_item_id, i, o))
-                  }
-                />
-              ) : null}
-            </div>
-          ))}
+    <div className="space-y-8">
+      {steps.map(({ component: c, unit, unitIndex }, idx) => (
+        <section key={`${c.combo_item_id}-${unitIndex}`} className="space-y-3">
+          <StepHeader
+            number={idx + 1}
+            title={c.name}
+            progress={
+              c.kind === "category" ? slotProgress(selections[c.combo_item_id]) : undefined
+            }
+          />
+          {c.kind === "category" ? (
+            <SlotPicker
+              label={`${c.name} pick ${unitIndex + 1}`}
+              products={c.eligible_products ?? []}
+              selectedProductId={unit.productId}
+              onPick={(pid) =>
+                setSelections((s) => setPickProduct(s, c.combo_item_id, unitIndex, pid))
+              }
+            />
+          ) : null}
+          {unit.productId !== null ? (
+            /* keyed by product: PickOptions assumes a fixed productId per mount */
+            <PickOptions
+              key={unit.productId}
+              productId={unit.productId}
+              productName={pickedProductName(c, unit)}
+              options={unit.options}
+              onOptionsChange={(o) =>
+                setSelections((s) => setPickOptions(s, c.combo_item_id, unitIndex, o))
+              }
+            />
+          ) : null}
         </section>
       ))}
 
@@ -130,16 +141,15 @@ export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
         </div>
       ) : null}
 
-      <div className="flex items-center justify-between gap-4 border-t border-line pt-4">
-        <QuantityStepper value={quantity} onChange={setQuantity} />
-        <p className="text-right">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5">
+        <p>
           <span className="block text-xs text-muted">
             {ready ? "Combo total" : "Finish your picks to see the total"}
           </span>
           <span
             data-testid="combo-estimate"
             aria-live="polite"
-            className="text-2xl font-bold text-brand"
+            className="text-3xl font-extrabold leading-tight text-brand-fg"
           >
             {shownEstimate !== null
               ? formatVnd(shownEstimate.total)
@@ -155,6 +165,17 @@ export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
             </span>
           ) : null}
         </p>
+        <div className="text-right">
+          <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            className="btn-primary inline-flex h-12 cursor-not-allowed items-center px-6 opacity-55"
+          >
+            Add Combo to Cart
+          </button>
+          <p className="mt-1 text-xs text-muted">Cart is coming soon</p>
+        </div>
       </div>
     </div>
   );
