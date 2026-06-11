@@ -100,7 +100,11 @@ Component shape gains a `kind` discriminator (mirrors the A8 cart-line style):
   {"extra": "forbid"}` on both variants — wrong/extra id fields are
   schema-level failures (`details.errors`, see §2 preamble).
 - `from_price_vnd` present only on `kind:"category"` rows.
-- `ComboOut` gains `image_url: str | null`.
+- `ComboOut` gains `image_url: str | null` plus `items_total_vnd: int | null`
+  and `savings_vnd: int | null` so the admin card grid can render the
+  "Save X₫" badge server-authoritatively (computed like the public list:
+  fixed `base × qty` + slot `reference × qty`). Both are `null` when any slot
+  is unavailable — admin still sees the combo (to fix it), badge hidden.
 
 Validation on create/patch (replace-items semantics unchanged):
 - **Rule change vs A4:** minimum is now `sum(quantity) ≥ 2` across components

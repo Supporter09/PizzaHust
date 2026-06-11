@@ -671,13 +671,17 @@ def test_create_combo_with_slot_returns_kind_and_from_price():
     p1, p2 = _two_pizzas()
     r = _post(client, items=[_fixed(p1), _fixed(p2), _slot(cat, qty=2)])
     assert r.status_code == 201, r.text
-    items = r.json()["items"]
+    body = r.json()
+    items = body["items"]
     slot = next(i for i in items if i["kind"] == "category")
     assert slot["category_id"] == cat
     assert slot["from_price_vnd"] == 15_000
     assert slot["name"] == "Drinks2 — customer's choice"
     fixed = next(i for i in items if i["kind"] == "product")
     assert fixed["from_price_vnd"] is None
+    # admin savings badge fields: 2 x 100k pizzas + 2 x 15k reference = 230k vs 150k price
+    assert body["items_total_vnd"] == 230_000
+    assert body["savings_vnd"] == 80_000
 
 
 def test_slot_only_combo_with_quantity_two_is_valid():
@@ -797,7 +801,14 @@ class ComboItemOut(BaseModel):
 ```
 
 `ComboIn.items` / `ComboPatch.items` keep their names but the element type is
-now `ComboItemIn` (the union). `ComboOut` gains `image_url: str | None = None`.
+now `ComboItemIn` (the union). `ComboOut` gains three fields (spec §2.1 —
+the admin card badge is server-authoritative):
+
+```python
+    image_url: str | None = None
+    items_total_vnd: int | None = None  # None when any slot is unavailable
+    savings_vnd: int | None = None
+```
 
 ```python
 def _validate_items(db: Session, items: list[ProductComboItemIn | CategoryComboItemIn]) -> None:
@@ -859,6 +870,15 @@ def _to_out(db: Session, combo: Combo) -> ComboOut:
                     from_price_vnd=availability[ci.category_id],
                 )
             )
+    items_total: int | None = 0
+    for ci in rows:
+        if ci.product_id is not None:
+            items_total += ci.product.base_price_vnd * ci.quantity
+        elif availability[ci.category_id] is None:
+            items_total = None  # unavailable slot: badge fields go null
+            break
+        else:
+            items_total += availability[ci.category_id] * ci.quantity
     return ComboOut(
         combo_id=combo.combo_id,
         name=combo.name,
@@ -869,9 +889,17 @@ def _to_out(db: Session, combo: Combo) -> ComboOut:
         validity_end=combo.validity_end,
         status=status,
         image_url=combo.image_url,
+        items_total_vnd=items_total,
+        savings_vnd=(
+            combo_savings_vnd(combo.combo_price_vnd, items_total)
+            if items_total is not None
+            else None
+        ),
         items=items,
     )
 ```
+
+(add `combo_savings_vnd` to the existing `app.domain.combos` import.)
 
 All `_to_out(combo)` call sites become `_to_out(db, combo)`. Row creation in
 `create_combo`/`patch_combo` becomes:
@@ -1047,7 +1075,22 @@ git commit -m "feat(A10): combo image upload/clear endpoints"
 
 **Files:**
 - Modify: `Application/backend/app/api/combos.py`
-- Test: `Application/backend/tests/test_public_combos.py` (append; adjust existing item-shape assertions to the new fields)
+- Test: `Application/backend/tests/test_combos.py` — the EXISTING public-combos
+  suite (do NOT create a parallel file). Append the new tests and update the
+  stale shape assertions in `test_lists_active_combo_with_savings` (~line 58):
+
+```python
+    # old: assert set(items[0]) == {"product_id", "name", "quantity", "image_url", "base_price_vnd"}
+    assert set(items[0]) == {
+        "kind", "product_id", "category_id", "name",
+        "quantity", "image_url", "base_price_vnd", "from_price_vnd",
+    }
+    assert all(i["kind"] == "product" for i in items)
+```
+
+  (`PublicComboOut` also gains `image_url`, so any `set(combo)`-style
+  assertion in that file needs the new key too — fix whatever the first
+  test run flags.)
 
 - [ ] **Step 1: Append failing tests**
 
@@ -1115,7 +1158,7 @@ def test_combo_skipped_when_slot_category_deactivated():
 
 - [ ] **Step 2: Run to verify failure**
 
-Run: `pytest -q tests/test_public_combos.py`
+Run: `pytest -q tests/test_combos.py`
 Expected: new tests FAIL
 
 - [ ] **Step 3: Implement**
@@ -1200,13 +1243,13 @@ complains use `cast(int, availability[ci.category_id])`.
 
 - [ ] **Step 4: Run, fix stale assertions, verify pass**
 
-Run: `pytest -q tests/test_public_combos.py && pytest -q`
+Run: `pytest -q tests/test_combos.py && pytest -q`
 Expected: PASS after updating any existing assertions that read the old flat item shape.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add app/api/combos.py tests/test_public_combos.py
+git add app/api/combos.py tests/test_combos.py
 git commit -m "feat(A10): public combos list exposes choice slots with reference prices"
 ```
 
@@ -1904,7 +1947,9 @@ After the existing `combo2` block, add the slot combo (idempotent by name):
         combo3 = Combo(
             name="Pick-Any Feast",
             description="Two pizzas of your choice, garlic bread, and two drinks.",
-            combo_price_vnd=320_000,
+            # reference total: 2 x 125k (cheapest pizza) + 45k (Garlic Bread 4pcs)
+            # + 2 x 10k (Mineral Water) = 315k -> 35k savings badge
+            combo_price_vnd=280_000,
             validity_start=now - timedelta(days=1),
             validity_end=now + timedelta(days=365),
         )
@@ -1923,11 +1968,9 @@ After the existing `combo2` block, add the slot combo (idempotent by name):
         )
 ```
 
-(match the surrounding code's `timedelta` import/usage from combos 1–2; pick
-`combo_price_vnd` below cheapest-parts total so the savings badge shows:
-2×120k + 45k + 2×10k = 305k reference… adjust price to `280_000` if the
-cheapest seeded pizza is 120k and cheapest side is 45k — compute from actual
-seed values at implementation time and assert in the next step.)
+(match the surrounding code's `timedelta` import/usage from combos 1–2;
+`280_000` sits below the 315k reference total computed from the seeded prices
+above, so the savings badge shows — Step 2 asserts it via the API.)
 
 - [ ] **Step 2: Run seeds twice against compose MySQL (idempotency) and verify**
 
@@ -1960,18 +2003,20 @@ git commit -m "feat(A10): seed drink products and the Pick-Any Feast slot combo"
 
 ---
 
-### Task 11: Contracts — OpenAPI, types, CONTRACTS.md
+### Task 11: Contracts — OpenAPI + CONTRACTS.md
 
 **Files:**
-- Regenerate: `Application/openapi.json`, `Application/frontend/lib/api/types.ts`
+- Regenerate: `Application/openapi.json`
 - Modify: `Application/CONTRACTS.md`
 
-- [ ] **Step 1: Regenerate (cwd-qualified)**
+`lib/api/types.ts` is deliberately NOT regenerated here — that happens at the
+start of Task 12 together with the UI fixes, so no commit is ever
+tsc-broken. (`verify.sh` checks openapi↔types parity only at the gate.)
+
+- [ ] **Step 1: Regenerate OpenAPI (cwd-qualified)**
 
 ```bash
 cd Application/backend && python -m app.tools.dump_openapi > ../openapi.json
-cd ../frontend && npm run gen:types
-npx tsc --noEmit || true   # expect errors in combos UI — fixed in Tasks 12–13
 ```
 
 - [ ] **Step 2: Update CONTRACTS.md**
@@ -1992,21 +2037,47 @@ npx tsc --noEmit || true   # expect errors in combos UI — fixed in Tasks 12–
 - A10 scope bullet: slots are category-based; reference price = min active
   base price; surcharge above reference; order persistence excluded (U6).
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 3: Commit (from the repo root — the regen step left cwd in `Application/backend`)**
 
 ```bash
-git add Application/openapi.json Application/frontend/lib/api/types.ts Application/CONTRACTS.md
-git commit -m "chore(A10): regenerate contracts for combo choice-slots"
+cd "$(git rev-parse --show-toplevel)"
+git add Application/openapi.json Application/CONTRACTS.md
+git commit -m "chore(A10): regenerate OpenAPI and update CONTRACTS for combo choice-slots"
 ```
 
 ---
 
-### Task 12: Frontend — admin combos card grid + API surface
+### Task 12: Frontend — types regen, admin combos card grid + API surface
 
 **Files:**
+- Regenerate: `Application/frontend/lib/api/types.ts`
+- Modify: `Application/frontend/components/combos/combo-card.tsx` (new public item shape)
 - Create: `Application/frontend/lib/api/admin-combos.ts`
 - Rewrite: `Application/frontend/app/admin/combos/page.tsx`
 - Test: `Application/frontend/lib/format-combo-component.test.ts` + `lib/format-combo-component.ts`
+
+- [ ] **Step 0: Regenerate types and fix what breaks**
+
+```bash
+cd Application/frontend && npm run gen:types
+npx tsc --noEmit   # expect errors in combo-card.tsx and app/admin/combos/page.tsx
+```
+
+`components/combos/combo-card.tsx` reads the old flat public item shape
+(`product_id`/`base_price_vnd` non-null). Update its item rendering to the
+kind-aware shape using the helper from Step 2:
+
+```tsx
+import { formatComboComponent } from "@/lib/format-combo-component";
+// inside the component list:
+{combo.items.map((it, i) => (
+  <li key={i}>{formatComboComponent(it)}</li>
+))}
+```
+
+(keep the card's existing styling/savings badge; only the per-item line
+changes. The old admin combos page errors resolve in Step 4 when it is
+rewritten.)
 
 - [ ] **Step 1: Write failing unit test for the shared label helper**
 
@@ -2166,9 +2237,16 @@ export default function AdminCombosPage() {
                   <li key={i}>{formatComboComponent(it)}</li>
                 ))}
               </ul>
-              <p className="mt-3 font-medium text-fg">
-                {c.combo_price_vnd.toLocaleString("vi-VN")}₫
-              </p>
+              <div className="mt-3 flex items-center justify-between">
+                <p className="font-medium text-fg">
+                  {c.combo_price_vnd.toLocaleString("vi-VN")}₫
+                </p>
+                {c.savings_vnd != null && c.savings_vnd > 0 && (
+                  <span className="rounded-full bg-success-subtle px-2 py-0.5 text-xs font-medium text-success">
+                    Save {c.savings_vnd.toLocaleString("vi-VN")}₫
+                  </span>
+                )}
+              </div>
             </div>
           </Link>
         ))}
@@ -2187,8 +2265,8 @@ Run: `npx tsc --noEmit && npx eslint . && npx vitest run --exclude 'tests/e2e/**
 Expected: pass (editor pages come next; this page must not import them)
 
 ```bash
-git add lib/api/admin-combos.ts lib/format-combo-component.ts lib/format-combo-component.test.ts app/admin/combos/page.tsx
-git commit -m "feat(A10): admin combos card grid and typed API surface"
+git add lib/api/types.ts lib/api/admin-combos.ts lib/format-combo-component.ts lib/format-combo-component.test.ts app/admin/combos/page.tsx components/combos/combo-card.tsx
+git commit -m "feat(A10): regenerate types; admin combos card grid and typed API surface"
 ```
 
 ---
@@ -2522,7 +2600,8 @@ Expected: `=== VERIFY OK ===`, exit 0. Fix anything it flags before continuing.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add ../feature_list.json ../progress.md ../session-handoff.md
+cd "$(git rev-parse --show-toplevel)"
+git add Application/feature_list.json Application/progress.md Application/session-handoff.md
 git commit -m "chore(A10): record completion evidence and handoff to U15"
 ```
 
@@ -2551,7 +2630,8 @@ EOF
 ## Self-review (done at planning time)
 
 - **Spec coverage:** §1 → Tasks 3–4; §2.1 → Tasks 5–6; §2.2 → Task 7; §2.3 →
-  Task 8; §2.4 → Task 9; §2.5 → Task 11; §3 → Tasks 1–2; §4 → Tasks 12–13;
+  Task 8; §2.4 → Task 9; §2.5 → Tasks 11–12 (openapi in 11, types in 12 so no
+  commit is tsc-broken); §3 → Tasks 1–2; §4 → Tasks 12–13;
   §5 → Task 10; §6 → tests in every task + Tasks 14–15. No gaps.
 - **Placeholders:** none — every code step carries full code; the two
   "verify-name-at-implementation-time" notes (schema type names after regen,
