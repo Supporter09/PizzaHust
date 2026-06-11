@@ -59,6 +59,7 @@ Error codes (closed set, extend in this doc only):
 | GET | `/api/items` | List active items, filterable by `category` (`category_id`). `vegetarian`/`kids` filters and item `description` are deferred — no schema columns yet. |
 | GET | `/api/items/{id}` | Item detail (includes `option_groups[]` — options enabled for this dish) |
 | GET | `/api/combos` | List active combos for current time window |
+| GET | `/api/combos/{combo_id}` | Combo detail for customizer (components, eligible slot products, surcharges) |
 
 ### Cart & Checkout (U3, U5, U6, U13)
 
@@ -73,15 +74,28 @@ Error codes (closed set, extend in this doc only):
 > `/menu/[id]` item page now calls `POST /api/cart/quote` for a single customized
 > pizza line and renders `total_vnd`. `address` is **optional**: when absent the quote
 > runs in preview mode (`delivery_fee_vnd: 0`, no service-area check); when present and
-> outside the inner-Hanoi whitelist it returns `OUT_OF_SERVICE_AREA` (422). `combo`
-> lines are deferred (U5/U15) and currently return `VALIDATION_FAILED` (400).
+> outside the inner-Hanoi whitelist it returns `OUT_OF_SERVICE_AREA` (422).
 >
-> **Generic options (A8).** A line is `{kind: "item"|"combo", item_id, option_ids, quantity}`.
+> **Cart lines (A8/A10).** `lines[]` is a discriminated union on `kind` (`extra` forbidden
+> on line objects). **Item:** `{kind:"item", item_id, option_ids, quantity}`.
+> **Combo (A10):** `{kind:"combo", combo_id, selections[], quantity}` where each selection is
+> `{combo_item_id, picks[]}` and each pick is `{product_id, option_ids}` (one configured pick
+> per unit of component `quantity`; selections describe one combo unit, line `quantity`
+> multiplies the fully configured combo). Wrong fields for the declared `kind` are
+> Pydantic/schema failures → `details.errors`, not a closed semantic reason.
+>
+> **Generic options (A8).** Item lines and combo picks both carry `option_ids`.
 > The server **dedupes** `option_ids` before validation and pricing (duplicates never
 > double-charge), then enforces group rules against the dish's enabled set. Rule
 > violations return `VALIDATION_FAILED` (400) with a machine-readable
 > `details.reason`: `option_not_available` (+`option_id`), `required_group_missing`
-> (+`group_name`), or `single_group_conflict` (+`group_name`).
+> (+`group_name`), or `single_group_conflict` (+`group_name`). Combo lines add closed
+> reasons (often with `combo_item_id` / `product_id`): `combo_not_active`,
+> `component_selection_missing`, `pick_count_mismatch`, `product_not_in_slot_category`,
+> `product_mismatch_fixed_component`. Combo pricing: `subtotal_vnd` accumulates full
+> line value (reference + surcharges + option deltas); `discount_combo_vnd` accumulates
+> combo savings (`max(0, full_value − charged)` per unit × quantity); `total_vnd` charges
+> `combo_price_vnd` + surcharges + option deltas per unit. Item-line behavior unchanged.
 > `redeem_points` is accepted for forward-compatibility with U14, but because the
 > loyalty balance is 0 until U13/U14, any `redeem_points > 0` returns
 > `INSUFFICIENT_LOYALTY` (422); U3 callers send `redeem_points: 0`.
@@ -124,7 +138,9 @@ All under `/api/admin/`, role=`admin` required.
 | PATCH/DELETE | `/api/admin/options/{oid}` | A2/A8 — edit/delete one option |
 | GET/PUT | `/api/admin/items/{id}/options` | A2/A8 — per-dish enablement; PUT body `{ "option_ids": [] }` replaces the enabled set |
 | GET/POST/PATCH/DELETE | `/api/admin/categories` | A3 |
-| GET/POST/PATCH/DELETE | `/api/admin/combos` | A4 — response includes derived `status` |
+| GET/POST/PATCH/DELETE | `/api/admin/combos` | A4/A10 — response includes derived `status` |
+| POST | `/api/admin/combos/{id}/image` | A10 — multipart image upload (field `image`); returns `{ "image_url": string }` |
+| DELETE | `/api/admin/combos/{id}/image` | A10 — clear combo image, 204 |
 | POST | `/api/admin/import/pizzas` | A1 — CSV upsert (multipart field `file`) |
 | GET | `/api/admin/orders` | A5 list, query param `status` |
 | GET | `/api/admin/orders/{id}` | A5 get order detail |
@@ -159,12 +175,19 @@ All under `/api/admin/`, role=`admin` required.
   their per-dish enablement. There are **no** order-history delete guards: orders hold
   snapshots in `order_item_options` (group/option names + delta at order time; readers
   order by `id`), so catalog deletes never orphan history.
-- **A4 combos** (`/api/admin/combos`): a combo needs **≥ 2 component items**, each
-  referencing an existing, active product. Response carries a derived `status`
-  (`Scheduled` / `Active` / `Expired`) computed from the validity window at
-  read-time. An **over-priced** combo (price > sum of parts) is **accepted** —
-  the frontend warns but the API does not reject. Validity rejects only
-  `validity_end < validity_start` (equality allowed).
+- **A4/A10 combos** (`/api/admin/combos`): `POST`/`PATCH` `items[]` are kind-discriminated:
+  `{kind:"product", product_id, quantity}` or `{kind:"category", category_id, quantity}`
+  (customer's-choice **slot**). Rule: **`sum(quantity) ≥ 2`** across components. Fixed products
+  must be existing and active; slot categories must be **available** (active category with ≥
+  one active product) or `VALIDATION_FAILED` with `details.reason: slot_category_unavailable`
+  (+`category_id`). Response carries derived `status` (`Scheduled` / `Active` / `Expired`) and
+  `image_url`. Combo image upload mirrors items (`POST`/`DELETE` `.../image`). An **over-priced**
+  combo (price > sum of reference parts) is **accepted** — frontend warns, API does not reject.
+  Validity rejects only `validity_end < validity_start` (equality allowed).
+- **A10 combo choice-slots (backend).** Slots are **category-scoped**; reference price for a
+  slot = **minimum** active product `base_price_vnd` in that category; each pick pays
+  `surcharge_vnd = max(0, pick_base − reference)`. Public list/detail and cart quote resolve
+  picks server-side. **Order persistence** of resolved combo configs is **U6/U15**, not A10.
 - **Bulk import** (`/api/admin/import/pizzas`): `multipart/form-data`, field `file`.
   Upsert by name (re-import is idempotent). An unknown **or inactive** `category_name`
   is reported as a per-row error and skipped — categories are **never** auto-created.
@@ -247,41 +270,61 @@ Any dish may carry options — `is_pizza` no longer gates the query.
 {
   "lines": [
     { "kind": "item", "item_id": 12, "option_ids": [2, 7, 9], "quantity": 1 },
-    { "kind": "item", "item_id": 21, "quantity": 2 }
+    {
+      "kind": "combo",
+      "combo_id": 1,
+      "quantity": 1,
+      "selections": [
+        { "combo_item_id": 10, "picks": [{ "product_id": 8, "option_ids": [] }] },
+        {
+          "combo_item_id": 11,
+          "picks": [
+            { "product_id": 5, "option_ids": [9] },
+            { "product_id": 6, "option_ids": [] }
+          ]
+        }
+      ]
+    }
   ],
   "address": { "administrative_unit": "Ba Đình", "street": "..." },
   "redeem_points": 0
 }
 ```
 
-> `combo` lines are deferred to **U5/U15**. `option_ids` are validated against the
-> dish's enabled set; rule violations → `VALIDATION_FAILED` (400) with `details.reason`
-> (`option_not_available` / `required_group_missing` / `single_group_conflict`).
-> Omit `address` to receive a preview quote (`delivery_fee_vnd: 0`, no service-area check).
+> `option_ids` on item lines and combo picks are validated against the pick product's enabled
+> set (A8 reasons). Combo structural violations use the closed reason table in the cart note
+> above. Omit `address` for preview quote (`delivery_fee_vnd: 0`, no service-area check).
 
 ### `GET /api/combos` — response
 
-Returns **Active-only** combos for the current time window. Each entry includes `combo_price_vnd`, server-computed `items_total_vnd` and `savings_vnd` (savings clamped at 0), `target_group`, and `items[]` with `product_id`, `name`, `quantity`, `image_url`, `base_price_vnd`. Validity windows and derived `status` are intentionally omitted.
+Returns **Active-only**, purchasable combos for the current time window (inactive fixed
+components or unavailable slots exclude the combo). Each entry includes `combo_price_vnd`,
+`image_url`, server-computed `items_total_vnd` and `savings_vnd` (clamped at 0), `target_group`,
+and `items[]`. Each item has `kind` (`product` | `category`), `name`, `quantity`, and either
+`product_id` + `base_price_vnd` + `image_url` (fixed) or `category_id` + `from_price_vnd` (slot
+reference = min active base in category). Derived `status` is omitted on the public list.
 
 ```json
 [
   {
     "combo_id": 1,
     "name": "Lunch Duo for 2",
-    "description": "2 Medium pizzas + 2 Garlic Breads",
+    "description": "2 pizzas + garlic bread",
     "combo_price_vnd": 255000,
+    "image_url": null,
     "target_group": 2,
     "items_total_vnd": 295000,
     "savings_vnd": 40000,
     "items": [
       {
-        "product_id": 5,
-        "name": "Margherita",
+        "kind": "category",
+        "category_id": 2,
+        "name": "Pizza",
         "quantity": 2,
-        "image_url": null,
-        "base_price_vnd": 125000
+        "from_price_vnd": 125000
       },
       {
+        "kind": "product",
         "product_id": 8,
         "name": "Garlic Bread",
         "quantity": 1,
@@ -292,6 +335,13 @@ Returns **Active-only** combos for the current time window. Each entry includes 
   }
 ]
 ```
+
+### `GET /api/combos/{combo_id}` — response
+
+**404** unless the combo is **Active** and purchasable (same guards as the list). Body is
+customizer-oriented: `components[]` with `combo_item_id`, `kind`, fixed/slot fields, and for
+slots `eligible_products[]` (`product_id`, `name`, `base_price_vnd`, `surcharge_vnd`, `image_url`).
+Fixed components omit `eligible_products`. Includes `items_total_vnd`, `savings_vnd`, `image_url`.
 
 ### `POST /api/cart/quote` — response
 
@@ -376,11 +426,9 @@ detailed payloads are designed per feature as each is built and land with their 
   size/crust/topping lists. `POST /api/cart/quote` resolves option deltas generically.
 - **Multi-image dishes (A9).** `POST /api/admin/items/{id}/images` (multi), set-cover, delete;
   item read paths gain `images[]` with a `cover` flag. Single `image_url` stays as the cover.
-- **Combo choice-slots + customization (A10/U15).** `ComboItem` gains a customer's-choice slot
-  (nullable `product_id` + category scope). `POST /api/cart/quote` and `POST /api/orders` accept
-  `kind="combo"` lines carrying resolved per-pizza configs (size/crust/topping/note); combo
-  discount applied via the existing `combo_discount_vnd` pricing param. (Supersedes the
-  "combo lines deferred" note above once shipped.)
+- **Combo choice-slots (A10).** Shipped on admin/public/cart quote (see A10 scope under admin
+  combos and cart notes). **U15** adds the customer customizer UI; **U6** persists resolved combo
+  lines on `POST /api/orders` (not in A10).
 - **Order notes (U16).** Per-line `note` on cart/order lines (reuses `OrderItem.notes`); per-order
   `delivery_note` on `POST /api/orders`, surfaced to kitchen at Ready-for-Dispatch and to the
   customer's tracking view.
