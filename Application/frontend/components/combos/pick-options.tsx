@@ -58,10 +58,10 @@ export function PickOptions({ productId, options, onOptionsChange }: Props) {
     <div className="space-y-3 border-l-2 border-line pl-4">
       {detail.option_groups.map((g) => (
         <div key={g.group_id} className="space-y-1.5">
-          <h4 className="text-xs font-semibold text-muted">
+          <h3 className="text-xs font-semibold text-muted">
             {g.name}
             {g.select_type === "multi" ? " (Optional)" : ""}
-          </h4>
+          </h3>
           <OptionGroupSelector
             group={g}
             selectedIds={options[g.group_id] ?? []}

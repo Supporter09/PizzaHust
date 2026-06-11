@@ -37,6 +37,7 @@ export function ComboCard({ combo }: { combo: PublicCombo }) {
           ) : null}
           <Link
             href={`/combos/${combo.combo_id}`}
+            aria-label={`Customize ${combo.name}`}
             className="btn-primary ml-auto inline-flex h-11 items-center px-4 text-sm"
           >
             Customize

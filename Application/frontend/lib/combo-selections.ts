@@ -4,6 +4,8 @@
 // options === null means the pick's dish detail (option groups) hasn't loaded yet —
 // quoting before then would fail `required_group_missing` on dishes with required groups.
 
+import type { components } from "@/lib/api/types";
+
 export type PickUnit = {
   productId: number | null;
   options: Record<number, number[]> | null;
@@ -66,7 +68,11 @@ export function isQuoteReady(s: ComboSelections): boolean {
   );
 }
 
-export function buildComboLine(comboId: number, s: ComboSelections, quantity: number) {
+export function buildComboLine(
+  comboId: number,
+  s: ComboSelections,
+  quantity: number,
+): components["schemas"]["ComboQuoteLineIn"] {
   return {
     kind: "combo" as const,
     combo_id: comboId,
@@ -80,8 +86,3 @@ export function buildComboLine(comboId: number, s: ComboSelections, quantity: nu
     })),
   };
 }
-
-import type { components } from "@/lib/api/types";
-
-type _AssertAssignable<T extends components["schemas"]["ComboQuoteLineIn"]> = T;
-type _Check = _AssertAssignable<ReturnType<typeof buildComboLine>>;
