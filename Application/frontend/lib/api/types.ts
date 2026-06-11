@@ -78,7 +78,25 @@ export interface paths {
         patch: operations["patch_combo_api_admin_combos__combo_id__patch"];
         trace?: never;
     };
-    "/api/admin/combos/{combo_id}/image": {
+    "/api/admin/crusts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Crusts */
+        get: operations["list_crusts_api_admin_crusts_get"];
+        put?: never;
+        /** Create Crust */
+        post: operations["create_crust_api_admin_crusts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/crusts/{crust_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -87,13 +105,13 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Upload Combo Image */
-        post: operations["upload_combo_image_api_admin_combos__combo_id__image_post"];
-        /** Delete Combo Image */
-        delete: operations["delete_combo_image_api_admin_combos__combo_id__image_delete"];
+        post?: never;
+        /** Delete Crust */
+        delete: operations["delete_crust_api_admin_crusts__crust_id__delete"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** Patch Crust */
+        patch: operations["patch_crust_api_admin_crusts__crust_id__patch"];
         trace?: never;
     };
     "/api/admin/customers": {
@@ -181,6 +199,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/import/toppings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Toppings */
+        post: operations["import_toppings_api_admin_import_toppings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/items": {
         parameters: {
             query?: never;
@@ -233,95 +268,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/api/admin/items/{product_id}/options": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Item Options */
-        get: operations["item_options_api_admin_items__product_id__options_get"];
-        /** Replace Item Options */
-        put: operations["replace_item_options_api_admin_items__product_id__options_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/option-groups": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Groups */
-        get: operations["list_groups_api_admin_option_groups_get"];
-        put?: never;
-        /** Create Group */
-        post: operations["create_group_api_admin_option_groups_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/option-groups/{group_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete Group */
-        delete: operations["delete_group_api_admin_option_groups__group_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch Group */
-        patch: operations["patch_group_api_admin_option_groups__group_id__patch"];
-        trace?: never;
-    };
-    "/api/admin/option-groups/{group_id}/options": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create Option */
-        post: operations["create_option_api_admin_option_groups__group_id__options_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/options/{option_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete Option */
-        delete: operations["delete_option_api_admin_options__option_id__delete"];
-        options?: never;
-        head?: never;
-        /** Patch Option */
-        patch: operations["patch_option_api_admin_options__option_id__patch"];
         trace?: never;
     };
     "/api/admin/orders": {
@@ -396,6 +342,95 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/admin/reports/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sales Report */
+        get: operations["sales_report_api_admin_reports_sales_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/sizes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sizes */
+        get: operations["list_sizes_api_admin_sizes_get"];
+        put?: never;
+        /** Create Size */
+        post: operations["create_size_api_admin_sizes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/sizes/{size_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Size */
+        delete: operations["delete_size_api_admin_sizes__size_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Size */
+        patch: operations["patch_size_api_admin_sizes__size_id__patch"];
+        trace?: never;
+    };
+    "/api/admin/toppings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Toppings */
+        get: operations["list_toppings_api_admin_toppings_get"];
+        put?: never;
+        /** Create Topping */
+        post: operations["create_topping_api_admin_toppings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/toppings/{topping_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Topping */
+        delete: operations["delete_topping_api_admin_toppings__topping_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Topping */
+        patch: operations["patch_topping_api_admin_toppings__topping_id__patch"];
         trace?: never;
     };
     "/api/auth/login": {
@@ -510,23 +545,6 @@ export interface paths {
         };
         /** List Combos */
         get: operations["list_combos_api_combos_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/combos/{combo_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Combo Detail */
-        get: operations["get_combo_detail_api_combos__combo_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -675,10 +693,10 @@ export interface components {
             /** File */
             file: string;
         };
-        /** Body_upload_combo_image_api_admin_combos__combo_id__image_post */
-        Body_upload_combo_image_api_admin_combos__combo_id__image_post: {
-            /** Image */
-            image: string;
+        /** Body_import_toppings_api_admin_import_toppings_post */
+        Body_import_toppings_api_admin_import_toppings_post: {
+            /** File */
+            file: string;
         };
         /** Body_upload_item_image_api_admin_items__product_id__image_post */
         Body_upload_item_image_api_admin_items__product_id__image_post: {
@@ -689,7 +707,7 @@ export interface components {
         CartQuoteIn: {
             address?: components["schemas"]["QuoteAddressIn"] | null;
             /** Lines */
-            lines: (components["schemas"]["ItemQuoteLineIn"] | components["schemas"]["ComboQuoteLineIn"])[];
+            lines: components["schemas"]["QuoteLineIn"][];
             /**
              * Redeem Points
              * @default 0
@@ -709,21 +727,6 @@ export interface components {
             subtotal_vnd: number;
             /** Total Vnd */
             total_vnd: number;
-        };
-        /** CategoryComboItemIn */
-        CategoryComboItemIn: {
-            /** Category Id */
-            category_id: number;
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            kind: "category";
-            /**
-             * Quantity
-             * @default 1
-             */
-            quantity: number;
         };
         /** CategoryIn */
         CategoryIn: {
@@ -766,43 +769,6 @@ export interface components {
             /** Sort Order */
             sort_order?: number | null;
         };
-        /** ComboComponentOut */
-        ComboComponentOut: {
-            /** Base Price Vnd */
-            base_price_vnd?: number | null;
-            /** Category Id */
-            category_id?: number | null;
-            /** Combo Item Id */
-            combo_item_id: number;
-            /** Eligible Products */
-            eligible_products?: components["schemas"]["ComboEligibleProductOut"][] | null;
-            /** From Price Vnd */
-            from_price_vnd?: number | null;
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "product" | "category";
-            /** Name */
-            name: string;
-            /** Product Id */
-            product_id?: number | null;
-            /** Quantity */
-            quantity: number;
-        };
-        /** ComboEligibleProductOut */
-        ComboEligibleProductOut: {
-            /** Base Price Vnd */
-            base_price_vnd: number;
-            /** Image Url */
-            image_url?: string | null;
-            /** Name */
-            name: string;
-            /** Product Id */
-            product_id: number;
-            /** Surcharge Vnd */
-            surcharge_vnd: number;
-        };
         /** ComboIn */
         ComboIn: {
             /** Combo Price Vnd */
@@ -813,7 +779,7 @@ export interface components {
              * Items
              * @default []
              */
-            items: (components["schemas"]["ProductComboItemIn"] | components["schemas"]["CategoryComboItemIn"])[];
+            items: components["schemas"]["ComboItemIn"][];
             /** Name */
             name: string;
             /** Target Group */
@@ -823,21 +789,22 @@ export interface components {
             /** Validity Start */
             validity_start?: string | null;
         };
+        /** ComboItemIn */
+        ComboItemIn: {
+            /** Product Id */
+            product_id: number;
+            /**
+             * Quantity
+             * @default 1
+             */
+            quantity: number;
+        };
         /** ComboItemOut */
         ComboItemOut: {
-            /** Category Id */
-            category_id?: number | null;
-            /** From Price Vnd */
-            from_price_vnd?: number | null;
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "product" | "category";
             /** Name */
             name: string;
             /** Product Id */
-            product_id?: number | null;
+            product_id: number;
             /** Quantity */
             quantity: number;
         };
@@ -849,16 +816,10 @@ export interface components {
             combo_price_vnd: number;
             /** Description */
             description: string | null;
-            /** Image Url */
-            image_url?: string | null;
             /** Items */
             items: components["schemas"]["ComboItemOut"][];
-            /** Items Total Vnd */
-            items_total_vnd?: number | null;
             /** Name */
             name: string;
-            /** Savings Vnd */
-            savings_vnd?: number | null;
             status: components["schemas"]["ComboStatus"];
             /** Target Group */
             target_group: number | null;
@@ -874,7 +835,7 @@ export interface components {
             /** Description */
             description?: string | null;
             /** Items */
-            items?: (components["schemas"]["ProductComboItemIn"] | components["schemas"]["CategoryComboItemIn"])[] | null;
+            items?: components["schemas"]["ComboItemIn"][] | null;
             /** Name */
             name?: string | null;
             /** Target Group */
@@ -884,39 +845,28 @@ export interface components {
             /** Validity Start */
             validity_start?: string | null;
         };
-        /** ComboPickIn */
-        ComboPickIn: {
-            /** Option Ids */
-            option_ids?: number[];
-            /** Product Id */
-            product_id: number;
-        };
-        /** ComboQuoteLineIn */
-        ComboQuoteLineIn: {
-            /** Combo Id */
-            combo_id: number;
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            kind: "combo";
-            /** Quantity */
-            quantity: number;
-            /** Selections */
-            selections: components["schemas"]["ComboSelectionIn"][];
-        };
-        /** ComboSelectionIn */
-        ComboSelectionIn: {
-            /** Combo Item Id */
-            combo_item_id: number;
-            /** Picks */
-            picks: components["schemas"]["ComboPickIn"][];
-        };
         /**
          * ComboStatus
          * @enum {string}
          */
         ComboStatus: "Scheduled" | "Active" | "Expired";
+        /** CrustIn */
+        CrustIn: {
+            /** Name */
+            name: string;
+        };
+        /** CrustOut */
+        CrustOut: {
+            /** Crust Id */
+            crust_id: number;
+            /** Name */
+            name: string;
+        };
+        /** CrustPatch */
+        CrustPatch: {
+            /** Name */
+            name?: string | null;
+        };
         /** CustomerDetailOut */
         CustomerDetailOut: {
             /** Address */
@@ -964,54 +914,6 @@ export interface components {
             /** Service Area */
             service_area: string[];
         };
-        /** GroupIn */
-        GroupIn: {
-            /** Name */
-            name: string;
-            /**
-             * Required
-             * @default false
-             */
-            required: boolean;
-            /**
-             * Select Type
-             * @default multi
-             * @enum {string}
-             */
-            select_type: "single" | "multi";
-            /**
-             * Sort Order
-             * @default 0
-             */
-            sort_order: number;
-        };
-        /** GroupOut */
-        GroupOut: {
-            /** Group Id */
-            group_id: number;
-            /** Name */
-            name: string;
-            /** Required */
-            required: boolean;
-            /**
-             * Select Type
-             * @enum {string}
-             */
-            select_type: "single" | "multi";
-            /** Sort Order */
-            sort_order: number;
-        };
-        /** GroupPatch */
-        GroupPatch: {
-            /** Name */
-            name?: string | null;
-            /** Required */
-            required?: boolean | null;
-            /** Select Type */
-            select_type?: ("single" | "multi") | null;
-            /** Sort Order */
-            sort_order?: number | null;
-        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1041,44 +943,6 @@ export interface components {
             kind: "pizza" | "side";
             /** Name */
             name: string;
-        };
-        /** ItemOptionGroupOut */
-        ItemOptionGroupOut: {
-            /** Group Id */
-            group_id: number;
-            /** Name */
-            name: string;
-            /** Options */
-            options: components["schemas"]["ItemOptionOut"][];
-            /** Required */
-            required: boolean;
-            /**
-             * Select Type
-             * @enum {string}
-             */
-            select_type: "single" | "multi";
-            /** Sort Order */
-            sort_order: number;
-        };
-        /** ItemOptionOut */
-        ItemOptionOut: {
-            /** Description */
-            description?: string | null;
-            /** Enabled */
-            enabled: boolean;
-            /** Name */
-            name: string;
-            /** Option Id */
-            option_id: number;
-            /** Price Delta Vnd */
-            price_delta_vnd: number;
-            /** Sort Order */
-            sort_order: number;
-        };
-        /** ItemOptionsPut */
-        ItemOptionsPut: {
-            /** Option Ids */
-            option_ids: number[];
         };
         /** ItemOut */
         ItemOut: {
@@ -1110,20 +974,6 @@ export interface components {
             is_active?: boolean | null;
             /** Name */
             name?: string | null;
-        };
-        /** ItemQuoteLineIn */
-        ItemQuoteLineIn: {
-            /** Item Id */
-            item_id: number;
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            kind: "item";
-            /** Option Ids */
-            option_ids?: number[];
-            /** Quantity */
-            quantity: number;
         };
         /** LockIn */
         LockIn: {
@@ -1174,25 +1024,42 @@ export interface components {
             /** Sort Order */
             sort_order: number;
         };
+        /** MenuCrustOut */
+        MenuCrustOut: {
+            /** Crust Id */
+            crust_id: number;
+            /** Name */
+            name: string;
+        };
         /** MenuItemDetailOut */
         MenuItemDetailOut: {
             /** Base Price Vnd */
             base_price_vnd: number;
             /** Category Id */
             category_id: number;
+            /**
+             * Crusts
+             * @default []
+             */
+            crusts: components["schemas"]["MenuCrustOut"][];
             /** Image Url */
             image_url?: string | null;
             /** Is Pizza */
             is_pizza: boolean;
             /** Name */
             name: string;
-            /**
-             * Option Groups
-             * @default []
-             */
-            option_groups: components["schemas"]["MenuOptionGroupOut"][];
             /** Product Id */
             product_id: number;
+            /**
+             * Sizes
+             * @default []
+             */
+            sizes: components["schemas"]["MenuSizeOut"][];
+            /**
+             * Toppings
+             * @default []
+             */
+            toppings: components["schemas"]["MenuToppingOut"][];
         };
         /** MenuItemOut */
         MenuItemOut: {
@@ -1209,80 +1076,28 @@ export interface components {
             /** Product Id */
             product_id: number;
         };
-        /** MenuOptionGroupOut */
-        MenuOptionGroupOut: {
-            /** Group Id */
-            group_id: number;
+        /** MenuSizeOut */
+        MenuSizeOut: {
             /** Name */
             name: string;
-            /** Options */
-            options: components["schemas"]["MenuOptionOut"][];
-            /** Required */
-            required: boolean;
-            /**
-             * Select Type
-             * @enum {string}
-             */
-            select_type: "single" | "multi";
+            /** Price Modifier Vnd */
+            price_modifier_vnd: number;
+            /** Size Id */
+            size_id: number;
         };
-        /** MenuOptionOut */
-        MenuOptionOut: {
-            /** Description */
-            description?: string | null;
+        /** MenuToppingOut */
+        MenuToppingOut: {
             /** Name */
             name: string;
-            /** Option Id */
-            option_id: number;
-            /** Price Delta Vnd */
-            price_delta_vnd: number;
+            /** Price Vnd */
+            price_vnd: number;
+            /** Topping Id */
+            topping_id: number;
         };
         /** MessageResponse */
         MessageResponse: {
             /** Message */
             message: string;
-        };
-        /** OptionIn */
-        OptionIn: {
-            /** Description */
-            description?: string | null;
-            /** Name */
-            name: string;
-            /**
-             * Price Delta Vnd
-             * @default 0
-             */
-            price_delta_vnd: number;
-            /**
-             * Sort Order
-             * @default 0
-             */
-            sort_order: number;
-        };
-        /** OptionOut */
-        OptionOut: {
-            /** Description */
-            description?: string | null;
-            /** Group Id */
-            group_id: number;
-            /** Name */
-            name: string;
-            /** Option Id */
-            option_id: number;
-            /** Price Delta Vnd */
-            price_delta_vnd: number;
-            /** Sort Order */
-            sort_order: number;
-        };
-        /** OptionPatch */
-        OptionPatch: {
-            /** Description */
-            description?: string | null;
-            /** Name */
-            name?: string | null;
-            /** Price Delta Vnd */
-            price_delta_vnd?: number | null;
-            /** Sort Order */
-            sort_order?: number | null;
         };
         /** OrderCancelIn */
         OrderCancelIn: {
@@ -1313,59 +1128,16 @@ export interface components {
             /** User Id */
             user_id: number | null;
         };
-        /** ProductComboItemIn */
-        ProductComboItemIn: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            kind: "product";
-            /** Product Id */
-            product_id: number;
-            /**
-             * Quantity
-             * @default 1
-             */
-            quantity: number;
-        };
-        /** PublicComboDetailOut */
-        PublicComboDetailOut: {
-            /** Combo Id */
-            combo_id: number;
-            /** Combo Price Vnd */
-            combo_price_vnd: number;
-            /** Components */
-            components: components["schemas"]["ComboComponentOut"][];
-            /** Description */
-            description?: string | null;
-            /** Image Url */
-            image_url?: string | null;
-            /** Items Total Vnd */
-            items_total_vnd: number;
-            /** Name */
-            name: string;
-            /** Savings Vnd */
-            savings_vnd: number;
-        };
         /** PublicComboItemOut */
         PublicComboItemOut: {
             /** Base Price Vnd */
-            base_price_vnd?: number | null;
-            /** Category Id */
-            category_id?: number | null;
-            /** From Price Vnd */
-            from_price_vnd?: number | null;
+            base_price_vnd: number;
             /** Image Url */
             image_url?: string | null;
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "product" | "category";
             /** Name */
             name: string;
             /** Product Id */
-            product_id?: number | null;
+            product_id: number;
             /** Quantity */
             quantity: number;
         };
@@ -1377,8 +1149,6 @@ export interface components {
             combo_price_vnd: number;
             /** Description */
             description?: string | null;
-            /** Image Url */
-            image_url?: string | null;
             /** Items */
             items: components["schemas"]["PublicComboItemOut"][];
             /** Items Total Vnd */
@@ -1396,6 +1166,26 @@ export interface components {
             administrative_unit: string;
             /** Street */
             street?: string | null;
+        };
+        /** QuoteLineIn */
+        QuoteLineIn: {
+            /** Combo Id */
+            combo_id?: number | null;
+            /** Crust */
+            crust?: string | null;
+            /** Item Id */
+            item_id?: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "pizza" | "side" | "combo";
+            /** Quantity */
+            quantity: number;
+            /** Size */
+            size?: string | null;
+            /** Topping Ids */
+            topping_ids?: number[];
         };
         /** QuoteLoyaltyOut */
         QuoteLoyaltyOut: {
@@ -1420,6 +1210,73 @@ export interface components {
         /** RegisterResponse */
         RegisterResponse: {
             user: components["schemas"]["AuthUserDTO"];
+        };
+        /** SalesReportRowOut */
+        SalesReportRowOut: {
+            /** Date */
+            date: string;
+            /** Order Count */
+            order_count: number;
+            /** Revenue Vnd */
+            revenue_vnd: number;
+            /** Top Items */
+            top_items: components["schemas"]["TopItemOut"][];
+        };
+        /** SizeIn */
+        SizeIn: {
+            /** Name */
+            name: string;
+            /**
+             * Price Modifier Vnd
+             * @default 0
+             */
+            price_modifier_vnd: number;
+        };
+        /** SizeOut */
+        SizeOut: {
+            /** Name */
+            name: string;
+            /** Price Modifier Vnd */
+            price_modifier_vnd: number;
+            /** Size Id */
+            size_id: number;
+        };
+        /** SizePatch */
+        SizePatch: {
+            /** Name */
+            name?: string | null;
+            /** Price Modifier Vnd */
+            price_modifier_vnd?: number | null;
+        };
+        /** TopItemOut */
+        TopItemOut: {
+            /** Count */
+            count: number;
+            /** Name */
+            name: string;
+        };
+        /** ToppingIn */
+        ToppingIn: {
+            /** Name */
+            name: string;
+            /** Price Vnd */
+            price_vnd: number;
+        };
+        /** ToppingOut */
+        ToppingOut: {
+            /** Name */
+            name: string;
+            /** Price Vnd */
+            price_vnd: number;
+            /** Topping Id */
+            topping_id: number;
+        };
+        /** ToppingPatch */
+        ToppingPatch: {
+            /** Name */
+            name?: string | null;
+            /** Price Vnd */
+            price_vnd?: number | null;
         };
         /** UpdateProfileRequest */
         UpdateProfileRequest: {
@@ -1751,20 +1608,14 @@ export interface operations {
             };
         };
     };
-    upload_combo_image_api_admin_combos__combo_id__image_post: {
+    list_crusts_api_admin_crusts_get: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                combo_id: number;
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_upload_combo_image_api_admin_combos__combo_id__image_post"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -1772,9 +1623,31 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: string;
-                    };
+                    "application/json": components["schemas"]["CrustOut"][];
+                };
+            };
+        };
+    };
+    create_crust_api_admin_crusts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CrustIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CrustOut"];
                 };
             };
             /** @description Validation Error */
@@ -1788,12 +1661,12 @@ export interface operations {
             };
         };
     };
-    delete_combo_image_api_admin_combos__combo_id__image_delete: {
+    delete_crust_api_admin_crusts__crust_id__delete: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                combo_id: number;
+                crust_id: number;
             };
             cookie?: never;
         };
@@ -1805,6 +1678,41 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_crust_api_admin_crusts__crust_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                crust_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CrustPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CrustOut"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -1953,6 +1861,39 @@ export interface operations {
         requestBody: {
             content: {
                 "multipart/form-data": components["schemas"]["Body_import_pizzas_api_admin_import_pizzas_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_toppings_api_admin_import_toppings_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_toppings_api_admin_import_toppings_post"];
             };
         };
         responses: {
@@ -2174,288 +2115,6 @@ export interface operations {
             };
         };
     };
-    item_options_api_admin_items__product_id__options_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                product_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ItemOptionGroupOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    replace_item_options_api_admin_items__product_id__options_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                product_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ItemOptionsPut"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ItemOptionGroupOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_groups_api_admin_option_groups_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GroupOut"][];
-                };
-            };
-        };
-    };
-    create_group_api_admin_option_groups_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GroupIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GroupOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_group_api_admin_option_groups__group_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                group_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_group_api_admin_option_groups__group_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                group_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GroupPatch"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GroupOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_option_api_admin_option_groups__group_id__options_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                group_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OptionIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OptionOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_option_api_admin_options__option_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                option_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_option_api_admin_options__option_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                option_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OptionPatch"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OptionOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     list_orders_api_admin_orders_get: {
         parameters: {
             query?: {
@@ -2570,6 +2229,274 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sales_report_api_admin_reports_sales_get: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                group_by?: "day" | "week";
+                format?: "json" | "csv";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesReportRowOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sizes_api_admin_sizes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SizeOut"][];
+                };
+            };
+        };
+    };
+    create_size_api_admin_sizes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SizeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SizeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_size_api_admin_sizes__size_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                size_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_size_api_admin_sizes__size_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                size_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SizePatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SizeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_toppings_api_admin_toppings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ToppingOut"][];
+                };
+            };
+        };
+    };
+    create_topping_api_admin_toppings_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ToppingIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ToppingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_topping_api_admin_toppings__topping_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topping_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_topping_api_admin_toppings__topping_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topping_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ToppingPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ToppingOut"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -2790,37 +2717,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicComboOut"][];
-                };
-            };
-        };
-    };
-    get_combo_detail_api_combos__combo_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                combo_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PublicComboDetailOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

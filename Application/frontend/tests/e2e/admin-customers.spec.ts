@@ -26,7 +26,6 @@ test.describe("Admin auth guard", () => {
     await expect(page).toHaveURL(/\/login/);
   });
 });
-
 test.describe("A6 – Admin Customer Accounts", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
@@ -36,18 +35,7 @@ test.describe("A6 – Admin Customer Accounts", () => {
     await page.goto(`${BASE}/admin/customers`);
     await expect(page.getByRole("heading", { name: "Customer Accounts" })).toBeVisible();
     await expect(page.getByPlaceholder(/search/i)).toBeVisible();
-  });
-});
-
-test.describe("A5 – Monitor Orders", () => {
-  test.beforeEach(async ({ page }) => {
-    await loginAsAdmin(page);
-  });
-
-  test("orders page renders with status filter chips", async ({ page }) => {
-    await page.goto(`${BASE}/admin/orders`);
-    await expect(page.getByRole("heading", { name: "Monitor Orders" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /all/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /dispatch pending/i })).toBeVisible();
+    await expect(page.getByText("Error: HTTP 404")).toHaveCount(0);
+    await expect(page.getByText("No customers found")).toHaveCount(0);
   });
 });

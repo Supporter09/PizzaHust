@@ -121,6 +121,39 @@ def test_retry_dispatch_missing_order_404() -> None:
     assert resp.status_code == 404
 
 
+def test_list_orders_rejects_unknown_status() -> None:
+    client = admin_client("orders-bad-status")
+
+    resp = client.get("/api/admin/orders?status=Unknown")
+
+    assert resp.status_code == 400
+
+
+def test_list_orders_filters_by_status_and_paginates() -> None:
+    client = admin_client("orders-filter-page")
+    _new_order(OrderStatus.RECEIVED, "PIZZ-LIST001")
+    _new_order(OrderStatus.RECEIVED, "PIZZ-LIST002")
+    _new_order(OrderStatus.DELIVERED, "PIZZ-LIST003")
+
+    resp = client.get("/api/admin/orders?status=Received&page=1&page_size=1")
+
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert len(rows) == 1
+    assert rows[0]["current_status"] == "Received"
+
+
+def test_cancel_order_moves_cancellable_order_to_cancelled() -> None:
+    client = admin_client("cancel-ok")
+    order_id = _new_order(OrderStatus.RECEIVED, "PIZZ-CANOK1")
+
+    resp = client.post(f"/api/admin/orders/{order_id}/cancel", json={"reason": "duplicate"})
+
+    assert resp.status_code == 204, resp.text
+    assert _get_order(order_id).current_status == OrderStatus.CANCELLED
+    assert _tracking_count(order_id) == 1
+
+
 def test_cancel_order_rejects_terminal_delivery_failed() -> None:
     client = admin_client("cancel-terminal-failed")
     order_id = _new_order(OrderStatus.DELIVERY_FAILED, "PIZZ-CANFK1")
