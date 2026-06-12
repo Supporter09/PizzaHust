@@ -7,8 +7,8 @@
 **Resume command:**
 
 ```bash
-cd Application && ./init.sh && docker compose up -d backend frontend
 git checkout feat/admin-A5-A7-A8-A9 && git pull
+cd Application && ./init.sh && docker compose up -d backend frontend
 # Merge PR #25 to main when ready; next branch e.g. u11-order-history
 ```
 
