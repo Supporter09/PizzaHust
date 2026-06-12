@@ -50,6 +50,8 @@ export default function HomePage() {
 
   useEffect(() => {
     let alive = true;
+    // Both sections are optional decoration: on fetch failure they simply
+    // don't render (length-0 guards below), so errors are deliberately ignored.
     fetchItems()
       .then((items) => {
         if (alive) setPizzas(items.filter((i) => i.is_pizza).slice(0, 4));

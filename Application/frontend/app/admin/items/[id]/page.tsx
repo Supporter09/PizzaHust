@@ -32,6 +32,8 @@ export default function AdminItemEditorPage({ params }: { params: Promise<{ id: 
         if (cancelled) return;
         setItem(loaded);
         // Category name lives on a separate endpoint; resolve it for the subtitle.
+        // Failures are deliberately swallowed: the name is decorative, so the
+        // subtitle just omits it and the editor keeps working.
         apiFetch<CategoryOut[]>(`/admin/categories`)
           .then((cats) => {
             if (cancelled) return;

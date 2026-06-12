@@ -286,6 +286,7 @@ export default function CategoriesPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       <button
+                        type="button"
                         onClick={() => startEdit(c)}
                         aria-label={`Edit ${c.name}`}
                         className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-surface-hover hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
@@ -304,6 +305,7 @@ export default function CategoriesPage() {
                       {confirmId === c.category_id ? (
                         <>
                           <button
+                            type="button"
                             onClick={() => void remove(c.category_id)}
                             disabled={busy}
                             className="inline-flex h-11 items-center rounded-lg bg-danger-solid px-3 text-xs font-medium text-on-brand hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40"
@@ -311,6 +313,7 @@ export default function CategoriesPage() {
                             Confirm
                           </button>
                           <button
+                            type="button"
                             onClick={() => setConfirmId(null)}
                             className="inline-flex h-11 items-center rounded-lg px-3 text-xs font-medium text-muted hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                           >
@@ -319,6 +322,7 @@ export default function CategoriesPage() {
                         </>
                       ) : (
                         <button
+                          type="button"
                           onClick={() => setConfirmId(c.category_id)}
                           aria-label={`Delete ${c.name}`}
                           className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-danger hover:bg-danger-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40"

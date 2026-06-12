@@ -163,7 +163,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <div className="space-y-3 px-3 pb-5">
           {/* Staff views — kitchen UI is a later use case (K-series), shown as not-yet-available. */}
-          <div className="rounded-lg border border-line p-3" aria-disabled="true">
+          <div className="rounded-lg border border-line p-3">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">
               Staff Views
             </p>
