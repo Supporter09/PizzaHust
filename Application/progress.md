@@ -4,6 +4,23 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 ---
 
+## 2026-06-12 — U7 Track Order (+U16 tracking display)
+
+**Done**
+- `GET /api/orders/track/{code}` rate-limited, masked PII, `delivery_note` + `promised_at`.
+- `/track` lookup, 15s polling, ETA, timeline + `track.spec.ts`.
+
+**Verified**
+- `./verify.sh` exit 0 at `b5c53b2`.
+
+**U16**
+- Delivery note on tracking; kitchen surfacing deferred to K1.
+
+**Next**
+- `U11` View Order History or `K1` kitchen queue.
+
+---
+
 ## 2026-06-12 — U6 Place COD Order (+U16 delivery note entry)
 
 **Done**
