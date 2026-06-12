@@ -221,7 +221,16 @@ def _to_csv(rows: list[SalesReportRowOut]) -> str:
     return output.getvalue()
 
 
-@router.get("/sales", response_model=list[SalesReportRowOut])
+@router.get(
+    "/sales",
+    response_model=list[SalesReportRowOut],
+    responses={
+        200: {
+            "content": {"text/csv": {}},
+            "description": "JSON rows, or a CSV attachment when format=csv.",
+        }
+    },
+)
 def sales_report(
     from_date: date = Query(alias="from"),
     to_date: date = Query(alias="to"),

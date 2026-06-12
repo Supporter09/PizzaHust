@@ -5365,9 +5365,10 @@
                   "title": "Response Sales Report Api Admin Reports Sales Get",
                   "type": "array"
                 }
-              }
+              },
+              "text/csv": {}
             },
-            "description": "Successful Response"
+            "description": "JSON rows, or a CSV attachment when format=csv."
           },
           "422": {
             "content": {

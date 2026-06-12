@@ -3160,13 +3160,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
+            /** @description JSON rows, or a CSV attachment when format=csv. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["SalesReportRowOut"][];
+                    "text/csv": unknown;
                 };
             };
             /** @description Validation Error */

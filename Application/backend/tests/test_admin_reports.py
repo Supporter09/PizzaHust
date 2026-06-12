@@ -217,3 +217,14 @@ def test_reports_reject_reversed_date_window() -> None:
     assert "VALIDATION_FAILED" in sales.text
     assert overview.status_code == 400
     assert "VALIDATION_FAILED" in overview.text
+
+
+def test_sales_export_declares_csv_in_contract() -> None:
+    app = build_test_app("reports-contract")
+
+    content = app.openapi()["paths"]["/api/admin/reports/sales"]["get"]["responses"]["200"][
+        "content"
+    ]
+
+    assert "application/json" in content
+    assert "text/csv" in content
