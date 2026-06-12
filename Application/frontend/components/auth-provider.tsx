@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 
-type SessionUser = {
+export type SessionUser = {
   user_id: number;
   full_name: string;
   phone_number: string;
@@ -34,7 +34,7 @@ type AuthContextValue = {
   loading: boolean;
   csrfToken: string | null;
   refreshSession: () => Promise<void>;
-  login: (payload: LoginPayload) => Promise<void>;
+  login: (payload: LoginPayload) => Promise<SessionUser>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (payload: { full_name?: string; address?: string }) => Promise<SessionUser>;
@@ -82,6 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     setUser(response.user);
     setCsrfToken(response.csrf_token);
+    return response.user;
   }, []);
 
   const register = useCallback(async (payload: RegisterPayload) => {
