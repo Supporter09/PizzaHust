@@ -433,3 +433,17 @@ Append-only session journal. Each session ends with a dated block. Keep blocks â
 
 **Next**
 - Review `u9-login`; then U5 `u5-manage-cart` (backend cart spine).
+
+---
+
+## 2026-06-12 â€” U5 Manage Cart (branch `u5-manage-cart`)
+
+**Done**
+- Backend: canonical payload, `carts`/`cart_lines`, session cart CRUD + checkout-quote, merge-on-login (read cart_id before `session.clear()`).
+- OpenAPI + `CONTRACTS.md` cart table; frontend CartProvider, `/cart`, menu/combo add-to-cart, dish note (U16 entry), `cart.spec.ts` e2e.
+
+**Verified**
+- `./verify.sh` exit 0 at `6c66287` (25 e2e incl. cart flow).
+
+**Next**
+- Review `u5-manage-cart`; then U6 `u6-place-order` per plan.

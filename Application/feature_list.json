@@ -140,9 +140,9 @@
         "U3",
         "U4"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hoang",
-      "evidence": ""
+      "evidence": "verify.sh green at 6c662876b73058f32dfffa791bb1d576815a94fa, 2026-06-12T13:12:00Z"
     },
     {
       "id": "U6",
