@@ -71,9 +71,15 @@ export function AuthCard({ tab }: AuthCardProps) {
       router.replace(redirectAfterAuth(user.role, searchParams.get("returnTo")));
     } catch (error) {
       if (error instanceof ApiClientError) {
-        setErrorMessage(error.message);
+        if (error.status === 429) {
+          setErrorMessage("Too many attempts — wait a minute and try again.");
+        } else if (error.status === 403) {
+          setErrorMessage("This account is locked. Contact the store.");
+        } else {
+          setErrorMessage(error.message);
+        }
       } else {
-        setErrorMessage("Unable to login right now.");
+        setErrorMessage("Unable to sign in right now.");
       }
       setLoading(false);
     }

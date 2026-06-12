@@ -183,7 +183,7 @@
       "depends_on": [
         "infra-004"
       ],
-      "status": "todo",
+      "status": "in-progress",
       "owner": "Hoang",
       "evidence": ""
     },
