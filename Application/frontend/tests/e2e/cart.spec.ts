@@ -36,7 +36,10 @@ test.describe("U5 — Manage Cart", () => {
     await expect(page).toHaveURL(/\/combos\/\d+$/);
 
     const estimate = page.getByTestId("combo-estimate");
-    for (;;) {
+    for (let picks = 0; ; picks++) {
+      if (picks > 20) {
+        throw new Error("Combo slots still unpicked after 20 attempts — selection not converging");
+      }
       const unpicked = page
         .getByTestId("slot-group")
         .filter({ hasNot: page.getByRole("radio", { checked: true }) })
