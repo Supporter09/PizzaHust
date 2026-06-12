@@ -87,17 +87,17 @@ function buildAreaPath(points: Array<{ x: number; y: number }>, baseline: number
 function DashboardCard({
   label,
   value,
-  delta,
+  caption,
 }: {
   label: string;
   value: string;
-  delta: string;
+  caption: string;
 }) {
   return (
     <section className="rounded-2xl border border-line bg-card p-4 shadow-sm">
       <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
       <p className="mt-2 text-3xl font-semibold text-fg">{value}</p>
-      <p className="mt-2 text-sm font-medium text-success">{delta}</p>
+      <p className="mt-2 text-sm text-muted">{caption}</p>
     </section>
   );
 }
@@ -276,8 +276,8 @@ export default function ReportsPage() {
   };
   const series = overview?.series ?? [];
   const topItems = overview?.top_items ?? [];
-  const comparedLabel = preset === "7d" ? "vs previous 7 days" : preset === "30d" ? "vs previous 30 days" : "custom window";
-  const revenueDelta = series.length > 0 ? "Delivered orders only" : "Waiting for data";
+  const windowLabel = `${shortDateLabel(from)} – ${shortDateLabel(to)}`;
+  const cardCaption = series.length > 0 ? "Delivered orders only" : "Waiting for data";
 
   return (
     <div>
@@ -342,7 +342,7 @@ export default function ReportsPage() {
             className="mt-1 block rounded-lg border border-line bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-50"
           />
         </label>
-        <p className="text-sm text-muted">{comparedLabel}</p>
+        <p className="text-sm text-muted">{windowLabel}</p>
       </div>
 
       {error && (
@@ -355,22 +355,22 @@ export default function ReportsPage() {
         <DashboardCard
           label="Total Revenue"
           value={formatVnd(summary.total_revenue_vnd)}
-          delta={revenueDelta}
+          caption={cardCaption}
         />
         <DashboardCard
           label="Total Orders"
           value={summary.total_orders.toLocaleString("vi-VN")}
-          delta={revenueDelta}
+          caption={cardCaption}
         />
         <DashboardCard
           label="Avg Order Value"
           value={formatVnd(summary.avg_order_value_vnd)}
-          delta={revenueDelta}
+          caption={cardCaption}
         />
         <DashboardCard
           label="Active Customers"
           value={summary.active_customers.toLocaleString("vi-VN")}
-          delta={revenueDelta}
+          caption={cardCaption}
         />
       </div>
 
