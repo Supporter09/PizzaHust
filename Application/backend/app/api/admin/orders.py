@@ -16,7 +16,6 @@ from app.infra.db.deps import get_db
 from app.infra.db.models import (
     Order,
     OrderItem,
-    OrderItemTopping,
     OrderStatus,
     OrderTracking,
     TrackingNoteSource,
@@ -45,11 +44,11 @@ class OrderSummaryOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class OrderItemToppingOut(BaseModel):
-    topping_id: int
-    name: str
-    quantity: int
-    price_at_time_vnd: int
+class OrderItemOptionOut(BaseModel):
+    id: int
+    group_name: str
+    option_name: str
+    price_delta_vnd: int
 
 
 class OrderItemOut(BaseModel):
@@ -60,9 +59,7 @@ class OrderItemOut(BaseModel):
     quantity: int
     unit_price_vnd: int
     notes: str | None
-    size: str | None
-    crust: str | None
-    toppings: list[OrderItemToppingOut]
+    options: list[OrderItemOptionOut]
 
 
 class OrderTrackingOut(BaseModel):
@@ -120,15 +117,15 @@ def _item_display_name(item: OrderItem) -> str:
     return "Unknown item"
 
 
-def _item_toppings(item: OrderItem) -> list[OrderItemToppingOut]:
+def _item_options(item: OrderItem) -> list[OrderItemOptionOut]:
     return [
-        OrderItemToppingOut(
-            topping_id=topping.topping_id,
-            name=topping.topping.name,
-            quantity=topping.quantity,
-            price_at_time_vnd=topping.price_at_time_vnd,
+        OrderItemOptionOut(
+            id=option.id,
+            group_name=option.group_name,
+            option_name=option.option_name,
+            price_delta_vnd=option.price_delta_vnd,
         )
-        for topping in item.toppings
+        for option in item.options
     ]
 
 
@@ -142,9 +139,7 @@ def _order_detail_payload(order: Order) -> OrderDetailOut:
             quantity=item.quantity,
             unit_price_vnd=item.unit_price_vnd,
             notes=item.notes,
-            size=item.size.name if item.size is not None else None,
-            crust=item.crust.name if item.crust is not None else None,
-            toppings=_item_toppings(item),
+            options=_item_options(item),
         )
         for item in order.items
     ]
@@ -205,11 +200,7 @@ def get_order(
         .options(
             selectinload(Order.items).selectinload(OrderItem.product),
             selectinload(Order.items).selectinload(OrderItem.combo),
-            selectinload(Order.items).selectinload(OrderItem.size),
-            selectinload(Order.items).selectinload(OrderItem.crust),
-            selectinload(Order.items)
-            .selectinload(OrderItem.toppings)
-            .selectinload(OrderItemTopping.topping),
+            selectinload(Order.items).selectinload(OrderItem.options),
             selectinload(Order.tracking),
         )
     )

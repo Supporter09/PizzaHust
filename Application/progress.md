@@ -402,3 +402,28 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 - `npx tsc --noEmit`, `npx eslint .` (no new warnings), `npx vitest run` (41 passed) green.
 - `./verify.sh` exit 0 at `368a36e`, `2026-06-11T18:35:35Z` (UTC; = 2026-06-12 01:35 +07 — matches the header's local date; 20 e2e passed incl. updated combo specs).
 - Screenshots in `Application/docs/superpowers/`: `u15-after-{light,dark,mobile}.png`, `combos-fidelity-after-{light,dark,mobile}.png` (customizer shot in fully-picked state, combo 3).
+
+---
+
+## 2026-06-12 — A5/A6/A7 Admin Ops Expansion
+
+**Done**
+1. A5 Monitor Orders
+   - Order monitor now defaults to the current day window and keeps explicit date filtering.
+   - Order detail dialog now shows per-phase tracking notes plus line-item option snapshots.
+   - Relation change: `OrderItem` detail now comes from `order_item_options` snapshot rows, populated from the generic option catalog (`OptionGroup` / `Option` / `ProductOption`).
+2. A6 Manage Customer Accounts
+   - Customer detail route now includes order history, quick stats, tier/points signals, and better sort/filter support for prospect tracking.
+   - No new schema relation was needed beyond the existing customer/order links.
+3. A7 Sales and Order Reports
+   - Reports dashboard now includes Total Revenue, Total Orders, Avg Order Value, Active Customers, Daily Revenue, Daily Orders, and Top Selling Items.
+   - Backend report aggregates and frontend contracts were updated to match the dashboard cards and charts.
+4. Harness state
+   - `feature_list.json` progress marked done for A5/A6/A7.
+   - OpenAPI and generated frontend types were refreshed after the contract changes.
+
+**Verified**
+- Backend lint/type/tests/alembic passed.
+- OpenAPI export/drift check passed.
+- Frontend typecheck/lint/unit tests/build passed.
+- Browser smoke/e2e intentionally skipped in WSL per user request, so this branch is considered done without that last step.

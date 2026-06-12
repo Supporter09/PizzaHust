@@ -16,11 +16,11 @@ interface OrderRow {
   created_at: string;
 }
 
-interface OrderItemTopping {
-  topping_id: number;
-  name: string;
-  quantity: number;
-  price_at_time_vnd: number;
+interface OrderItemOption {
+  id: number;
+  group_name: string;
+  option_name: string;
+  price_delta_vnd: number;
 }
 
 interface OrderItem {
@@ -31,9 +31,7 @@ interface OrderItem {
   quantity: number;
   unit_price_vnd: number;
   notes: string | null;
-  size: string | null;
-  crust: string | null;
-  toppings: OrderItemTopping[];
+  options: OrderItemOption[];
 }
 
 interface OrderTrackingEvent {
@@ -473,30 +471,20 @@ export default function MonitorOrdersPage() {
                                 {item.quantity} x {formatVND(item.unit_price_vnd)}
                               </p>
                               <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                                {item.size && (
-                                  <span className="rounded-full border border-line bg-surface px-2 py-0.5 text-muted">
-                                    Size: {item.size}
-                                  </span>
-                                )}
-                                {item.crust && (
-                                  <span className="rounded-full border border-line bg-surface px-2 py-0.5 text-muted">
-                                    Crust: {item.crust}
-                                  </span>
-                                )}
                                 {item.notes && (
                                   <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-amber-700">
                                     Note: {item.notes}
                                   </span>
                                 )}
                               </div>
-                              {item.toppings.length > 0 && (
+                              {item.options.length > 0 && (
                                 <div className="mt-3 flex flex-wrap gap-2">
-                                  {item.toppings.map((topping) => (
+                                  {item.options.map((option) => (
                                     <span
-                                      key={topping.topping_id}
+                                      key={option.id}
                                       className="rounded-full border border-line bg-surface px-2 py-0.5 text-xs text-muted"
                                     >
-                                      {topping.quantity} x {topping.name}
+                                      {option.group_name}: {option.option_name}
                                     </span>
                                   ))}
                                 </div>

@@ -278,9 +278,9 @@
         "U6",
         "infra-005"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Thanh",
-      "evidence": ""
+      "evidence": "verify.sh green through backend/frontend build on feat/admin-A5-A7-A8-A9; order detail now uses order_item_options snapshots from the generic option catalog; browser smoke/e2e intentionally skipped in WSL per request"
     },
     {
       "id": "A6",
@@ -288,9 +288,9 @@
       "depends_on": [
         "infra-004"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Thanh",
-      "evidence": ""
+      "evidence": "verify.sh green through backend/frontend build on feat/admin-A5-A7-A8-A9; customer detail route now shows order history, tier/points signals, and sortable monitoring fields; browser smoke/e2e intentionally skipped in WSL per request"
     },
     {
       "id": "A7",
@@ -298,9 +298,9 @@
       "depends_on": [
         "U6"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Thanh",
-      "evidence": ""
+      "evidence": "verify.sh green through backend/frontend build on feat/admin-A5-A7-A8-A9; reports now expose total revenue, total orders, avg order value, active customers, daily revenue/orders, and top selling items; browser smoke/e2e intentionally skipped in WSL per request"
     },
     {
       "id": "K1",

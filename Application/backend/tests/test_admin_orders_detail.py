@@ -10,15 +10,15 @@ from uuid import uuid4
 
 from app.infra.db.models import (
     Category,
+    Option,
+    OptionGroup,
     Order,
     OrderItem,
-    OrderItemTopping,
+    OrderItemOption,
     OrderStatus,
     OrderTracking,
-    PizzaCrust,
-    PizzaSize,
     Product,
-    Topping,
+    ProductOption,
     TrackingNoteSource,
 )
 from app.infra.db.session import create_session_factory
@@ -46,11 +46,16 @@ def _seed_order_with_detail(
         db.add(product)
         db.flush()
 
-        size = PizzaSize(name=f"M-{suffix}", price_modifier_vnd=0)
-        crust = PizzaCrust(name=f"thin-{suffix}")
-        topping = Topping(name=f"Cheese-{suffix}", price_vnd=15_000)
-        db.add_all([size, crust, topping])
+        group = OptionGroup(name=f"Toppings-{suffix}", select_type="multi", required=False)
+        option = Option(
+            group=group,
+            name=f"Cheese-{suffix}",
+            price_delta_vnd=15_000,
+            sort_order=1,
+        )
+        db.add_all([group, option])
         db.flush()
+        db.add(ProductOption(product_id=product.product_id, option_id=option.option_id))
 
         order = Order(
             order_code=order_code,
@@ -68,8 +73,6 @@ def _seed_order_with_detail(
         order_item = OrderItem(
             order_id=order.order_id,
             product_id=product.product_id,
-            size_id=size.size_id,
-            crust_id=crust.crust_id,
             quantity=2,
             unit_price_vnd=120_000,
             notes="Less chili",
@@ -78,11 +81,11 @@ def _seed_order_with_detail(
         db.flush()
 
         db.add(
-            OrderItemTopping(
+            OrderItemOption(
                 order_item_id=order_item.order_item_id,
-                topping_id=topping.topping_id,
-                quantity=1,
-                price_at_time_vnd=15_000,
+                group_name=group.name,
+                option_name=option.name,
+                price_delta_vnd=option.price_delta_vnd,
             )
         )
 
@@ -99,7 +102,7 @@ def _seed_order_with_detail(
                     order_id=order.order_id,
                     status=OrderStatus.PREPARING,
                     note_source=TrackingNoteSource.KITCHEN,
-                    note="Kitchen is waiting for a replacement topping",
+                    note="Kitchen is waiting for a replacement option",
                     created_at=created_at + timedelta(minutes=20),
                 ),
                 OrderTracking(
@@ -186,10 +189,9 @@ def test_get_order_returns_items_and_phase_notes() -> None:
     assert len(payload["items"]) == 1
     item = payload["items"][0]
     assert item["display_name"].startswith("Pizza ")
-    assert item["size"].startswith("M-")
-    assert item["crust"].startswith("thin-")
     assert item["notes"] == "Less chili"
-    assert item["toppings"][0]["name"].startswith("Cheese-")
+    assert item["options"][0]["group_name"].startswith("Toppings-")
+    assert item["options"][0]["option_name"].startswith("Cheese-")
 
     assert [event["note_source"] for event in payload["tracking"]] == [
         "system",

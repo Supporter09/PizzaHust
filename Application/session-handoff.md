@@ -1,7 +1,6 @@
 # session-handoff.md
 
-**Current state:** `U15` Customize Combo — **done** on branch `u15-customize-combo` (PR to
-`main`; `./verify.sh` green).
+**Current state:** `A5/A6/A7` admin ops expansion is complete on branch `feat/admin-A5-A7-A8-A9`.
 
 **Resume command:**
 
@@ -9,18 +8,10 @@
 cd Application && ./init.sh && docker compose up -d backend frontend && ./verify.sh
 ```
 
-**State:** Customer combo customizer at `/combos/[id]` uses `GET /api/combos/{id}`, slot
-picker with surcharges, per-pick `OptionGroupSelector` (cached dish detail), live
-`POST /api/cart/quote` (250 ms debounce), `combo_not_active` / selection-rule errors.
-`buildComboLine` matches `ComboQuoteLineIn`; add-to-cart deferred to U5 (same as U3).
+**State:** Monitor Orders now defaults to the current day and opens a detail dialog that shows phase-by-phase tracking notes plus order-item option snapshots. Customer detail now exposes order history, tier/points signals, and richer prospect tracking. Reports now match the dashboard mockup with the 4 KPI cards, daily charts, and top-selling items table.
 
-**Next feature:** `U5` Manage Cart (`depends_on`: U3 ✅, U4 ✅) — first consumer of
-`buildComboLine` / combo line persistence in the cart.
+**Relation notes:** the only new model/table relation introduced for this batch is the `OrderItem` -> `order_item_options` snapshot path, sourced from the generic option catalog (`OptionGroup`, `Option`, `ProductOption`). Customer and report work reused existing relations; no separate customer/report schema was added.
 
-**U6 follow-up:** `POST /api/orders` must persist resolved combo picks; `order_items` XOR
-product/combo may need extension.
+**Verification:** backend lint/type/tests/alembic passed, OpenAPI drift passed, frontend typecheck/lint/tests/build passed. Browser smoke/e2e was intentionally skipped in WSL per user request.
 
-**Known follow-ups (non-blocking):**
-- `redeem_points` inert until U13/U14.
-- Docker `backend` image: rebuild after code changes (`docker compose build backend`).
-- A9 multi-image deferred.
+**Next feature:** whichever item is next on the board after A5/A6/A7 review. No blocking follow-up remains for this batch.

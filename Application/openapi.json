@@ -54,18 +54,18 @@
         "title": "Body_import_pizzas_api_admin_import_pizzas_post",
         "type": "object"
       },
-      "Body_import_toppings_api_admin_import_toppings_post": {
+      "Body_upload_combo_image_api_admin_combos__combo_id__image_post": {
         "properties": {
-          "file": {
+          "image": {
             "contentMediaType": "application/octet-stream",
-            "title": "File",
+            "title": "Image",
             "type": "string"
           }
         },
         "required": [
-          "file"
+          "image"
         ],
-        "title": "Body_import_toppings_api_admin_import_toppings_post",
+        "title": "Body_upload_combo_image_api_admin_combos__combo_id__image_post",
         "type": "object"
       },
       "Body_upload_item_image_api_admin_items__product_id__image_post": {
@@ -96,7 +96,21 @@
           },
           "lines": {
             "items": {
-              "$ref": "#/components/schemas/QuoteLineIn"
+              "discriminator": {
+                "mapping": {
+                  "combo": "#/components/schemas/ComboQuoteLineIn",
+                  "item": "#/components/schemas/ItemQuoteLineIn"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ItemQuoteLineIn"
+                },
+                {
+                  "$ref": "#/components/schemas/ComboQuoteLineIn"
+                }
+              ]
             },
             "minItems": 1,
             "title": "Lines",
@@ -150,6 +164,32 @@
           "loyalty"
         ],
         "title": "CartQuoteOut",
+        "type": "object"
+      },
+      "CategoryComboItemIn": {
+        "additionalProperties": false,
+        "properties": {
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "category",
+            "title": "Kind",
+            "type": "string"
+          },
+          "quantity": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "category_id"
+        ],
+        "title": "CategoryComboItemIn",
         "type": "object"
       },
       "CategoryIn": {
@@ -275,6 +315,135 @@
         "title": "CategoryPatch",
         "type": "object"
       },
+      "ComboComponentOut": {
+        "properties": {
+          "base_price_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Price Vnd"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "combo_item_id": {
+            "title": "Combo Item Id",
+            "type": "integer"
+          },
+          "eligible_products": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ComboEligibleProductOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eligible Products"
+          },
+          "from_price_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Price Vnd"
+          },
+          "kind": {
+            "enum": [
+              "product",
+              "category"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "combo_item_id",
+          "kind",
+          "name",
+          "quantity"
+        ],
+        "title": "ComboComponentOut",
+        "type": "object"
+      },
+      "ComboEligibleProductOut": {
+        "properties": {
+          "base_price_vnd": {
+            "title": "Base Price Vnd",
+            "type": "integer"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "integer"
+          },
+          "surcharge_vnd": {
+            "title": "Surcharge Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_id",
+          "name",
+          "base_price_vnd",
+          "surcharge_vnd"
+        ],
+        "title": "ComboEligibleProductOut",
+        "type": "object"
+      },
       "ComboIn": {
         "properties": {
           "combo_price_vnd": {
@@ -295,7 +464,21 @@
           "items": {
             "default": [],
             "items": {
-              "$ref": "#/components/schemas/ComboItemIn"
+              "discriminator": {
+                "mapping": {
+                  "category": "#/components/schemas/CategoryComboItemIn",
+                  "product": "#/components/schemas/ProductComboItemIn"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ProductComboItemIn"
+                },
+                {
+                  "$ref": "#/components/schemas/CategoryComboItemIn"
+                }
+              ]
             },
             "title": "Items",
             "type": "array"
@@ -347,33 +530,52 @@
         "title": "ComboIn",
         "type": "object"
       },
-      "ComboItemIn": {
-        "properties": {
-          "product_id": {
-            "title": "Product Id",
-            "type": "integer"
-          },
-          "quantity": {
-            "default": 1,
-            "title": "Quantity",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "product_id"
-        ],
-        "title": "ComboItemIn",
-        "type": "object"
-      },
       "ComboItemOut": {
         "properties": {
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "from_price_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Price Vnd"
+          },
+          "kind": {
+            "enum": [
+              "product",
+              "category"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
           "name": {
             "title": "Name",
             "type": "string"
           },
           "product_id": {
-            "title": "Product Id",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
           },
           "quantity": {
             "title": "Quantity",
@@ -381,7 +583,7 @@
           }
         },
         "required": [
-          "product_id",
+          "kind",
           "quantity",
           "name"
         ],
@@ -409,6 +611,17 @@
             ],
             "title": "Description"
           },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
           "items": {
             "items": {
               "$ref": "#/components/schemas/ComboItemOut"
@@ -416,9 +629,31 @@
             "title": "Items",
             "type": "array"
           },
+          "items_total_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Items Total Vnd"
+          },
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "savings_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Savings Vnd"
           },
           "status": {
             "$ref": "#/components/schemas/ComboStatus"
@@ -501,7 +736,21 @@
             "anyOf": [
               {
                 "items": {
-                  "$ref": "#/components/schemas/ComboItemIn"
+                  "discriminator": {
+                    "mapping": {
+                      "category": "#/components/schemas/CategoryComboItemIn",
+                      "product": "#/components/schemas/ProductComboItemIn"
+                    },
+                    "propertyName": "kind"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ProductComboItemIn"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CategoryComboItemIn"
+                    }
+                  ]
                 },
                 "type": "array"
               },
@@ -561,6 +810,83 @@
         "title": "ComboPatch",
         "type": "object"
       },
+      "ComboPickIn": {
+        "additionalProperties": false,
+        "properties": {
+          "option_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Option Ids",
+            "type": "array"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_id"
+        ],
+        "title": "ComboPickIn",
+        "type": "object"
+      },
+      "ComboQuoteLineIn": {
+        "additionalProperties": false,
+        "properties": {
+          "combo_id": {
+            "title": "Combo Id",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "combo",
+            "title": "Kind",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "selections": {
+            "items": {
+              "$ref": "#/components/schemas/ComboSelectionIn"
+            },
+            "title": "Selections",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "combo_id",
+          "selections",
+          "quantity"
+        ],
+        "title": "ComboQuoteLineIn",
+        "type": "object"
+      },
+      "ComboSelectionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "combo_item_id": {
+            "title": "Combo Item Id",
+            "type": "integer"
+          },
+          "picks": {
+            "items": {
+              "$ref": "#/components/schemas/ComboPickIn"
+            },
+            "title": "Picks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "combo_item_id",
+          "picks"
+        ],
+        "title": "ComboSelectionIn",
+        "type": "object"
+      },
       "ComboStatus": {
         "enum": [
           "Scheduled",
@@ -569,54 +895,6 @@
         ],
         "title": "ComboStatus",
         "type": "string"
-      },
-      "CrustIn": {
-        "properties": {
-          "name": {
-            "title": "Name",
-            "type": "string"
-          }
-        },
-        "required": [
-          "name"
-        ],
-        "title": "CrustIn",
-        "type": "object"
-      },
-      "CrustOut": {
-        "properties": {
-          "crust_id": {
-            "title": "Crust Id",
-            "type": "integer"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          }
-        },
-        "required": [
-          "crust_id",
-          "name"
-        ],
-        "title": "CrustOut",
-        "type": "object"
-      },
-      "CrustPatch": {
-        "properties": {
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          }
-        },
-        "title": "CrustPatch",
-        "type": "object"
       },
       "CustomerDetailOut": {
         "properties": {
@@ -630,6 +908,13 @@
               }
             ],
             "title": "Address"
+          },
+          "benefits": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Benefits",
+            "type": "array"
           },
           "current_points": {
             "title": "Current Points",
@@ -654,6 +939,21 @@
             "title": "Is Locked",
             "type": "boolean"
           },
+          "last_order_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Order At"
+          },
+          "loyalty": {
+            "$ref": "#/components/schemas/CustomerLoyaltyOut"
+          },
           "membership_tier": {
             "title": "Membership Tier",
             "type": "string"
@@ -665,6 +965,27 @@
           "phone_number": {
             "title": "Phone Number",
             "type": "string"
+          },
+          "recent_orders": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerOrderOut"
+            },
+            "title": "Recent Orders",
+            "type": "array"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/CustomerStatsOut"
+          },
+          "top_orders": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerOrderOut"
+            },
+            "title": "Top Orders",
+            "type": "array"
+          },
+          "total_points_earned": {
+            "title": "Total Points Earned",
+            "type": "integer"
           },
           "user_id": {
             "title": "User Id",
@@ -678,11 +999,106 @@
           "email",
           "is_locked",
           "current_points",
+          "total_points_earned",
           "membership_tier",
           "order_count",
-          "address"
+          "last_order_at",
+          "address",
+          "stats",
+          "loyalty",
+          "benefits",
+          "recent_orders",
+          "top_orders"
         ],
         "title": "CustomerDetailOut",
+        "type": "object"
+      },
+      "CustomerLoyaltyOut": {
+        "properties": {
+          "accrual_rate_vnd": {
+            "title": "Accrual Rate Vnd",
+            "type": "integer"
+          },
+          "current_balance_value_vnd": {
+            "title": "Current Balance Value Vnd",
+            "type": "integer"
+          },
+          "current_points": {
+            "title": "Current Points",
+            "type": "integer"
+          },
+          "max_redeem_pct": {
+            "title": "Max Redeem Pct",
+            "type": "number"
+          },
+          "membership_tier": {
+            "title": "Membership Tier",
+            "type": "string"
+          },
+          "redeem_value_vnd": {
+            "title": "Redeem Value Vnd",
+            "type": "integer"
+          },
+          "total_points_earned": {
+            "title": "Total Points Earned",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "current_points",
+          "total_points_earned",
+          "membership_tier",
+          "accrual_rate_vnd",
+          "redeem_value_vnd",
+          "max_redeem_pct",
+          "current_balance_value_vnd"
+        ],
+        "title": "CustomerLoyaltyOut",
+        "type": "object"
+      },
+      "CustomerOrderOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_status": {
+            "title": "Current Status",
+            "type": "string"
+          },
+          "delivery_address": {
+            "title": "Delivery Address",
+            "type": "string"
+          },
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "integer"
+          },
+          "promised_at": {
+            "format": "date-time",
+            "title": "Promised At",
+            "type": "string"
+          },
+          "total_amount_vnd": {
+            "title": "Total Amount Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "order_id",
+          "order_code",
+          "current_status",
+          "total_amount_vnd",
+          "created_at",
+          "promised_at",
+          "delivery_address"
+        ],
+        "title": "CustomerOrderOut",
         "type": "object"
       },
       "CustomerOut": {
@@ -710,6 +1126,18 @@
             "title": "Is Locked",
             "type": "boolean"
           },
+          "last_order_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Order At"
+          },
           "membership_tier": {
             "title": "Membership Tier",
             "type": "string"
@@ -721,6 +1149,10 @@
           "phone_number": {
             "title": "Phone Number",
             "type": "string"
+          },
+          "total_points_earned": {
+            "title": "Total Points Earned",
+            "type": "integer"
           },
           "user_id": {
             "title": "User Id",
@@ -734,10 +1166,53 @@
           "email",
           "is_locked",
           "current_points",
+          "total_points_earned",
           "membership_tier",
-          "order_count"
+          "order_count",
+          "last_order_at"
         ],
         "title": "CustomerOut",
+        "type": "object"
+      },
+      "CustomerStatsOut": {
+        "properties": {
+          "average_order_value_vnd": {
+            "title": "Average Order Value Vnd",
+            "type": "integer"
+          },
+          "delivered_orders": {
+            "title": "Delivered Orders",
+            "type": "integer"
+          },
+          "last_order_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Order At"
+          },
+          "total_orders": {
+            "title": "Total Orders",
+            "type": "integer"
+          },
+          "total_spend_vnd": {
+            "title": "Total Spend Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_orders",
+          "delivered_orders",
+          "total_spend_vnd",
+          "average_order_value_vnd",
+          "last_order_at"
+        ],
+        "title": "CustomerStatsOut",
         "type": "object"
       },
       "DeliveryConfigOut": {
@@ -759,6 +1234,129 @@
           "service_area"
         ],
         "title": "DeliveryConfigOut",
+        "type": "object"
+      },
+      "GroupIn": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "required": {
+            "default": false,
+            "title": "Required",
+            "type": "boolean"
+          },
+          "select_type": {
+            "default": "multi",
+            "enum": [
+              "single",
+              "multi"
+            ],
+            "title": "Select Type",
+            "type": "string"
+          },
+          "sort_order": {
+            "default": 0,
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "GroupIn",
+        "type": "object"
+      },
+      "GroupOut": {
+        "properties": {
+          "group_id": {
+            "title": "Group Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "select_type": {
+            "enum": [
+              "single",
+              "multi"
+            ],
+            "title": "Select Type",
+            "type": "string"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "group_id",
+          "name",
+          "select_type",
+          "required",
+          "sort_order"
+        ],
+        "title": "GroupOut",
+        "type": "object"
+      },
+      "GroupPatch": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "required": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required"
+          },
+          "select_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "single",
+                  "multi"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Select Type"
+          },
+          "sort_order": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sort Order"
+          }
+        },
+        "title": "GroupPatch",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -835,6 +1433,111 @@
           "kind"
         ],
         "title": "ItemIn",
+        "type": "object"
+      },
+      "ItemOptionGroupOut": {
+        "properties": {
+          "group_id": {
+            "title": "Group Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/ItemOptionOut"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "select_type": {
+            "enum": [
+              "single",
+              "multi"
+            ],
+            "title": "Select Type",
+            "type": "string"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "group_id",
+          "name",
+          "select_type",
+          "required",
+          "sort_order",
+          "options"
+        ],
+        "title": "ItemOptionGroupOut",
+        "type": "object"
+      },
+      "ItemOptionOut": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "option_id": {
+            "title": "Option Id",
+            "type": "integer"
+          },
+          "price_delta_vnd": {
+            "title": "Price Delta Vnd",
+            "type": "integer"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "option_id",
+          "name",
+          "price_delta_vnd",
+          "sort_order",
+          "enabled"
+        ],
+        "title": "ItemOptionOut",
+        "type": "object"
+      },
+      "ItemOptionsPut": {
+        "properties": {
+          "option_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Option Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "option_ids"
+        ],
+        "title": "ItemOptionsPut",
         "type": "object"
       },
       "ItemOut": {
@@ -934,6 +1637,39 @@
           }
         },
         "title": "ItemPatch",
+        "type": "object"
+      },
+      "ItemQuoteLineIn": {
+        "additionalProperties": false,
+        "properties": {
+          "item_id": {
+            "title": "Item Id",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "item",
+            "title": "Kind",
+            "type": "string"
+          },
+          "option_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Option Ids",
+            "type": "array"
+          },
+          "quantity": {
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "item_id",
+          "quantity"
+        ],
+        "title": "ItemQuoteLineIn",
         "type": "object"
       },
       "LockIn": {
@@ -1050,6 +1786,15 @@
         "title": "MeResponse",
         "type": "object"
       },
+      "MembershipTier": {
+        "enum": [
+          "standard",
+          "silver",
+          "gold"
+        ],
+        "title": "MembershipTier",
+        "type": "string"
+      },
       "MenuCategoryOut": {
         "properties": {
           "category_id": {
@@ -1073,24 +1818,6 @@
         "title": "MenuCategoryOut",
         "type": "object"
       },
-      "MenuCrustOut": {
-        "properties": {
-          "crust_id": {
-            "title": "Crust Id",
-            "type": "integer"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          }
-        },
-        "required": [
-          "crust_id",
-          "name"
-        ],
-        "title": "MenuCrustOut",
-        "type": "object"
-      },
       "MenuItemDetailOut": {
         "properties": {
           "base_price_vnd": {
@@ -1100,14 +1827,6 @@
           "category_id": {
             "title": "Category Id",
             "type": "integer"
-          },
-          "crusts": {
-            "default": [],
-            "items": {
-              "$ref": "#/components/schemas/MenuCrustOut"
-            },
-            "title": "Crusts",
-            "type": "array"
           },
           "image_url": {
             "anyOf": [
@@ -1128,25 +1847,17 @@
             "title": "Name",
             "type": "string"
           },
+          "option_groups": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/MenuOptionGroupOut"
+            },
+            "title": "Option Groups",
+            "type": "array"
+          },
           "product_id": {
             "title": "Product Id",
             "type": "integer"
-          },
-          "sizes": {
-            "default": [],
-            "items": {
-              "$ref": "#/components/schemas/MenuSizeOut"
-            },
-            "title": "Sizes",
-            "type": "array"
-          },
-          "toppings": {
-            "default": [],
-            "items": {
-              "$ref": "#/components/schemas/MenuToppingOut"
-            },
-            "title": "Toppings",
-            "type": "array"
           }
         },
         "required": [
@@ -1203,50 +1914,78 @@
         "title": "MenuItemOut",
         "type": "object"
       },
-      "MenuSizeOut": {
+      "MenuOptionGroupOut": {
         "properties": {
+          "group_id": {
+            "title": "Group Id",
+            "type": "integer"
+          },
           "name": {
             "title": "Name",
             "type": "string"
           },
-          "price_modifier_vnd": {
-            "title": "Price Modifier Vnd",
-            "type": "integer"
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/MenuOptionOut"
+            },
+            "title": "Options",
+            "type": "array"
           },
-          "size_id": {
-            "title": "Size Id",
-            "type": "integer"
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "select_type": {
+            "enum": [
+              "single",
+              "multi"
+            ],
+            "title": "Select Type",
+            "type": "string"
           }
         },
         "required": [
-          "size_id",
+          "group_id",
           "name",
-          "price_modifier_vnd"
+          "select_type",
+          "required",
+          "options"
         ],
-        "title": "MenuSizeOut",
+        "title": "MenuOptionGroupOut",
         "type": "object"
       },
-      "MenuToppingOut": {
+      "MenuOptionOut": {
         "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
           "name": {
             "title": "Name",
             "type": "string"
           },
-          "price_vnd": {
-            "title": "Price Vnd",
+          "option_id": {
+            "title": "Option Id",
             "type": "integer"
           },
-          "topping_id": {
-            "title": "Topping Id",
+          "price_delta_vnd": {
+            "title": "Price Delta Vnd",
             "type": "integer"
           }
         },
         "required": [
-          "topping_id",
+          "option_id",
           "name",
-          "price_vnd"
+          "price_delta_vnd"
         ],
-        "title": "MenuToppingOut",
+        "title": "MenuOptionOut",
         "type": "object"
       },
       "MessageResponse": {
@@ -1260,6 +1999,136 @@
           "message"
         ],
         "title": "MessageResponse",
+        "type": "object"
+      },
+      "OptionIn": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price_delta_vnd": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Price Delta Vnd",
+            "type": "integer"
+          },
+          "sort_order": {
+            "default": 0,
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "OptionIn",
+        "type": "object"
+      },
+      "OptionOut": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "group_id": {
+            "title": "Group Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "option_id": {
+            "title": "Option Id",
+            "type": "integer"
+          },
+          "price_delta_vnd": {
+            "title": "Price Delta Vnd",
+            "type": "integer"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "option_id",
+          "group_id",
+          "name",
+          "price_delta_vnd",
+          "sort_order"
+        ],
+        "title": "OptionOut",
+        "type": "object"
+      },
+      "OptionPatch": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "price_delta_vnd": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Delta Vnd"
+          },
+          "sort_order": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sort Order"
+          }
+        },
+        "title": "OptionPatch",
         "type": "object"
       },
       "OrderCancelIn": {
@@ -1277,6 +2146,211 @@
           }
         },
         "title": "OrderCancelIn",
+        "type": "object"
+      },
+      "OrderDetailOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_status": {
+            "title": "Current Status",
+            "type": "string"
+          },
+          "delivery_address": {
+            "title": "Delivery Address",
+            "type": "string"
+          },
+          "delivery_fee_vnd": {
+            "title": "Delivery Fee Vnd",
+            "type": "integer"
+          },
+          "delivery_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Reference"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "integer"
+          },
+          "payment_method": {
+            "title": "Payment Method",
+            "type": "string"
+          },
+          "promised_at": {
+            "format": "date-time",
+            "title": "Promised At",
+            "type": "string"
+          },
+          "recipient_name": {
+            "title": "Recipient Name",
+            "type": "string"
+          },
+          "recipient_phone": {
+            "title": "Recipient Phone",
+            "type": "string"
+          },
+          "total_amount_vnd": {
+            "title": "Total Amount Vnd",
+            "type": "integer"
+          },
+          "tracking": {
+            "items": {
+              "$ref": "#/components/schemas/OrderTrackingOut"
+            },
+            "title": "Tracking",
+            "type": "array"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          }
+        },
+        "required": [
+          "order_id",
+          "order_code",
+          "current_status",
+          "recipient_name",
+          "recipient_phone",
+          "delivery_address",
+          "total_amount_vnd",
+          "created_at",
+          "user_id",
+          "promised_at",
+          "payment_method",
+          "delivery_fee_vnd",
+          "delivery_reference",
+          "items",
+          "tracking"
+        ],
+        "title": "OrderDetailOut",
+        "type": "object"
+      },
+      "OrderItemOptionOut": {
+        "properties": {
+          "group_name": {
+            "title": "Group Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "option_name": {
+            "title": "Option Name",
+            "type": "string"
+          },
+          "price_delta_vnd": {
+            "title": "Price Delta Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "group_name",
+          "option_name",
+          "price_delta_vnd"
+        ],
+        "title": "OrderItemOptionOut",
+        "type": "object"
+      },
+      "OrderItemOut": {
+        "properties": {
+          "combo_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Combo Id"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItemOptionOut"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "order_item_id": {
+            "title": "Order Item Id",
+            "type": "integer"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "unit_price_vnd": {
+            "title": "Unit Price Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "order_item_id",
+          "product_id",
+          "combo_id",
+          "display_name",
+          "quantity",
+          "unit_price_vnd",
+          "notes",
+          "options"
+        ],
+        "title": "OrderItemOut",
         "type": "object"
       },
       "OrderSummaryOut": {
@@ -1340,11 +2414,112 @@
         "title": "OrderSummaryOut",
         "type": "object"
       },
-      "PublicComboItemOut": {
+      "OrderTrackingOut": {
         "properties": {
-          "base_price_vnd": {
-            "title": "Base Price Vnd",
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "note_source": {
+            "title": "Note Source",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tracking_id": {
+            "title": "Tracking Id",
             "type": "integer"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "required": [
+          "tracking_id",
+          "status",
+          "note_source",
+          "created_at",
+          "note",
+          "updated_by"
+        ],
+        "title": "OrderTrackingOut",
+        "type": "object"
+      },
+      "ProductComboItemIn": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "product",
+            "title": "Kind",
+            "type": "string"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "integer"
+          },
+          "quantity": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "product_id"
+        ],
+        "title": "ProductComboItemIn",
+        "type": "object"
+      },
+      "PublicComboDetailOut": {
+        "properties": {
+          "combo_id": {
+            "title": "Combo Id",
+            "type": "integer"
+          },
+          "combo_price_vnd": {
+            "title": "Combo Price Vnd",
+            "type": "integer"
+          },
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/ComboComponentOut"
+            },
+            "title": "Components",
+            "type": "array"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
           },
           "image_url": {
             "anyOf": [
@@ -1357,13 +2532,98 @@
             ],
             "title": "Image Url"
           },
+          "items_total_vnd": {
+            "title": "Items Total Vnd",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "savings_vnd": {
+            "title": "Savings Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "combo_id",
+          "name",
+          "combo_price_vnd",
+          "items_total_vnd",
+          "savings_vnd",
+          "components"
+        ],
+        "title": "PublicComboDetailOut",
+        "type": "object"
+      },
+      "PublicComboItemOut": {
+        "properties": {
+          "base_price_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Price Vnd"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "from_price_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Price Vnd"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "kind": {
+            "enum": [
+              "product",
+              "category"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
           "name": {
             "title": "Name",
             "type": "string"
           },
           "product_id": {
-            "title": "Product Id",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
           },
           "quantity": {
             "title": "Quantity",
@@ -1371,10 +2631,9 @@
           }
         },
         "required": [
-          "product_id",
+          "kind",
           "name",
-          "quantity",
-          "base_price_vnd"
+          "quantity"
         ],
         "title": "PublicComboItemOut",
         "type": "object"
@@ -1399,6 +2658,17 @@
               }
             ],
             "title": "Description"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
           },
           "items": {
             "items": {
@@ -1464,81 +2734,6 @@
           "administrative_unit"
         ],
         "title": "QuoteAddressIn",
-        "type": "object"
-      },
-      "QuoteLineIn": {
-        "properties": {
-          "combo_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Combo Id"
-          },
-          "crust": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Crust"
-          },
-          "item_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Item Id"
-          },
-          "kind": {
-            "enum": [
-              "pizza",
-              "side",
-              "combo"
-            ],
-            "title": "Kind",
-            "type": "string"
-          },
-          "quantity": {
-            "minimum": 1.0,
-            "title": "Quantity",
-            "type": "integer"
-          },
-          "size": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Size"
-          },
-          "topping_ids": {
-            "items": {
-              "type": "integer"
-            },
-            "title": "Topping Ids",
-            "type": "array"
-          }
-        },
-        "required": [
-          "kind",
-          "quantity"
-        ],
-        "title": "QuoteLineIn",
         "type": "object"
       },
       "QuoteLoyaltyOut": {
@@ -1617,6 +2812,108 @@
         "title": "RegisterResponse",
         "type": "object"
       },
+      "ReportOverviewOut": {
+        "properties": {
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/ReportSeriesOut"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ReportSummaryOut"
+          },
+          "top_items": {
+            "items": {
+              "$ref": "#/components/schemas/ReportTopItemOut"
+            },
+            "title": "Top Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "summary",
+          "series",
+          "top_items"
+        ],
+        "title": "ReportOverviewOut",
+        "type": "object"
+      },
+      "ReportSeriesOut": {
+        "properties": {
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          },
+          "revenue_vnd": {
+            "title": "Revenue Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "revenue_vnd",
+          "order_count"
+        ],
+        "title": "ReportSeriesOut",
+        "type": "object"
+      },
+      "ReportSummaryOut": {
+        "properties": {
+          "active_customers": {
+            "title": "Active Customers",
+            "type": "integer"
+          },
+          "avg_order_value_vnd": {
+            "title": "Avg Order Value Vnd",
+            "type": "integer"
+          },
+          "total_orders": {
+            "title": "Total Orders",
+            "type": "integer"
+          },
+          "total_revenue_vnd": {
+            "title": "Total Revenue Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_revenue_vnd",
+          "total_orders",
+          "avg_order_value_vnd",
+          "active_customers"
+        ],
+        "title": "ReportSummaryOut",
+        "type": "object"
+      },
+      "ReportTopItemOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          },
+          "revenue_vnd": {
+            "title": "Revenue Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "order_count",
+          "revenue_vnd"
+        ],
+        "title": "ReportTopItemOut",
+        "type": "object"
+      },
       "SalesReportRowOut": {
         "properties": {
           "date": {
@@ -1648,75 +2945,6 @@
         "title": "SalesReportRowOut",
         "type": "object"
       },
-      "SizeIn": {
-        "properties": {
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "price_modifier_vnd": {
-            "default": 0,
-            "title": "Price Modifier Vnd",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "name"
-        ],
-        "title": "SizeIn",
-        "type": "object"
-      },
-      "SizeOut": {
-        "properties": {
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "price_modifier_vnd": {
-            "title": "Price Modifier Vnd",
-            "type": "integer"
-          },
-          "size_id": {
-            "title": "Size Id",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "size_id",
-          "name",
-          "price_modifier_vnd"
-        ],
-        "title": "SizeOut",
-        "type": "object"
-      },
-      "SizePatch": {
-        "properties": {
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          },
-          "price_modifier_vnd": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Price Modifier Vnd"
-          }
-        },
-        "title": "SizePatch",
-        "type": "object"
-      },
       "TopItemOut": {
         "properties": {
           "count": {
@@ -1733,75 +2961,6 @@
           "count"
         ],
         "title": "TopItemOut",
-        "type": "object"
-      },
-      "ToppingIn": {
-        "properties": {
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "price_vnd": {
-            "title": "Price Vnd",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "name",
-          "price_vnd"
-        ],
-        "title": "ToppingIn",
-        "type": "object"
-      },
-      "ToppingOut": {
-        "properties": {
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "price_vnd": {
-            "title": "Price Vnd",
-            "type": "integer"
-          },
-          "topping_id": {
-            "title": "Topping Id",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "topping_id",
-          "name",
-          "price_vnd"
-        ],
-        "title": "ToppingOut",
-        "type": "object"
-      },
-      "ToppingPatch": {
-        "properties": {
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          },
-          "price_vnd": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Price Vnd"
-          }
-        },
-        "title": "ToppingPatch",
         "type": "object"
       },
       "UpdateProfileRequest": {
@@ -2270,80 +3429,16 @@
         ]
       }
     },
-    "/api/admin/crusts": {
-      "get": {
-        "operationId": "list_crusts_api_admin_crusts_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/CrustOut"
-                  },
-                  "title": "Response List Crusts Api Admin Crusts Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "List Crusts",
-        "tags": [
-          "admin-options"
-        ]
-      },
-      "post": {
-        "operationId": "create_crust_api_admin_crusts_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CrustIn"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CrustOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Create Crust",
-        "tags": [
-          "admin-options"
-        ]
-      }
-    },
-    "/api/admin/crusts/{crust_id}": {
+    "/api/admin/combos/{combo_id}/image": {
       "delete": {
-        "operationId": "delete_crust_api_admin_crusts__crust_id__delete",
+        "operationId": "delete_combo_image_api_admin_combos__combo_id__image_delete",
         "parameters": [
           {
             "in": "path",
-            "name": "crust_id",
+            "name": "combo_id",
             "required": true,
             "schema": {
-              "title": "Crust Id",
+              "title": "Combo Id",
               "type": "integer"
             }
           }
@@ -2363,29 +3458,29 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Delete Crust",
+        "summary": "Delete Combo Image",
         "tags": [
-          "admin-options"
+          "admin-combos"
         ]
       },
-      "patch": {
-        "operationId": "patch_crust_api_admin_crusts__crust_id__patch",
+      "post": {
+        "operationId": "upload_combo_image_api_admin_combos__combo_id__image_post",
         "parameters": [
           {
             "in": "path",
-            "name": "crust_id",
+            "name": "combo_id",
             "required": true,
             "schema": {
-              "title": "Crust Id",
+              "title": "Combo Id",
               "type": "integer"
             }
           }
         ],
         "requestBody": {
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/CrustPatch"
+                "$ref": "#/components/schemas/Body_upload_combo_image_api_admin_combos__combo_id__image_post"
               }
             }
           },
@@ -2396,7 +3491,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CrustOut"
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Upload Combo Image Api Admin Combos  Combo Id  Image Post",
+                  "type": "object"
                 }
               }
             },
@@ -2413,9 +3512,9 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Patch Crust",
+        "summary": "Upload Combo Image",
         "tags": [
-          "admin-options"
+          "admin-combos"
         ]
       }
     },
@@ -2437,6 +3536,68 @@
                 }
               ],
               "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tier",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/MembershipTier"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tier"
+            }
+          },
+          {
+            "in": "query",
+            "name": "locked",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Locked"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "points",
+              "enum": [
+                "tier",
+                "points",
+                "orders",
+                "name"
+              ],
+              "title": "Sort By",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort_dir",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "title": "Sort Dir",
+              "type": "string"
             }
           },
           {
@@ -2653,47 +3814,6 @@
           }
         },
         "summary": "Import Pizzas",
-        "tags": [
-          "admin-import"
-        ]
-      }
-    },
-    "/api/admin/import/toppings": {
-      "post": {
-        "operationId": "import_toppings_api_admin_import_toppings_post",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_import_toppings_api_admin_import_toppings_post"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImportSummary"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Import Toppings",
         "tags": [
           "admin-import"
         ]
@@ -3008,6 +4128,392 @@
         ]
       }
     },
+    "/api/admin/items/{product_id}/options": {
+      "get": {
+        "operationId": "item_options_api_admin_items__product_id__options_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "title": "Product Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ItemOptionGroupOut"
+                  },
+                  "title": "Response Item Options Api Admin Items  Product Id  Options Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Item Options",
+        "tags": [
+          "admin-option-groups"
+        ]
+      },
+      "put": {
+        "operationId": "replace_item_options_api_admin_items__product_id__options_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "title": "Product Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemOptionsPut"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ItemOptionGroupOut"
+                  },
+                  "title": "Response Replace Item Options Api Admin Items  Product Id  Options Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Replace Item Options",
+        "tags": [
+          "admin-option-groups"
+        ]
+      }
+    },
+    "/api/admin/option-groups": {
+      "get": {
+        "operationId": "list_groups_api_admin_option_groups_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupOut"
+                  },
+                  "title": "Response List Groups Api Admin Option Groups Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Groups",
+        "tags": [
+          "admin-option-groups"
+        ]
+      },
+      "post": {
+        "operationId": "create_group_api_admin_option_groups_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Group",
+        "tags": [
+          "admin-option-groups"
+        ]
+      }
+    },
+    "/api/admin/option-groups/{group_id}": {
+      "delete": {
+        "operationId": "delete_group_api_admin_option_groups__group_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Group",
+        "tags": [
+          "admin-option-groups"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_group_api_admin_option_groups__group_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Group",
+        "tags": [
+          "admin-option-groups"
+        ]
+      }
+    },
+    "/api/admin/option-groups/{group_id}/options": {
+      "post": {
+        "operationId": "create_option_api_admin_option_groups__group_id__options_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "title": "Group Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Option",
+        "tags": [
+          "admin-option-groups"
+        ]
+      }
+    },
+    "/api/admin/options/{option_id}": {
+      "delete": {
+        "operationId": "delete_option_api_admin_options__option_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "option_id",
+            "required": true,
+            "schema": {
+              "title": "Option Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Option",
+        "tags": [
+          "admin-option-groups"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_option_api_admin_options__option_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "option_id",
+            "required": true,
+            "schema": {
+              "title": "Option Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptionPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Option",
+        "tags": [
+          "admin-option-groups"
+        ]
+      }
+    },
     "/api/admin/orders": {
       "get": {
         "operationId": "list_orders_api_admin_orders_get",
@@ -3026,6 +4532,40 @@
                 }
               ],
               "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
             }
           },
           {
@@ -3103,7 +4643,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrderSummaryOut"
+                  "$ref": "#/components/schemas/OrderDetailOut"
                 }
               }
             },
@@ -3207,6 +4747,59 @@
         ]
       }
     },
+    "/api/admin/reports/overview": {
+      "get": {
+        "operationId": "sales_overview_api_admin_reports_overview_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "To",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOverviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sales Overview",
+        "tags": [
+          "admin-reports"
+        ]
+      }
+    },
     "/api/admin/reports/sales": {
       "get": {
         "operationId": "sales_report_api_admin_reports_sales_get",
@@ -3289,304 +4882,6 @@
         "summary": "Sales Report",
         "tags": [
           "admin-reports"
-        ]
-      }
-    },
-    "/api/admin/sizes": {
-      "get": {
-        "operationId": "list_sizes_api_admin_sizes_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/SizeOut"
-                  },
-                  "title": "Response List Sizes Api Admin Sizes Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "List Sizes",
-        "tags": [
-          "admin-options"
-        ]
-      },
-      "post": {
-        "operationId": "create_size_api_admin_sizes_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SizeIn"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SizeOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Create Size",
-        "tags": [
-          "admin-options"
-        ]
-      }
-    },
-    "/api/admin/sizes/{size_id}": {
-      "delete": {
-        "operationId": "delete_size_api_admin_sizes__size_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "size_id",
-            "required": true,
-            "schema": {
-              "title": "Size Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Delete Size",
-        "tags": [
-          "admin-options"
-        ]
-      },
-      "patch": {
-        "operationId": "patch_size_api_admin_sizes__size_id__patch",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "size_id",
-            "required": true,
-            "schema": {
-              "title": "Size Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SizePatch"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SizeOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Patch Size",
-        "tags": [
-          "admin-options"
-        ]
-      }
-    },
-    "/api/admin/toppings": {
-      "get": {
-        "operationId": "list_toppings_api_admin_toppings_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ToppingOut"
-                  },
-                  "title": "Response List Toppings Api Admin Toppings Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "List Toppings",
-        "tags": [
-          "admin-options"
-        ]
-      },
-      "post": {
-        "operationId": "create_topping_api_admin_toppings_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ToppingIn"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ToppingOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Create Topping",
-        "tags": [
-          "admin-options"
-        ]
-      }
-    },
-    "/api/admin/toppings/{topping_id}": {
-      "delete": {
-        "operationId": "delete_topping_api_admin_toppings__topping_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "topping_id",
-            "required": true,
-            "schema": {
-              "title": "Topping Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Delete Topping",
-        "tags": [
-          "admin-options"
-        ]
-      },
-      "patch": {
-        "operationId": "patch_topping_api_admin_toppings__topping_id__patch",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "topping_id",
-            "required": true,
-            "schema": {
-              "title": "Topping Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ToppingPatch"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ToppingOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Patch Topping",
-        "tags": [
-          "admin-options"
         ]
       }
     },
@@ -3839,6 +5134,48 @@
           }
         },
         "summary": "List Combos",
+        "tags": [
+          "combos"
+        ]
+      }
+    },
+    "/api/combos/{combo_id}": {
+      "get": {
+        "operationId": "get_combo_detail_api_combos__combo_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "combo_id",
+            "required": true,
+            "schema": {
+              "title": "Combo Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicComboDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Combo Detail",
         "tags": [
           "combos"
         ]

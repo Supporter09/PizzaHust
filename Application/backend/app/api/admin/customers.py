@@ -166,9 +166,7 @@ def _customer_stats_payload(
 ) -> tuple[CustomerStatsOut, list[Order], list[Order]]:
     delivered_orders = [order for order in orders if order.current_status == OrderStatus.DELIVERED]
     total_spend_vnd = sum(order.total_amount_vnd for order in delivered_orders)
-    average_order_value_vnd = (
-        total_spend_vnd // len(delivered_orders) if delivered_orders else 0
-    )
+    average_order_value_vnd = total_spend_vnd // len(delivered_orders) if delivered_orders else 0
     stats = CustomerStatsOut(
         total_orders=len(orders),
         delivered_orders=len(delivered_orders),
@@ -223,17 +221,17 @@ def list_customers(
     if locked is not None:
         stmt = stmt.where(User.is_locked.is_(locked))
 
-    stmt = stmt.order_by(
-        *_sort_clauses(sort_by, sort_dir, order_count_expr)
-    ).offset((page - 1) * page_size).limit(page_size)
+    stmt = (
+        stmt.order_by(*_sort_clauses(sort_by, sort_dir, order_count_expr))
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
 
     rows = db.execute(stmt).all()
     result = []
     for user, order_count, last_order_at in rows:
         result.append(
-            CustomerOut.model_validate(
-                _customer_payload(user, int(order_count), last_order_at)
-            )
+            CustomerOut.model_validate(_customer_payload(user, int(order_count), last_order_at))
         )
     return result
 
@@ -291,8 +289,7 @@ def get_customer(
             ).model_dump(),
             "benefits": benefits,
             "recent_orders": [
-                CustomerOrderOut.model_validate(_order_payload(order))
-                for order in recent_orders
+                CustomerOrderOut.model_validate(_order_payload(order)) for order in recent_orders
             ],
             "top_orders": [
                 CustomerOrderOut.model_validate(_order_payload(order)) for order in top_orders

@@ -156,8 +156,7 @@ def _overview_payload(db: Session, start: date, end: date) -> ReportOverviewOut:
     ).all()
 
     daily: dict[str, dict[str, int]] = {
-        day.isoformat(): {"order_count": 0, "revenue_vnd": 0}
-        for day in _date_iter(start, end)
+        day.isoformat(): {"order_count": 0, "revenue_vnd": 0} for day in _date_iter(start, end)
     }
     active_customers = set()
     top_item_totals: dict[str, dict[str, int]] = defaultdict(
