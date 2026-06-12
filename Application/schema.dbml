@@ -107,6 +107,8 @@ Table orders {
   recipient_name varchar(100) [not null]
   recipient_phone varchar(15) [not null]
   delivery_address varchar(255) [not null]
+  delivery_ward varchar(100)
+  delivery_note varchar(255)
   total_amount_vnd int [not null]
   delivery_fee_vnd int [not null, default: 22000]
   payment_method varchar(20) [not null, default: 'COD']
@@ -123,9 +125,10 @@ Table order_items {
   combo_id int [ref: > combos.combo_id]
   quantity int [not null, default: 1]
   unit_price_vnd int [not null]
+  parent_order_item_id int [ref: > order_items.order_item_id]
   notes varchar(255)
 
-  Note: 'Exactly one of product_id or combo_id must be non-null.'
+  Note: 'Exactly one of product_id or combo_id must be non-null. Combo lines: parent row (combo_id) + child rows per pick (product_id, parent_order_item_id).'
 }
 
 Table order_item_options {
