@@ -175,7 +175,7 @@
       ],
       "status": "done",
       "owner": "Hoang",
-      "evidence": "verify.sh green at PLACEHOLDER_SHA, 2026-06-12T12:40:34Z"
+      "evidence": "verify.sh green at e24306d46eee3525f8ebbc84a75c6fd16b1734a5, 2026-06-12T12:40:34Z"
     },
     {
       "id": "U9",
