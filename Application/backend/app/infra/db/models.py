@@ -115,6 +115,9 @@ class User(Base):
         default=MembershipTier.STANDARD,
         server_default=MembershipTier.STANDARD.value,
     )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False), nullable=False, server_default=func.now()
+    )
 
     orders: Mapped[list[Order]] = relationship(back_populates="user", foreign_keys="Order.user_id")
     tracking_logs: Mapped[list[OrderTracking]] = relationship(

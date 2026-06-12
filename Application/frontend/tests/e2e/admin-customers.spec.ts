@@ -44,7 +44,8 @@ test.describe("A6 – Admin Customer Accounts", () => {
 
   test("customer detail page shows loyalty snapshot and orders", async ({ page }) => {
     await page.goto(`${BASE}/admin/customers`);
-    await page.getByRole("link").first().click();
+    // Scope to the table: the sidebar nav also renders links.
+    await page.locator("tbody").getByRole("link", { name: "View Details" }).first().click();
 
     await expect(page.getByText(/customer dossier/i)).toBeVisible();
     await expect(page.getByRole("heading", { name: /loyalty snapshot/i })).toBeVisible();

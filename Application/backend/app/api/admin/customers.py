@@ -38,6 +38,8 @@ class CustomerOut(BaseModel):
     membership_tier: str
     order_count: int
     last_order_at: datetime | None
+    total_spend_vnd: int
+    created_at: datetime
 
     model_config = {"from_attributes": True}
 
@@ -91,6 +93,19 @@ def _tier_rank_expr() -> case:
     )
 
 
+def _total_spend_expr():
+    """Sum of delivered-order totals; mirrors CustomerStatsOut.total_spend_vnd."""
+    return func.coalesce(
+        func.sum(
+            case(
+                (Order.current_status == OrderStatus.DELIVERED, Order.total_amount_vnd),
+                else_=0,
+            )
+        ),
+        0,
+    )
+
+
 def _sort_clauses(
     sort_by: SortBy,
     sort_dir: SortDir,
@@ -134,6 +149,7 @@ def _customer_payload(
     user: User,
     order_count: int,
     last_order_at: datetime | None,
+    total_spend_vnd: int,
 ) -> dict[str, object]:
     return {
         "user_id": user.user_id,
@@ -146,6 +162,8 @@ def _customer_payload(
         "membership_tier": user.membership_tier.value,
         "order_count": order_count,
         "last_order_at": last_order_at,
+        "total_spend_vnd": total_spend_vnd,
+        "created_at": user.created_at,
     }
 
 
@@ -196,11 +214,13 @@ def list_customers(
 ) -> list[CustomerOut]:
     order_count_expr = func.count(Order.order_id)
     last_order_at_expr = func.max(Order.created_at)
+    total_spend_expr = _total_spend_expr()
     stmt = (
         select(
             User,
             order_count_expr.label("order_count"),
             last_order_at_expr.label("last_order_at"),
+            total_spend_expr.label("total_spend_vnd"),
         )
         .outerjoin(Order, Order.user_id == User.user_id)
         .where(User.role == UserRole.CUSTOMER)
@@ -229,9 +249,11 @@ def list_customers(
 
     rows = db.execute(stmt).all()
     result = []
-    for user, order_count, last_order_at in rows:
+    for user, order_count, last_order_at, total_spend_vnd in rows:
         result.append(
-            CustomerOut.model_validate(_customer_payload(user, int(order_count), last_order_at))
+            CustomerOut.model_validate(
+                _customer_payload(user, int(order_count), last_order_at, int(total_spend_vnd))
+            )
         )
     return result
 
@@ -275,7 +297,7 @@ def get_customer(
     ]
     return CustomerDetailOut.model_validate(
         {
-            **_customer_payload(user, int(order_count), last_order_at),
+            **_customer_payload(user, int(order_count), last_order_at, stats.total_spend_vnd),
             "address": user.address,
             "stats": stats.model_dump(),
             "loyalty": CustomerLoyaltyOut(

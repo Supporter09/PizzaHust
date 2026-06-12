@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 
 import { apiFetch } from "@/lib/api/client";
+import { formatVnd } from "@/lib/format";
 
 interface Customer {
   user_id: number;
@@ -16,6 +17,8 @@ interface Customer {
   membership_tier: string;
   order_count: number;
   last_order_at: string | null;
+  total_spend_vnd: number;
+  created_at: string;
 }
 
 type SortBy = "points" | "orders" | "tier" | "name";
@@ -200,7 +203,7 @@ export default function CustomersPage() {
         <table className="min-w-full divide-y divide-line text-sm">
           <thead className="bg-surface">
             <tr>
-              {["Rank", "Customer", "Contact", "Tier", "Points", "Orders", "Last Order", "Status", ""].map((h) => (
+              {["Customer", "Contact", "Tier", "Points", "Orders", "Total Spent", "Join Date", "Status", "Actions"].map((h) => (
                 <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted uppercase tracking-wider">
                   {h}
                 </th>
@@ -214,13 +217,8 @@ export default function CustomersPage() {
             {!loading && customers.length === 0 && (
               <tr><td colSpan={9} className="px-4 py-8 text-center text-muted">No customers found</td></tr>
             )}
-            {!loading && customers.map((c, index) => (
+            {!loading && customers.map((c) => (
               <tr key={c.user_id} className={`hover:bg-surface ${c.is_locked ? "opacity-60" : ""}`}>
-                <td className="px-4 py-3">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-subtle text-xs font-semibold text-brand-fg">
-                    #{index + 1}
-                  </span>
-                </td>
                 <td className="px-4 py-3">
                   <Link href={`/admin/customers/${c.user_id}`} className="font-medium text-fg hover:text-brand-fg">
                     {c.full_name}
@@ -238,7 +236,8 @@ export default function CustomersPage() {
                 </td>
                 <td className="px-4 py-3 text-fg">{c.current_points.toLocaleString()}</td>
                 <td className="px-4 py-3 text-fg">{c.order_count}</td>
-                <td className="px-4 py-3 text-fg">{formatDateTime(c.last_order_at)}</td>
+                <td className="px-4 py-3 font-medium text-fg">{formatVnd(c.total_spend_vnd)}</td>
+                <td className="px-4 py-3 text-fg">{formatDateTime(c.created_at)}</td>
                 <td className="px-4 py-3">
                   {c.is_locked ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-danger-subtle px-2 py-0.5 text-xs font-medium text-danger">
@@ -253,17 +252,25 @@ export default function CustomersPage() {
                   )}
                 </td>
                 <td className="px-4 py-3">
-                  <button
-                    onClick={() => void toggleLock(c)}
-                    disabled={toggling === c.user_id}
-                    className={`rounded px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-50 ${
-                      c.is_locked
-                        ? "bg-success-solid text-on-brand hover:opacity-90"
-                        : "bg-danger-solid text-on-brand hover:opacity-90"
-                    }`}
-                  >
-                    {toggling === c.user_id ? "…" : c.is_locked ? "Unlock" : "Lock"}
-                  </button>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Link
+                      href={`/admin/customers/${c.user_id}`}
+                      className="rounded border border-line bg-card px-2.5 py-1 text-xs font-medium text-fg hover:bg-surface-hover"
+                    >
+                      View Details
+                    </Link>
+                    <button
+                      onClick={() => void toggleLock(c)}
+                      disabled={toggling === c.user_id}
+                      className={`rounded px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-50 ${
+                        c.is_locked
+                          ? "bg-success-solid text-on-brand hover:opacity-90"
+                          : "bg-danger-solid text-on-brand hover:opacity-90"
+                      }`}
+                    >
+                      {toggling === c.user_id ? "…" : c.is_locked ? "Unlock" : "Lock"}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

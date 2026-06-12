@@ -228,3 +228,37 @@ def test_lock_and_unlock_customer_updates_state() -> None:
         unlock_customer(user_id, db=db, _admin=admin)
         unlocked = db.get(User, user_id)
         assert unlocked is not None and unlocked.is_locked is False
+
+
+def test_list_customers_includes_delivered_spend_and_join_date() -> None:
+    _bootstrap("customers-spend-join")
+    user_id = _new_customer()
+    _add_order_with_status(
+        user_id,
+        "PIZZ-SPEND01",
+        total_amount_vnd=180_000,
+        created_at=datetime(2026, 6, 9, 10, 0, 0),
+        status=OrderStatus.DELIVERED,
+    )
+    _add_order_with_status(
+        user_id,
+        "PIZZ-SPEND02",
+        total_amount_vnd=240_000,
+        created_at=datetime(2026, 6, 10, 10, 0, 0),
+        status=OrderStatus.DELIVERED,
+    )
+    _add_order_with_status(
+        user_id,
+        "PIZZ-SPEND03",
+        total_amount_vnd=90_000,
+        created_at=datetime(2026, 6, 11, 10, 0, 0),
+        status=OrderStatus.CANCELLED,
+    )
+    admin = SimpleNamespace(user_id=1, role=UserRole.ADMIN)
+
+    with create_session_factory()() as db:
+        rows = list_customers(page=1, page_size=20, db=db, _admin=admin)
+
+    assert len(rows) == 1
+    assert rows[0].total_spend_vnd == 420_000
+    assert rows[0].created_at is not None

@@ -29,6 +29,7 @@ interface CustomerDetail {
   membership_tier: string;
   order_count: number;
   last_order_at: string | null;
+  created_at: string;
   stats: {
     total_orders: number;
     delivered_orders: number;
@@ -88,6 +89,24 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const [customer, setCustomer] = useState<CustomerDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [toggling, setToggling] = useState(false);
+
+  async function toggleLock() {
+    if (!customer) return;
+    setToggling(true);
+    try {
+      const action = customer.is_locked ? "unlock" : "lock";
+      await apiFetch(`/admin/customers/${customer.user_id}/${action}`, {
+        method: "POST",
+        body: JSON.stringify({ reason: null }),
+      });
+      setCustomer({ ...customer, is_locked: !customer.is_locked });
+    } catch (e) {
+      alert(String(e));
+    } finally {
+      setToggling(false);
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -140,11 +159,33 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-muted">Customer dossier</p>
             <h1 className="mt-1 text-3xl font-semibold text-fg">{customer.full_name}</h1>
-            <p className="mt-2 text-sm text-muted">#{customer.user_id}</p>
+            <p className="mt-2 text-sm text-muted">
+              Customer since {formatDateTime(customer.created_at)} · ID #{customer.user_id}
+            </p>
           </div>
-          <div className="rounded-2xl border border-line bg-surface px-4 py-3 text-sm text-fg">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted">Last order</p>
-            <p className="mt-1 font-medium">{formatDateTime(customer.last_order_at)}</p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="rounded-2xl border border-line bg-surface px-4 py-3 text-sm text-fg">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">Last order</p>
+              <p className="mt-1 font-medium">{formatDateTime(customer.last_order_at)}</p>
+            </div>
+            <div className="max-w-xs rounded-2xl border border-line bg-surface px-4 py-3 text-sm">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">Account Access</p>
+              <p className="mt-1 text-xs text-muted">
+                Locking prevents this customer from signing in or placing orders. History and
+                loyalty balance are preserved.
+              </p>
+              <button
+                onClick={() => void toggleLock()}
+                disabled={toggling}
+                className={`mt-2 rounded-lg px-3 py-1.5 text-xs font-medium text-on-brand transition-colors disabled:opacity-50 ${
+                  customer.is_locked
+                    ? "bg-success-solid hover:opacity-90"
+                    : "bg-danger-solid hover:opacity-90"
+                }`}
+              >
+                {toggling ? "Working…" : customer.is_locked ? "Unlock Account" : "Lock Account"}
+              </button>
+            </div>
           </div>
         </div>
 
