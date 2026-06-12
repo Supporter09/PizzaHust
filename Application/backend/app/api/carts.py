@@ -41,9 +41,16 @@ class CartLineNoteIn(BaseModel):
 
 class AddItemLineIn(ItemQuoteLineIn):
     note: str | None = Field(default=None, max_length=255)
+    quantity: int = Field(ge=1, le=99)
 
 
-AddLineIn = Annotated[AddItemLineIn | ComboQuoteLineIn, Field(discriminator="kind")]
+class AddComboLineIn(ComboQuoteLineIn):
+    quantity: int = Field(ge=1, le=99)
+
+
+# quantity is capped here, not on the shared quote models — /api/cart/quote
+# previews stay uncapped, only persisted cart lines are bounded.
+AddLineIn = Annotated[AddItemLineIn | AddComboLineIn, Field(discriminator="kind")]
 
 
 class CartLineOut(BaseModel):
@@ -422,7 +429,9 @@ def patch_cart_line(
     row = _line_in_session(cart, line_id)
     if row is None:
         raise APIError(code="NOT_FOUND", message="Cart line not found.", status_code=404)
-    if body.note is not None and row.payload.get("kind") == "combo":
+    note_provided = "note" in body.model_fields_set
+    new_note = body.note or None  # "" clears too — NULL keeps the merge dedupe key single-valued
+    if note_provided and new_note is not None and row.payload.get("kind") == "combo":
         raise APIError(
             code="VALIDATION_FAILED",
             message="Combo lines cannot have notes.",
@@ -430,8 +439,8 @@ def patch_cart_line(
         )
     if body.quantity is not None:
         row.quantity = body.quantity
-    if body.note is not None:
-        row.note = body.note
+    if note_provided:
+        row.note = new_note
     touch_and_gc(db, cart)
     db.commit()
     db.refresh(cart)

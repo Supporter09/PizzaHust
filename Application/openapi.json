@@ -1,6 +1,41 @@
 {
   "components": {
     "schemas": {
+      "AddComboLineIn": {
+        "additionalProperties": false,
+        "properties": {
+          "combo_id": {
+            "title": "Combo Id",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "combo",
+            "title": "Kind",
+            "type": "string"
+          },
+          "quantity": {
+            "maximum": 99.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "selections": {
+            "items": {
+              "$ref": "#/components/schemas/ComboSelectionIn"
+            },
+            "title": "Selections",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "combo_id",
+          "selections",
+          "quantity"
+        ],
+        "title": "AddComboLineIn",
+        "type": "object"
+      },
       "AddItemLineIn": {
         "additionalProperties": false,
         "properties": {
@@ -33,6 +68,7 @@
             "type": "array"
           },
           "quantity": {
+            "maximum": 99.0,
             "minimum": 1.0,
             "title": "Quantity",
             "type": "integer"
@@ -4536,7 +4572,7 @@
               "schema": {
                 "discriminator": {
                   "mapping": {
-                    "combo": "#/components/schemas/ComboQuoteLineIn",
+                    "combo": "#/components/schemas/AddComboLineIn",
                     "item": "#/components/schemas/AddItemLineIn"
                   },
                   "propertyName": "kind"
@@ -4546,7 +4582,7 @@
                     "$ref": "#/components/schemas/AddItemLineIn"
                   },
                   {
-                    "$ref": "#/components/schemas/ComboQuoteLineIn"
+                    "$ref": "#/components/schemas/AddComboLineIn"
                   }
                 ],
                 "title": "Body"

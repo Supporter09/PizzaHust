@@ -138,3 +138,100 @@ def test_checkout_quote_empty_cart_is_validation_failed():
     r = client.post("/api/cart/checkout-quote", json={}, headers={"X-CSRF-Token": csrf})
     assert r.status_code == 400
     assert r.json()["error"]["code"] == "VALIDATION_FAILED"
+
+
+def _combo_body(combo_id: int, quantity: int = 1) -> dict:
+    from sqlalchemy import select
+
+    from app.infra.db.models import ComboItem
+    from app.infra.db.session import create_session_factory
+
+    with create_session_factory()() as db:
+        items = db.execute(
+            select(ComboItem.combo_item_id, ComboItem.product_id).where(
+                ComboItem.combo_id == combo_id
+            )
+        ).all()
+    return {
+        "kind": "combo",
+        "combo_id": combo_id,
+        "selections": [
+            {"combo_item_id": cid, "picks": [{"product_id": pid, "option_ids": []}]}
+            for cid, pid in items
+        ],
+        "quantity": quantity,
+    }
+
+
+def test_patch_note_null_clears_note():
+    app, pid, m = _fixture("cart-note-clear")
+    client, csrf = _client_with_csrf(app)
+    line_id = _add_line(client, csrf, pid, m, note="Well-done").json()["lines"][0]["line_id"]
+    r = client.patch(
+        f"/api/cart/lines/{line_id}", json={"note": None}, headers={"X-CSRF-Token": csrf}
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["lines"][0]["note"] is None
+
+
+def test_patch_empty_string_note_stores_null():
+    app, pid, m = _fixture("cart-note-empty")
+    client, csrf = _client_with_csrf(app)
+    line_id = _add_line(client, csrf, pid, m, note="Well-done").json()["lines"][0]["line_id"]
+    r = client.patch(
+        f"/api/cart/lines/{line_id}", json={"note": ""}, headers={"X-CSRF-Token": csrf}
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["lines"][0]["note"] is None
+
+
+def test_patch_quantity_only_leaves_note_untouched():
+    app, pid, m = _fixture("cart-note-keep")
+    client, csrf = _client_with_csrf(app)
+    line_id = _add_line(client, csrf, pid, m, note="Well-done").json()["lines"][0]["line_id"]
+    r = client.patch(
+        f"/api/cart/lines/{line_id}", json={"quantity": 2}, headers={"X-CSRF-Token": csrf}
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["lines"][0]["note"] == "Well-done"
+
+
+def test_patch_note_on_combo_line_rejected():
+    app, pid, m = _fixture("cart-combo-note")
+    from tests.admin_test_utils import new_combo_with_items
+
+    side = new_product(new_category("Sides"), "Garlic Bread", base_price_vnd=45_000)
+    combo_id = new_combo_with_items("Duo", [side, side], price_vnd=80_000)
+    client, csrf = _client_with_csrf(app)
+    r = client.post("/api/cart/lines", json=_combo_body(combo_id), headers={"X-CSRF-Token": csrf})
+    assert r.status_code == 200, r.text
+    line_id = r.json()["lines"][0]["line_id"]
+    r = client.patch(
+        f"/api/cart/lines/{line_id}", json={"note": "nope"}, headers={"X-CSRF-Token": csrf}
+    )
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"
+
+
+def test_add_item_line_quantity_above_cap_rejected():
+    app, pid, m = _fixture("cart-qty-cap")
+    client, csrf = _client_with_csrf(app)
+    r = _add_line(client, csrf, pid, m, quantity=100)
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"
+
+
+def test_add_combo_line_quantity_above_cap_rejected():
+    app, pid, m = _fixture("cart-qty-cap-combo")
+    from tests.admin_test_utils import new_combo_with_items
+
+    side = new_product(new_category("Sides"), "Garlic Bread", base_price_vnd=45_000)
+    combo_id = new_combo_with_items("Duo", [side, side], price_vnd=80_000)
+    client, csrf = _client_with_csrf(app)
+    r = client.post(
+        "/api/cart/lines",
+        json=_combo_body(combo_id, quantity=100),
+        headers={"X-CSRF-Token": csrf},
+    )
+    assert r.status_code == 400
+    assert r.json()["error"]["code"] == "VALIDATION_FAILED"

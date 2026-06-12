@@ -728,6 +728,20 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AddComboLineIn */
+        AddComboLineIn: {
+            /** Combo Id */
+            combo_id: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "combo";
+            /** Quantity */
+            quantity: number;
+            /** Selections */
+            selections: components["schemas"]["ComboSelectionIn"][];
+        };
         /** AddItemLineIn */
         AddItemLineIn: {
             /** Item Id */
@@ -2944,7 +2958,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AddItemLineIn"] | components["schemas"]["ComboQuoteLineIn"];
+                "application/json": components["schemas"]["AddItemLineIn"] | components["schemas"]["AddComboLineIn"];
             };
         };
         responses: {
