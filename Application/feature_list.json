@@ -142,7 +142,7 @@
       ],
       "status": "done",
       "owner": "Hoang",
-      "evidence": "verify.sh green at e33cd7f38ece2cca0f6e12fb8eea51fbe580a9d6 (stack tip incl. CodeRabbit fixes), 2026-06-12T15:18:00Z"
+      "evidence": "verify.sh green at 89b7c30c62f50270cb5485d2c70d455f1c18522f (incl. PR28 CodeRabbit fixes), 2026-06-12T15:42:00Z"
     },
     {
       "id": "U6",
