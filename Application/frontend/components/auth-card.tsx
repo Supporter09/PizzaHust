@@ -60,10 +60,9 @@ export function AuthCard({ tab }: AuthCardProps) {
       setErrorMessage("Please enter phone number and password.");
       return;
     }
-    if (!VN_PHONE_RE.test(phone)) {
-      setErrorMessage("Enter a valid 10-digit Vietnam mobile number.");
-      return;
-    }
+    // No format pre-filter on login: the VN_PHONE_RE rule (UC Table A) guards
+    // registration input; existing accounts authenticate by exact lookup, so
+    // the backend's 401 is the only authority here.
 
     setLoading(true);
     try {
