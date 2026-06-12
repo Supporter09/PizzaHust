@@ -2208,6 +2208,26 @@
         "title": "OptionPatch",
         "type": "object"
       },
+      "OrderAddressIn": {
+        "properties": {
+          "administrative_unit": {
+            "title": "Administrative Unit",
+            "type": "string"
+          },
+          "street": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Street",
+            "type": "string"
+          }
+        },
+        "required": [
+          "administrative_unit",
+          "street"
+        ],
+        "title": "OrderAddressIn",
+        "type": "object"
+      },
       "OrderCancelIn": {
         "properties": {
           "reason": {
@@ -2284,6 +2304,78 @@
           "user_id"
         ],
         "title": "OrderSummaryOut",
+        "type": "object"
+      },
+      "PlaceOrderIn": {
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/OrderAddressIn"
+          },
+          "delivery_note": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Note"
+          },
+          "recipient_name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Recipient Name",
+            "type": "string"
+          },
+          "recipient_phone": {
+            "pattern": "^0(3|5|7|8|9)\\d{8}$",
+            "title": "Recipient Phone",
+            "type": "string"
+          },
+          "redeem_points": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Redeem Points",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "recipient_name",
+          "recipient_phone",
+          "address"
+        ],
+        "title": "PlaceOrderIn",
+        "type": "object"
+      },
+      "PlaceOrderOut": {
+        "properties": {
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "promised_at": {
+            "format": "date-time",
+            "title": "Promised At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "total_vnd": {
+            "title": "Total Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "order_code",
+          "total_vnd",
+          "status",
+          "promised_at"
+        ],
+        "title": "PlaceOrderOut",
         "type": "object"
       },
       "ProductComboItemIn": {
@@ -4999,6 +5091,47 @@
         "summary": "Loyalty Me",
         "tags": [
           "loyalty"
+        ]
+      }
+    },
+    "/api/orders": {
+      "post": {
+        "operationId": "place_order_api_orders_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceOrderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceOrderOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Place Order",
+        "tags": [
+          "orders"
         ]
       }
     },

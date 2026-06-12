@@ -52,6 +52,10 @@ class Settings(BaseSettings):
 
     delivery_webhook_secret: str = Field(min_length=1, alias="DELIVERY_WEBHOOK_SECRET")
 
+    order_promised_time_default_min: int = Field(
+        default=45, ge=1, alias="ORDER_PROMISED_TIME_DEFAULT_MIN"
+    )
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

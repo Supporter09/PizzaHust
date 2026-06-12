@@ -161,6 +161,47 @@ def pick_option_deltas(db: Session, product: Product, option_ids: list[int]) -> 
     return [deltas_by_id[oid] for oid in selected]
 
 
+def pick_option_snapshots(
+    db: Session, product: Product, option_ids: list[int]
+) -> list[tuple[str, str, int]]:
+    rows = db.execute(
+        select(Option, OptionGroup)
+        .join(OptionGroup, Option.group_id == OptionGroup.group_id)
+        .join(ProductOption, ProductOption.option_id == Option.option_id)
+        .where(ProductOption.product_id == product.product_id)
+        .order_by(OptionGroup.sort_order, Option.sort_order)
+    ).all()
+    available = [
+        SelectableOption(
+            option_id=option.option_id,
+            group_id=group.group_id,
+            group_name=group.name,
+            select_type=group.select_type,
+            required=group.required,
+        )
+        for option, group in rows
+    ]
+    deltas_by_id = {option.option_id: option.price_delta_vnd for option, _ in rows}
+    name_by_id = {option.option_id: (group.name, option.name) for option, group in rows}
+    selected = list(dict.fromkeys(option_ids))
+    err = validate_option_selection(available, selected)
+    if err is not None:
+        details: dict[str, object] = {"reason": err.reason}
+        if err.group_name is not None:
+            details["group_name"] = err.group_name
+        if err.option_id is not None:
+            details["option_id"] = err.option_id
+        raise APIError(
+            code="VALIDATION_FAILED",
+            message="Invalid option selection.",
+            status_code=400,
+            details=details,
+        )
+    return [
+        (name_by_id[oid][0], name_by_id[oid][1], deltas_by_id[oid]) for oid in selected
+    ]
+
+
 def resolve_item_line(db: Session, line: ItemQuoteLineIn) -> CartLine:
     product = db.scalar(
         select(Product).where(Product.product_id == line.item_id, Product.is_active.is_(True))
