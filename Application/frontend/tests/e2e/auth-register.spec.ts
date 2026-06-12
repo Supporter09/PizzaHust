@@ -12,10 +12,15 @@ test.describe("Auth register (U8)", () => {
   test("register creates account, auto-logs-in, lands on /account", async ({ page }) => {
     const phone = uniquePhone();
     const password = "testpass123";
+    const fullName = `E2E Register ${Date.now()}`;
 
     await page.goto(`${BASE}/register`);
+    await expect(page.getByRole("tab", { name: "Create Account" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
 
-    await page.getByLabel("Full Name").fill(`E2E Register ${Date.now()}`);
+    await page.getByLabel("Full Name").fill(fullName);
     await page.getByLabel("Phone Number").fill(phone);
     await page.getByLabel("Password", { exact: true }).fill(password);
 
@@ -26,6 +31,7 @@ test.describe("Auth register (U8)", () => {
     ]);
 
     await expect(page).toHaveURL(/\/account$/);
+    await expect(page.getByLabel(/full name/i)).toHaveValue(fullName);
   });
 
   test("tab switch navigates between /login and /register", async ({ page }) => {
