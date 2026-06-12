@@ -46,7 +46,10 @@ export function TopNav() {
           <Link href="/" className={navClass(pathname === "/")}>
             Home
           </Link>
-          <Link href="/combos" className={navClass(pathname === "/combos")}>
+          <Link href="/menu" className={navClass(pathname.startsWith("/menu"))}>
+            Menu
+          </Link>
+          <Link href="/combos" className={navClass(pathname.startsWith("/combos"))}>
             Combos
           </Link>
           {links.map((link) => (
@@ -93,8 +96,15 @@ export function TopNav() {
             Home
           </Link>
           <Link
+            href="/menu"
+            className={`${navClass(pathname.startsWith("/menu"))} py-3`}
+            onClick={() => setMenuOpen(false)}
+          >
+            Menu
+          </Link>
+          <Link
             href="/combos"
-            className={`${navClass(pathname === "/combos")} py-3`}
+            className={`${navClass(pathname.startsWith("/combos"))} py-3`}
             onClick={() => setMenuOpen(false)}
           >
             Combos
