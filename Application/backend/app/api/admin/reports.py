@@ -33,6 +33,31 @@ class SalesReportRowOut(BaseModel):
     top_items: list[TopItemOut]
 
 
+class ReportSummaryOut(BaseModel):
+    total_revenue_vnd: int
+    total_orders: int
+    avg_order_value_vnd: int
+    active_customers: int
+
+
+class ReportSeriesOut(BaseModel):
+    date: str
+    revenue_vnd: int
+    order_count: int
+
+
+class ReportTopItemOut(BaseModel):
+    name: str
+    order_count: int
+    revenue_vnd: int
+
+
+class ReportOverviewOut(BaseModel):
+    summary: ReportSummaryOut
+    series: list[ReportSeriesOut]
+    top_items: list[ReportTopItemOut]
+
+
 def _date_bounds(start: date, end: date) -> tuple[datetime, datetime]:
     return (
         datetime.combine(start, time.min),
@@ -53,6 +78,15 @@ def _bucket_key(value: datetime, group_by: Literal["day", "week"]) -> str:
     if group_by == "week":
         day = day - timedelta(days=day.weekday())
     return day.isoformat()
+
+
+def _date_iter(start: date, end: date) -> list[date]:
+    days: list[date] = []
+    current = start
+    while current <= end:
+        days.append(current)
+        current += timedelta(days=1)
+    return days
 
 
 def _sales_rows(
@@ -105,6 +139,71 @@ def _sales_rows(
     return rows
 
 
+def _overview_payload(db: Session, start: date, end: date) -> ReportOverviewOut:
+    start_dt, end_dt = _date_bounds(start, end)
+    orders = db.scalars(
+        select(Order)
+        .options(
+            selectinload(Order.items).selectinload(OrderItem.product),
+            selectinload(Order.items).selectinload(OrderItem.combo),
+        )
+        .where(
+            Order.current_status == OrderStatus.DELIVERED,
+            Order.created_at >= start_dt,
+            Order.created_at < end_dt,
+        )
+        .order_by(Order.created_at)
+    ).all()
+
+    daily: dict[str, dict[str, int]] = {
+        day.isoformat(): {"order_count": 0, "revenue_vnd": 0}
+        for day in _date_iter(start, end)
+    }
+    active_customers = set()
+    top_item_totals: dict[str, dict[str, int]] = defaultdict(
+        lambda: {"order_count": 0, "revenue_vnd": 0}
+    )
+
+    for order in orders:
+        key = order.created_at.date().isoformat()
+        bucket = daily.setdefault(key, {"order_count": 0, "revenue_vnd": 0})
+        bucket["order_count"] += 1
+        bucket["revenue_vnd"] += order.total_amount_vnd
+        if order.user_id is not None:
+            active_customers.add(order.user_id)
+        for item in order.items:
+            name = _item_name(item)
+            item_bucket = top_item_totals[name]
+            item_bucket["order_count"] += item.quantity
+            item_bucket["revenue_vnd"] += item.unit_price_vnd * item.quantity
+
+    total_revenue_vnd = sum(bucket["revenue_vnd"] for bucket in daily.values())
+    total_orders = sum(bucket["order_count"] for bucket in daily.values())
+    avg_order_value_vnd = total_revenue_vnd // total_orders if total_orders else 0
+
+    series = [
+        ReportSeriesOut(date=day.isoformat(), **daily[day.isoformat()])
+        for day in _date_iter(start, end)
+    ]
+    top_items = [
+        ReportTopItemOut(name=name, **values)
+        for name, values in sorted(
+            top_item_totals.items(),
+            key=lambda item: (-item[1]["revenue_vnd"], -item[1]["order_count"], item[0]),
+        )[:5]
+    ]
+    return ReportOverviewOut(
+        summary=ReportSummaryOut(
+            total_revenue_vnd=total_revenue_vnd,
+            total_orders=total_orders,
+            avg_order_value_vnd=avg_order_value_vnd,
+            active_customers=len(active_customers),
+        ),
+        series=series,
+        top_items=top_items,
+    )
+
+
 def _to_csv(rows: list[SalesReportRowOut]) -> str:
     output = io.StringIO()
     writer = csv.writer(output, lineterminator="\n")
@@ -138,3 +237,13 @@ def sales_report(
             headers={"Content-Disposition": 'attachment; filename="sales-report.csv"'},
         )
     return rows
+
+
+@router.get("/overview", response_model=ReportOverviewOut)
+def sales_overview(
+    from_date: date = Query(alias="from"),
+    to_date: date = Query(alias="to"),
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_admin),
+) -> ReportOverviewOut:
+    return _overview_payload(db, from_date, to_date)

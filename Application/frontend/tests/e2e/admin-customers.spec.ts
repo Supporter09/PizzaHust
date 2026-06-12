@@ -35,7 +35,20 @@ test.describe("A6 – Admin Customer Accounts", () => {
     await page.goto(`${BASE}/admin/customers`);
     await expect(page.getByRole("heading", { name: "Customer Accounts" })).toBeVisible();
     await expect(page.getByPlaceholder(/search/i)).toBeVisible();
+    await expect(page.getByRole("combobox", { name: /tier/i })).toBeVisible();
+    await expect(page.getByRole("combobox", { name: /status/i })).toBeVisible();
+    await expect(page.getByRole("combobox", { name: /sort by/i })).toBeVisible();
     await expect(page.getByText("Error: HTTP 404")).toHaveCount(0);
     await expect(page.getByText("No customers found")).toHaveCount(0);
+  });
+
+  test("customer detail page shows loyalty snapshot and orders", async ({ page }) => {
+    await page.goto(`${BASE}/admin/customers`);
+    await page.getByRole("link").first().click();
+
+    await expect(page.getByText(/customer dossier/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /loyalty snapshot/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /recent orders/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /top orders/i })).toBeVisible();
   });
 });

@@ -11,7 +11,7 @@ from datetime import datetime
 
 from sqlalchemy import select
 
-from app.infra.db.models import Order, OrderStatus, OrderTracking
+from app.infra.db.models import Order, OrderStatus, OrderTracking, TrackingNoteSource
 from app.infra.db.session import create_session_factory
 from app.infra.delivery import get_delivery_port
 from app.infra.delivery.mock import DeliveryError
@@ -68,6 +68,17 @@ def _tracking_count(order_id: int) -> int:
         return len(rows)
 
 
+def _tracking_rows(order_id: int) -> list[OrderTracking]:
+    with create_session_factory()() as db:
+        return list(
+            db.scalars(
+                select(OrderTracking)
+                .where(OrderTracking.order_id == order_id)
+                .order_by(OrderTracking.tracking_id)
+            ).all()
+        )
+
+
 def test_retry_dispatch_hands_off_and_advances_to_delivering() -> None:
     client = admin_client("dispatch-ok")
     order_id = _new_order(OrderStatus.DISPATCH_PENDING, "PIZZ-D1S5K1")
@@ -85,6 +96,7 @@ def test_retry_dispatch_hands_off_and_advances_to_delivering() -> None:
     assert fake.seen.cod_amount_vnd == 250_000
     assert fake.seen.pickup_address  # sourced from config, non-empty
     assert _tracking_count(order_id) == 1
+    assert _tracking_rows(order_id)[0].note_source == TrackingNoteSource.TRANSPORT
 
 
 def test_retry_dispatch_provider_failure_keeps_order_retryable() -> None:
@@ -152,6 +164,7 @@ def test_cancel_order_moves_cancellable_order_to_cancelled() -> None:
     assert resp.status_code == 204, resp.text
     assert _get_order(order_id).current_status == OrderStatus.CANCELLED
     assert _tracking_count(order_id) == 1
+    assert _tracking_rows(order_id)[0].note_source == TrackingNoteSource.SYSTEM
 
 
 def test_cancel_order_rejects_terminal_delivery_failed() -> None:

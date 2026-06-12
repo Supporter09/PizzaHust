@@ -17,13 +17,18 @@ test.describe("A7 - Admin Sales Reports", () => {
     await loginAsAdmin(page);
   });
 
-  test("reports page renders analytics controls and export action", async ({ page }) => {
+  test("reports page renders dashboard controls and stats", async ({ page }) => {
     await page.goto(`${BASE}/admin/reports`);
 
     await expect(page.getByRole("heading", { name: "Reports & Analytics" })).toBeVisible();
-    await expect(page.getByLabel("From date")).toBeVisible();
-    await expect(page.getByLabel("To date")).toBeVisible();
+    await expect(page.getByRole("button", { name: /last 7 days/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /last 30 days/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /custom range/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /refresh/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /export csv/i })).toBeVisible();
+    await expect(page.getByText("Total Revenue")).toBeVisible();
+    await expect(page.getByText("Active Customers")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /daily revenue/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /daily orders/i })).toBeVisible();
   });
 });

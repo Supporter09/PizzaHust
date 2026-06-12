@@ -1,160 +1,206 @@
+"""Admin sales report contract tests.
+
+These verify the dashboard summary, daily series zero-fill, and sales export
+compatibility for the reports page.
+"""
+
 from __future__ import annotations
 
 from datetime import datetime
+from types import SimpleNamespace
+from uuid import uuid4
 
-from app.infra.db.models import Category, Order, OrderItem, OrderStatus, Product
+from app.api.admin.reports import sales_overview, sales_report
+from app.infra.db.models import Category, Order, OrderItem, OrderStatus, Product, User, UserRole
 from app.infra.db.session import create_session_factory
-from tests.admin_test_utils import admin_client
+from tests.auth_test_utils import build_test_app
 
 
-def _seed_product(name: str = "Margherita") -> int:
+def _bootstrap(db_slug: str) -> None:
+    build_test_app(db_slug)
+
+
+def _new_customer(*, full_name: str, phone_number: str) -> int:
     with create_session_factory()() as db:
-        category = Category(name="Pizzas", is_active=True)
-        db.add(category)
-        db.flush()
-        product = Product(
-            category_id=category.category_id,
-            name=name,
-            base_price_vnd=120_000,
-            is_pizza=True,
-            is_active=True,
+        user = User(
+            full_name=full_name,
+            phone_number=phone_number,
+            password_hash="hash",
+            role=UserRole.CUSTOMER,
         )
-        db.add(product)
+        db.add(user)
         db.commit()
-        db.refresh(product)
-        return product.product_id
+        db.refresh(user)
+        return user.user_id
 
 
 def _seed_order(
     *,
-    code: str,
-    product_id: int,
+    user_id: int,
+    order_code: str,
     created_at: datetime,
-    quantity: int,
+    status: OrderStatus,
     total_amount_vnd: int,
-    status: OrderStatus = OrderStatus.DELIVERED,
-) -> None:
+    item_name: str,
+    item_quantity: int,
+    item_unit_price_vnd: int,
+) -> int:
     with create_session_factory()() as db:
+        suffix = uuid4().hex[:6]
+        category = Category(name=f"cat-{suffix}", is_active=True)
+        db.add(category)
+        db.flush()
+
+        product = Product(
+            category_id=category.category_id,
+            name=item_name,
+            base_price_vnd=item_unit_price_vnd,
+            is_pizza=True,
+        )
+        db.add(product)
+        db.flush()
+
         order = Order(
-            order_code=code,
-            recipient_name="Mai",
-            recipient_phone="0901234567",
-            delivery_address="5 Trang Tien",
+            order_code=order_code,
+            user_id=user_id,
+            recipient_name="Report Customer",
+            recipient_phone="0900000000",
+            delivery_address="123 Report Street",
             total_amount_vnd=total_amount_vnd,
             promised_at=created_at,
-            created_at=created_at,
             current_status=status,
+            created_at=created_at,
         )
         db.add(order)
         db.flush()
+
         db.add(
             OrderItem(
                 order_id=order.order_id,
-                product_id=product_id,
-                quantity=quantity,
-                unit_price_vnd=120_000,
+                product_id=product.product_id,
+                quantity=item_quantity,
+                unit_price_vnd=item_unit_price_vnd,
             )
         )
         db.commit()
+        db.refresh(order)
+        return order.order_id
 
 
-def test_sales_report_returns_daily_rows_with_top_items() -> None:
-    client = admin_client("reports-daily")
-    product_id = _seed_product("Margherita")
+def test_sales_overview_summarizes_delivered_orders_and_zero_fills_days() -> None:
+    _bootstrap("reports-overview")
+    customer_a = _new_customer(full_name="Active A", phone_number="0901111111")
+    customer_b = _new_customer(full_name="Active B", phone_number="0902222222")
+    customer_c = _new_customer(full_name="Cancelled C", phone_number="0903333333")
+    admin = SimpleNamespace(user_id=1, role=UserRole.ADMIN)
+
     _seed_order(
-        code="PIZZ-REP001",
-        product_id=product_id,
-        created_at=datetime(2026, 6, 8, 10, 0, 0),
-        quantity=2,
-        total_amount_vnd=240_000,
-    )
-    _seed_order(
-        code="PIZZ-REP002",
-        product_id=product_id,
-        created_at=datetime(2026, 6, 8, 14, 0, 0),
-        quantity=1,
-        total_amount_vnd=120_000,
-    )
-    _seed_order(
-        code="PIZZ-REP003",
-        product_id=product_id,
-        created_at=datetime(2026, 6, 8, 15, 0, 0),
-        quantity=1,
-        total_amount_vnd=999_000,
-        status=OrderStatus.CANCELLED,
-    )
-
-    resp = client.get("/api/admin/reports/sales?from=2026-06-08&to=2026-06-08")
-
-    assert resp.status_code == 200, resp.text
-    assert resp.json() == [
-        {
-            "date": "2026-06-08",
-            "order_count": 2,
-            "revenue_vnd": 360000,
-            "top_items": [{"name": "Margherita", "count": 3}],
-        }
-    ]
-
-
-def test_sales_report_can_export_csv() -> None:
-    client = admin_client("reports-csv")
-    product_id = _seed_product("Pepperoni")
-    _seed_order(
-        code="PIZZ-CSV001",
-        product_id=product_id,
+        user_id=customer_a,
+        order_code="PIZZ-RPT-001",
         created_at=datetime(2026, 6, 9, 10, 0, 0),
-        quantity=1,
-        total_amount_vnd=150_000,
-    )
-
-    resp = client.get("/api/admin/reports/sales?from=2026-06-09&to=2026-06-09&format=csv")
-
-    assert resp.status_code == 200, resp.text
-    assert resp.headers["content-type"].startswith("text/csv")
-    assert "date,order_count,revenue_vnd,top_items" in resp.text
-    assert "2026-06-09,1,150000,Pepperoni:1" in resp.text
-
-
-def test_sales_report_can_group_by_week() -> None:
-    client = admin_client("reports-weekly")
-    product_id = _seed_product("Hawaiian")
-    _seed_order(
-        code="PIZZ-WEEK01",
-        product_id=product_id,
-        created_at=datetime(2026, 6, 8, 10, 0, 0),
-        quantity=1,
-        total_amount_vnd=100_000,
+        status=OrderStatus.DELIVERED,
+        total_amount_vnd=300_000,
+        item_name="Pepperoni",
+        item_quantity=3,
+        item_unit_price_vnd=100_000,
     )
     _seed_order(
-        code="PIZZ-WEEK02",
-        product_id=product_id,
-        created_at=datetime(2026, 6, 10, 10, 0, 0),
-        quantity=2,
+        user_id=customer_a,
+        order_code="PIZZ-RPT-002",
+        created_at=datetime(2026, 6, 10, 11, 0, 0),
+        status=OrderStatus.DELIVERED,
         total_amount_vnd=200_000,
+        item_name="Margherita",
+        item_quantity=2,
+        item_unit_price_vnd=100_000,
     )
     _seed_order(
-        code="PIZZ-WEEK03",
-        product_id=product_id,
-        created_at=datetime(2026, 6, 15, 10, 0, 0),
-        quantity=1,
-        total_amount_vnd=120_000,
+        user_id=customer_b,
+        order_code="PIZZ-RPT-003",
+        created_at=datetime(2026, 6, 10, 13, 0, 0),
+        status=OrderStatus.DELIVERED,
+        total_amount_vnd=150_000,
+        item_name="Pepperoni",
+        item_quantity=1,
+        item_unit_price_vnd=100_000,
+    )
+    _seed_order(
+        user_id=customer_c,
+        order_code="PIZZ-RPT-004",
+        created_at=datetime(2026, 6, 11, 9, 0, 0),
+        status=OrderStatus.CANCELLED,
+        total_amount_vnd=99_000,
+        item_name="Ignored",
+        item_quantity=1,
+        item_unit_price_vnd=99_000,
     )
 
-    resp = client.get("/api/admin/reports/sales?from=2026-06-08&to=2026-06-15&group_by=week")
+    with create_session_factory()() as db:
+        payload = sales_overview(
+            from_date=datetime(2026, 6, 9).date(),
+            to_date=datetime(2026, 6, 11).date(),
+            db=db,
+            _admin=admin,
+        )
 
-    assert resp.status_code == 200, resp.text
-    assert resp.json() == [
-        {
-            "date": "2026-06-08",
-            "order_count": 2,
-            "revenue_vnd": 300000,
-            "top_items": [{"name": "Hawaiian", "count": 3}],
-        },
-        {
-            "date": "2026-06-15",
-            "order_count": 1,
-            "revenue_vnd": 120000,
-            "top_items": [{"name": "Hawaiian", "count": 1}],
-        },
+    assert payload.summary.total_orders == 3
+    assert payload.summary.total_revenue_vnd == 650_000
+    assert payload.summary.avg_order_value_vnd == 216_666
+    assert payload.summary.active_customers == 2
+    assert [point.date for point in payload.series] == [
+        "2026-06-09",
+        "2026-06-10",
+        "2026-06-11",
     ]
+    assert payload.series[0].revenue_vnd == 300_000
+    assert payload.series[1].order_count == 2
+    assert payload.series[2].revenue_vnd == 0
+    assert payload.top_items[0].name == "Pepperoni"
+    assert payload.top_items[0].order_count == 4
+    assert payload.top_items[0].revenue_vnd == 400_000
+
+
+def test_sales_report_keeps_json_and_csv_contracts() -> None:
+    _bootstrap("reports-sales")
+    customer = _new_customer(full_name="Report Customer", phone_number="0904444444")
+    admin = SimpleNamespace(user_id=1, role=UserRole.ADMIN)
+
+    _seed_order(
+        user_id=customer,
+        order_code="PIZZ-RPT-005",
+        created_at=datetime(2026, 6, 12, 12, 0, 0),
+        status=OrderStatus.DELIVERED,
+        total_amount_vnd=220_000,
+        item_name="Hawaiian",
+        item_quantity=2,
+        item_unit_price_vnd=110_000,
+    )
+
+    with create_session_factory()() as db:
+        rows = sales_report(
+            from_date=datetime(2026, 6, 12).date(),
+            to_date=datetime(2026, 6, 12).date(),
+            group_by="day",
+            response_format="json",
+            db=db,
+            _admin=admin,
+        )
+        csv_response = sales_report(
+            from_date=datetime(2026, 6, 12).date(),
+            to_date=datetime(2026, 6, 12).date(),
+            group_by="day",
+            response_format="csv",
+            db=db,
+            _admin=admin,
+        )
+
+    assert len(rows) == 1
+    assert rows[0].date == "2026-06-12"
+    assert rows[0].order_count == 1
+    assert rows[0].revenue_vnd == 220_000
+    assert rows[0].top_items[0].name == "Hawaiian"
+    assert rows[0].top_items[0].count == 2
+
+    assert csv_response.media_type == "text/csv"
+    assert "date,order_count,revenue_vnd,top_items" in csv_response.body.decode()
+    assert "2026-06-12,1,220000,Hawaiian:2" in csv_response.body.decode()

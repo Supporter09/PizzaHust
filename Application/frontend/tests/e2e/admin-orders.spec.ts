@@ -24,4 +24,25 @@ test.describe("A5 - Monitor Orders", () => {
     await expect(page.getByRole("button", { name: /all/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /dispatch pending/i })).toBeVisible();
   });
+
+  test("orders page defaults to today and opens the detail dialog", async ({ page }) => {
+    await page.goto(`${BASE}/admin/orders`);
+
+    const today = await page.evaluate(() => {
+      const current = new Date();
+      const year = current.getFullYear();
+      const month = `${current.getMonth() + 1}`.padStart(2, "0");
+      const day = `${current.getDate()}`.padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    });
+
+    await expect(page.getByLabel("From date")).toHaveValue(today);
+    await expect(page.getByLabel("To date")).toHaveValue(today);
+
+    await page.getByRole("button", { name: /view/i }).first().click();
+
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByText(/order detail/i)).toBeVisible();
+    await expect(page.getByText(/timeline & notes/i)).toBeVisible();
+  });
 });
