@@ -40,3 +40,12 @@ export function quoteCart(body: CartQuoteIn): Promise<CartQuoteOut> {
     body: JSON.stringify(body),
   });
 }
+
+export type CheckoutQuoteIn = components["schemas"]["CheckoutQuoteIn"];
+
+export function checkoutQuote(body: CheckoutQuoteIn): Promise<CartQuoteOut> {
+  return apiFetch<CartQuoteOut>("/cart/checkout-quote", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}

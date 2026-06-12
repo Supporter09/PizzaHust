@@ -1,23 +1,17 @@
 # session-handoff.md
 
-**Current state:** U8 + U9 + U5 **merged to `main`** (PRs #26, #29 — #27/#28 merged into wrong bases, #29 forwarded them; merge `9847fb9`). All CI green. Feature branches deleted.
+**Current state:** U7 + U16 **done** on `u7-track-order` (`./verify.sh` green). Public track endpoint + `/track` page with polling.
 
-**Next feature:** `U6` Place COD Order (+U16 delivery note) — plan Branch 4, Tasks 4.1–4.x in
-`docs/superpowers/plans/2026-06-12-u5-u9-ordering-spine.md`.
+**Next feature:** `U11` View Order History (`depends_on` U6, U9) or kitchen spine `K1` — check `feature_list.json` deps and `session-handoff` priority with team.
 
 **Resume command:**
 
 ```bash
 cd Application && ./init.sh && docker compose up -d backend frontend
-git checkout main && git pull && git checkout -b u6-place-order
-# Mark U6 in_progress in feature_list.json; start plan Task 4.1 (order_code domain, TDD)
+git checkout u7-track-order && git pull
+# Merge PR to main when ready; next branch e.g. u11-order-history
 ```
 
-**State:** Server cart at `/api/cart` (note clear via PATCH `null`, quantity capped 99 via `MAX_LINE_QUANTITY`), guest merge on login (cap-clamped), GC pinned by tests, `CartProvider` + `/cart` + add-to-cart on menu/combo, cart in mobile nav. Dish note on product page (U16 partial). Checkout page is U6.
+**Blockers:** None. `TRACK_RATE_LIMIT_PER_MINUTE` in `.env` (default 5).
 
-**Blockers:** Run `alembic upgrade head` (0007 carts) on any env predating U5.
-
-**U6 carry-overs:**
-- `quote_session_cart` skips stale lines (preview semantics); order placement must fail per-line with `details.line_id` — don't reuse blind.
-- Fold `CHECK (quantity BETWEEN 1 AND 99)` on `cart_lines` into migration 0008 (deferred from PR28 review).
-- First `verify.sh` e2e run right after a frontend container rebuild can flake while Next warms — retry once before debugging.
+**Notes:** Track e2e uses `Order Received` (timeline label). Rebuild frontend after track UI changes before e2e.

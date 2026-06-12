@@ -72,7 +72,7 @@ Error codes (closed set, extend in this doc only):
 | DELETE | `/api/cart` | Clear all lines; cart row remains (CSRF). Returns full cart. |
 | POST | `/api/cart/checkout-quote` | Quote the session cart with `{address?, redeem_points?=0}` (CSRF). Empty cart → `VALIDATION_FAILED`. |
 | POST | `/api/cart/quote` | Compute pricing for a candidate cart + address (customizer preview; unchanged) |
-| POST | `/api/orders` | Place COD order. Returns `{ order_code, total_vnd, status }`. Rejects with `OUT_OF_SERVICE_AREA` if address invalid |
+| POST | `/api/orders` | Place COD order from session cart (CSRF). Body: recipient, `address`, optional `delivery_note`, `redeem_points`. Returns `{ order_code, total_vnd, status, promised_at }`. Empty cart → `VALIDATION_FAILED` (400). Stale/unresolvable line → `VALIDATION_FAILED` with `details.line_id`. `OUT_OF_SERVICE_AREA` (422). Clears cart on success. |
 
 **`GET /api/cart` response (U5):** `{ lines: CartLineOut[], quote: CartQuoteOut, csrf_token }` where each line includes `line_id`, `kind`, `quantity`, `note`, `payload`, `name`, `image_url`, `descriptor` or `picks`, `unit_price_vnd`, `line_total_vnd`, `unavailable`. Preview quote uses `delivery_fee_vnd: 0` until checkout-quote.
 
@@ -418,7 +418,9 @@ delivery fee. No combo discount and (in this sprint) no loyalty redemption.
   ],
   "recipient_first_name": "Lan",
   "phone_last4": "1234",
-  "address_masked": "***, Ba Đình, Hà Nội"
+  "address_masked": "***, Ba Đình, Hà Nội",
+  "delivery_note": "Ring doorbell twice",
+  "promised_at": "2026-04-28T11:15:00Z"
 }
 ```
 

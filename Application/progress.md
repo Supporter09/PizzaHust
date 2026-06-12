@@ -4,6 +4,40 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 ---
 
+## 2026-06-12 — U7 Track Order (+U16 tracking display)
+
+**Done**
+- `GET /api/orders/track/{code}` rate-limited, masked PII, `delivery_note` + `promised_at`.
+- `/track` lookup, 15s polling, ETA, timeline + `track.spec.ts`.
+
+**Verified**
+- `./verify.sh` exit 0 at `b5c53b2`.
+
+**U16**
+- Delivery note on tracking; kitchen surfacing deferred to K1.
+
+**Next**
+- `U11` View Order History or `K1` kitchen queue.
+
+---
+
+## 2026-06-12 — U6 Place COD Order (+U16 delivery note entry)
+
+**Done**
+- Branch `u6-place-order`: order code domain, migration 0008 (`delivery_ward`/`delivery_note`, combo parent-child, `cart_lines` quantity CHECK), `POST /api/orders` with per-line `details.line_id` on placement (not preview skip), checkout + order-confirmed pages, `checkout.spec.ts`.
+- `ORDER_PROMISED_TIME_DEFAULT_MIN` config; OpenAPI/types parity.
+
+**Verified**
+- `./verify.sh` exit 0 at `524c882`, `2026-06-12T16:22:56Z`.
+
+**U16**
+- Delivery note + dish notes persisted on place order; tracking/kitchen display deferred (U7 / K1).
+
+**Next**
+- `U7` Track Order — plan Branch 5 in `docs/superpowers/plans/2026-06-12-u5-u9-ordering-spine.md`.
+
+---
+
 ## 2026-04-28 — infra-001 in progress
 
 **Done**

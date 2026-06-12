@@ -151,9 +151,9 @@
         "U5",
         "infra-006"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "verify.sh green at 524c882, 2026-06-12T16:22:56Z"
     },
     {
       "id": "U7",
@@ -163,9 +163,9 @@
         "infra-005",
         "T2"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "verify.sh green at b5c53b2, 2026-06-12T16:35:00Z"
     },
     {
       "id": "U8",
@@ -404,9 +404,9 @@
       "depends_on": [
         "U5"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hoang",
-      "evidence": ""
+      "evidence": "verify.sh green at b5c53b2; kitchen card deferred K1"
     },
     {
       "id": "K4",

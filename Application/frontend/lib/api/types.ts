@@ -690,6 +690,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Place Order */
+        post: operations["place_order_api_orders_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/track/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Track Order */
+        get: operations["track_order_api_orders_track__code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/webhooks/delivery": {
         parameters: {
             query?: never;
@@ -1439,6 +1473,13 @@ export interface components {
             /** Sort Order */
             sort_order?: number | null;
         };
+        /** OrderAddressIn */
+        OrderAddressIn: {
+            /** Administrative Unit */
+            administrative_unit: string;
+            /** Street */
+            street: string;
+        };
         /** OrderCancelIn */
         OrderCancelIn: {
             /** Reason */
@@ -1467,6 +1508,35 @@ export interface components {
             total_amount_vnd: number;
             /** User Id */
             user_id: number | null;
+        };
+        /** PlaceOrderIn */
+        PlaceOrderIn: {
+            address: components["schemas"]["OrderAddressIn"];
+            /** Delivery Note */
+            delivery_note?: string | null;
+            /** Recipient Name */
+            recipient_name: string;
+            /** Recipient Phone */
+            recipient_phone: string;
+            /**
+             * Redeem Points
+             * @default 0
+             */
+            redeem_points: number;
+        };
+        /** PlaceOrderOut */
+        PlaceOrderOut: {
+            /** Order Code */
+            order_code: string;
+            /**
+             * Promised At
+             * Format: date-time
+             */
+            promised_at: string;
+            /** Status */
+            status: string;
+            /** Total Vnd */
+            total_vnd: number;
         };
         /** ProductComboItemIn */
         ProductComboItemIn: {
@@ -1575,6 +1645,38 @@ export interface components {
         /** RegisterResponse */
         RegisterResponse: {
             user: components["schemas"]["AuthUserDTO"];
+        };
+        /** TrackOut */
+        TrackOut: {
+            /** Address Masked */
+            address_masked: string;
+            /** Delivery Note */
+            delivery_note: string | null;
+            /** Order Code */
+            order_code: string;
+            /** Phone Last4 */
+            phone_last4: string;
+            /**
+             * Promised At
+             * Format: date-time
+             */
+            promised_at: string;
+            /** Recipient First Name */
+            recipient_first_name: string;
+            /** Status */
+            status: string;
+            /** Timeline */
+            timeline: components["schemas"]["TrackTimelineEntry"][];
+        };
+        /** TrackTimelineEntry */
+        TrackTimelineEntry: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Status */
+            status: string;
         };
         /** UpdateProfileRequest */
         UpdateProfileRequest: {
@@ -3270,6 +3372,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoyaltyMeResponse"];
+                };
+            };
+        };
+    };
+    place_order_api_orders_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaceOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceOrderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    track_order_api_orders_track__code__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrackOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
