@@ -177,7 +177,6 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
                 placeholder="For the kitchen — e.g. well-done bake"
                 className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg"
               />
-              <p className="text-xs text-muted">For the kitchen — e.g. well-done bake</p>
             </div>
 
             {item.option_groups.map((g) => (
