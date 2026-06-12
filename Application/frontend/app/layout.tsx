@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 
 import { AppChrome } from "@/components/app-chrome";
 import { AuthProvider } from "@/components/auth-provider";
+import { CartProvider } from "@/components/cart-provider";
 import { ThemeBootstrap } from "@/components/theme-bootstrap";
 import { bootstrapTheme } from "@/lib/theme";
 
@@ -33,7 +34,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <ThemeBootstrap />
         <AuthProvider>
-          <AppChrome>{children}</AppChrome>
+          <CartProvider>
+            <AppChrome>{children}</AppChrome>
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

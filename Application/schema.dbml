@@ -145,6 +145,26 @@ Table order_tracking {
   note varchar(255)
 }
 
+Table carts {
+  cart_id int [pk, increment]
+  user_id int [ref: > users.user_id, unique]
+  created_at datetime [not null]
+  touched_at datetime [not null]
+
+  Note: 'Server cart (U5). Guest carts: user_id null; session claim cart_id.'
+}
+
+Table cart_lines {
+  line_id int [pk, increment]
+  cart_id int [not null, ref: > carts.cart_id]
+  payload json [not null]
+  quantity int [not null, default: 1]
+  note varchar(255)
+  created_at datetime [not null]
+
+  Note: 'payload = canonical QuoteLineIn union minus quantity.'
+}
+
 Table kitchen_queue_view {
   order_id int
   order_code varchar(26)

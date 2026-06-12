@@ -1,6 +1,87 @@
 {
   "components": {
     "schemas": {
+      "AddComboLineIn": {
+        "additionalProperties": false,
+        "properties": {
+          "combo_id": {
+            "title": "Combo Id",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "combo",
+            "title": "Kind",
+            "type": "string"
+          },
+          "quantity": {
+            "maximum": 99.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "selections": {
+            "items": {
+              "$ref": "#/components/schemas/ComboSelectionIn"
+            },
+            "title": "Selections",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "combo_id",
+          "selections",
+          "quantity"
+        ],
+        "title": "AddComboLineIn",
+        "type": "object"
+      },
+      "AddItemLineIn": {
+        "additionalProperties": false,
+        "properties": {
+          "item_id": {
+            "title": "Item Id",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "item",
+            "title": "Kind",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "option_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Option Ids",
+            "type": "array"
+          },
+          "quantity": {
+            "maximum": 99.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "item_id",
+          "quantity"
+        ],
+        "title": "AddItemLineIn",
+        "type": "object"
+      },
       "AuthUserDTO": {
         "properties": {
           "address": {
@@ -80,6 +161,186 @@
           "image"
         ],
         "title": "Body_upload_item_image_api_admin_items__product_id__image_post",
+        "type": "object"
+      },
+      "CartLineNoteIn": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "maximum": 99.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity"
+          }
+        },
+        "title": "CartLineNoteIn",
+        "type": "object"
+      },
+      "CartLineOut": {
+        "properties": {
+          "descriptor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Descriptor"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "line_id": {
+            "title": "Line Id",
+            "type": "integer"
+          },
+          "line_total_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line Total Vnd"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "picks": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Picks"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "unavailable": {
+            "title": "Unavailable",
+            "type": "boolean"
+          },
+          "unit_price_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Price Vnd"
+          }
+        },
+        "required": [
+          "line_id",
+          "kind",
+          "quantity",
+          "note",
+          "payload",
+          "name",
+          "image_url",
+          "descriptor",
+          "picks",
+          "unit_price_vnd",
+          "line_total_vnd",
+          "unavailable"
+        ],
+        "title": "CartLineOut",
+        "type": "object"
+      },
+      "CartOut": {
+        "properties": {
+          "csrf_token": {
+            "title": "Csrf Token",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/CartLineOut"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/CartQuoteOut"
+          }
+        },
+        "required": [
+          "lines",
+          "quote",
+          "csrf_token"
+        ],
+        "title": "CartOut",
         "type": "object"
       },
       "CartQuoteIn": {
@@ -313,6 +574,28 @@
           }
         },
         "title": "CategoryPatch",
+        "type": "object"
+      },
+      "CheckoutQuoteIn": {
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuoteAddressIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "redeem_points": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Redeem Points",
+            "type": "integer"
+          }
+        },
+        "title": "CheckoutQuoteIn",
         "type": "object"
       },
       "ComboComponentOut": {
@@ -4196,6 +4479,235 @@
         "summary": "Register",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/cart": {
+      "delete": {
+        "operationId": "clear_cart_api_cart_delete",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Clear Cart",
+        "tags": [
+          "cart"
+        ]
+      },
+      "get": {
+        "operationId": "get_cart_api_cart_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Cart",
+        "tags": [
+          "cart"
+        ]
+      }
+    },
+    "/api/cart/checkout-quote": {
+      "post": {
+        "operationId": "checkout_quote_api_cart_checkout_quote_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutQuoteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartQuoteOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Checkout Quote",
+        "tags": [
+          "cart"
+        ]
+      }
+    },
+    "/api/cart/lines": {
+      "post": {
+        "operationId": "add_cart_line_api_cart_lines_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "combo": "#/components/schemas/AddComboLineIn",
+                    "item": "#/components/schemas/AddItemLineIn"
+                  },
+                  "propertyName": "kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/AddItemLineIn"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AddComboLineIn"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Cart Line",
+        "tags": [
+          "cart"
+        ]
+      }
+    },
+    "/api/cart/lines/{line_id}": {
+      "delete": {
+        "operationId": "delete_cart_line_api_cart_lines__line_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "line_id",
+            "required": true,
+            "schema": {
+              "title": "Line Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Cart Line",
+        "tags": [
+          "cart"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_cart_line_api_cart_lines__line_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "line_id",
+            "required": true,
+            "schema": {
+              "title": "Line Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CartLineNoteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Cart Line",
+        "tags": [
+          "cart"
         ]
       }
     },
