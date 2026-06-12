@@ -13,7 +13,7 @@ type Props = {
 
 export function PizzaCard({ productId, name, basePriceVnd, isPizza, imageUrl }: Props) {
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-card transition-shadow hover:shadow-md">
+    <article className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-card transition duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-md">
       <Link
         href={`/menu/${productId}`}
         aria-label={name}
