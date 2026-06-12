@@ -447,3 +447,20 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 **Next**
 - Review `u5-manage-cart`; then U6 `u6-place-order` per plan.
+
+---
+
+## 2026-06-12 — U5 review fixes (branch `u5-manage-cart`)
+
+**Done**
+- Review (code-reviewer + mockup diff vs `Design/cart.html`/`auth.html`): note-clear PATCH semantics (`null`/`""` → NULL), add-line quantity capped `le=99` (item + combo, OpenAPI/types regenerated), cart link in mobile hamburger, stepper max, cart price top-aligned with title (mockup parity).
+- New tests: note clear/keep, combo-note 400, qty-cap 400 (item+combo), guest-cart GC sweep + self-exclusion.
+
+**Verified**
+- `./verify.sh` exit 0 at `884e8e4`, `2026-06-12T14:07:00Z` (25 e2e).
+
+**Next**
+- PRs: `u8-register` → main, `u9-login` → `u8-register`, `u5-manage-cart` → `u9-login` (stacked). Merge top-down, then U6.
+
+**Carry-over for U6**
+- `quote_session_cart` silently skips stale lines (U5 preview semantics) — U6 order placement must fail per-line with `details.line_id`; do not reuse blind.
