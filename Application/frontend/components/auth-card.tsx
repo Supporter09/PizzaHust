@@ -39,14 +39,16 @@ export function AuthCard({ tab }: AuthCardProps) {
 
   const switchTab = useCallback(
     (next: AuthTab) => {
-      if (next === tab) {
+      // No tab switch while an auth request is in flight — its resolution
+      // would router.replace from a flow the user already left.
+      if (next === tab || loading) {
         return;
       }
       const qs = searchParams.toString();
       const path = next === "login" ? "/login" : "/register";
       router.replace(qs ? `${path}?${qs}` : path);
     },
-    [router, searchParams, tab],
+    [loading, router, searchParams, tab],
   );
 
   const onLoginSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -143,7 +145,8 @@ export function AuthCard({ tab }: AuthCardProps) {
             type="button"
             role="tab"
             aria-selected={isLogin}
-            className={`rounded-full px-3 py-2.5 text-sm font-semibold transition ${
+            disabled={loading}
+            className={`rounded-full px-3 py-2.5 text-sm font-semibold transition disabled:opacity-60 ${
               isLogin ? "bg-card text-brand shadow-sm" : "text-muted"
             }`}
             onClick={() => switchTab("login")}
@@ -154,7 +157,8 @@ export function AuthCard({ tab }: AuthCardProps) {
             type="button"
             role="tab"
             aria-selected={!isLogin}
-            className={`rounded-full px-3 py-2.5 text-sm font-semibold transition ${
+            disabled={loading}
+            className={`rounded-full px-3 py-2.5 text-sm font-semibold transition disabled:opacity-60 ${
               !isLogin ? "bg-card text-brand shadow-sm" : "text-muted"
             }`}
             onClick={() => switchTab("register")}
