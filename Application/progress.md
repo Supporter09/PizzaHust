@@ -402,3 +402,19 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 - `npx tsc --noEmit`, `npx eslint .` (no new warnings), `npx vitest run` (41 passed) green.
 - `./verify.sh` exit 0 at `368a36e`, `2026-06-11T18:35:35Z` (UTC; = 2026-06-12 01:35 +07 — matches the header's local date; 20 e2e passed incl. updated combo specs).
 - Screenshots in `Application/docs/superpowers/`: `u15-after-{light,dark,mobile}.png`, `combos-fidelity-after-{light,dark,mobile}.png` (customizer shot in fully-picked state, combo 3).
+
+---
+
+## 2026-06-12 — U8 Register (branch `u8-register`)
+
+**Done**
+- `sanitizeReturnTo` + vitest (Context7-checked Next.js v16: `useSearchParams` under `<Suspense>` on auth pages).
+- Shared `AuthCard`: Sign In / Create Account tabs, register → chained login, VN phone + password validation, 409 copy, role/`returnTo` redirects.
+- E2E `auth-register.spec.ts`; fixed `happy-path` Sign In button label for verify gate.
+- Spec review gaps closed (aria-selected + full name on account).
+
+**Verified**
+- `./verify.sh` exit 0 before bookkeeping commit (22 e2e passed).
+
+**Next**
+- Human review of `u8-register`; then U9 on `u9-login` per plan.
