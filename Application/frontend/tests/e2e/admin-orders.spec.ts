@@ -39,7 +39,8 @@ test.describe("A5 - Monitor Orders", () => {
     await expect(page.getByLabel("From date")).toHaveValue(today);
     await expect(page.getByLabel("To date")).toHaveValue(today);
 
-    await page.getByRole("button", { name: /view/i }).first().click();
+    // Exact match: the dispatch-failed banner can render a "Review" button.
+    await page.locator("tbody").getByRole("button", { name: "View", exact: true }).first().click();
 
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect(page.getByText(/order detail/i)).toBeVisible();

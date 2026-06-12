@@ -200,3 +200,33 @@ def test_get_order_returns_items_and_phase_notes() -> None:
     ]
     assert payload["tracking"][1]["note"].startswith("Kitchen is waiting")
     assert payload["tracking"][2]["note"].startswith("Driver delayed")
+
+
+def test_list_orders_searches_code_and_recipient_with_item_count() -> None:
+    client = admin_client("orders-search")
+    today = datetime.now().replace(hour=10, minute=0, second=0, microsecond=0)
+
+    target_id = _seed_order_with_detail(
+        order_code="PIZZ-FINDME1",
+        created_at=today,
+        status=OrderStatus.RECEIVED,
+    )
+    _seed_order_with_detail(
+        order_code="PIZZ-OTHER01",
+        created_at=today,
+        status=OrderStatus.RECEIVED,
+    )
+
+    by_code = client.get("/api/admin/orders?q=FINDME")
+    assert by_code.status_code == 200, by_code.text
+    rows = by_code.json()
+    assert [row["order_id"] for row in rows] == [target_id]
+    assert rows[0]["item_count"] == 1
+
+    by_name = client.get("/api/admin/orders?q=Thu Hà")
+    assert by_name.status_code == 200, by_name.text
+    assert len(by_name.json()) == 2
+
+    no_match = client.get("/api/admin/orders?q=NOPE-XYZ")
+    assert no_match.status_code == 200, no_match.text
+    assert no_match.json() == []

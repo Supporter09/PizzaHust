@@ -50,6 +50,9 @@ def _new_order(status: OrderStatus, code: str) -> int:
             total_amount_vnd=250_000,
             promised_at=datetime(2026, 1, 1, 12, 0, 0),
             current_status=status,
+            # Explicit local timestamp: the DB server_default is UTC, which
+            # falls outside list_orders' local-today default window overnight.
+            created_at=datetime.now(),
         )
         db.add(order)
         db.commit()

@@ -6,7 +6,7 @@ from datetime import date, datetime, time, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.domain.order_state import OrderTransitionError, transition
@@ -40,6 +40,7 @@ class OrderSummaryOut(BaseModel):
     total_amount_vnd: int
     created_at: datetime
     user_id: int | None
+    item_count: int
 
     model_config = {"from_attributes": True}
 
@@ -95,7 +96,7 @@ def _date_window(from_date: date | None, to_date: date | None) -> tuple[datetime
     )
 
 
-def _summary_payload(order: Order) -> dict[str, object]:
+def _summary_payload(order: Order, item_count: int) -> dict[str, object]:
     return {
         "order_id": order.order_id,
         "order_code": order.order_code,
@@ -106,6 +107,7 @@ def _summary_payload(order: Order) -> dict[str, object]:
         "total_amount_vnd": order.total_amount_vnd,
         "created_at": order.created_at,
         "user_id": order.user_id,
+        "item_count": item_count,
     }
 
 
@@ -155,7 +157,7 @@ def _order_detail_payload(order: Order) -> OrderDetailOut:
         for event in sorted(order.tracking, key=lambda row: row.created_at)
     ]
     return OrderDetailOut(
-        **_summary_payload(order),
+        **_summary_payload(order, len(order.items)),
         promised_at=order.promised_at,
         payment_method=order.payment_method,
         delivery_fee_vnd=order.delivery_fee_vnd,
@@ -168,6 +170,7 @@ def _order_detail_payload(order: Order) -> OrderDetailOut:
 @router.get("", response_model=list[OrderSummaryOut])
 def list_orders(
     status: str | None = None,
+    q: str | None = None,
     from_date: date | None = Query(default=None, alias="from"),
     to_date: date | None = Query(default=None, alias="to"),
     page: int = Query(1, ge=1),
@@ -176,16 +179,35 @@ def list_orders(
     _admin: User = Depends(require_admin),
 ) -> list[OrderSummaryOut]:
     start_dt, end_dt = _date_window(from_date, to_date)
-    stmt = select(Order).where(Order.created_at >= start_dt, Order.created_at < end_dt)
+    item_count_expr = (
+        select(func.count(OrderItem.order_item_id))
+        .where(OrderItem.order_id == Order.order_id)
+        .scalar_subquery()
+    )
+    stmt = select(Order, item_count_expr.label("item_count")).where(
+        Order.created_at >= start_dt, Order.created_at < end_dt
+    )
     if status:
         try:
             s = OrderStatus(status)
         except ValueError:
             raise HTTPException(status_code=400, detail="VALIDATION_FAILED") from None
         stmt = stmt.where(Order.current_status == s)
+    if q:
+        pattern = f"%{q.strip()}%"
+        stmt = stmt.where(
+            or_(
+                Order.order_code.like(pattern),
+                Order.recipient_name.like(pattern),
+                Order.recipient_phone.like(pattern),
+            )
+        )
     stmt = stmt.order_by(Order.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
-    orders = db.scalars(stmt).all()
-    return [OrderSummaryOut.model_validate(_summary_payload(order)) for order in orders]
+    rows = db.execute(stmt).all()
+    return [
+        OrderSummaryOut.model_validate(_summary_payload(order, int(item_count)))
+        for order, item_count in rows
+    ]
 
 
 @router.get("/{order_id}", response_model=OrderDetailOut)

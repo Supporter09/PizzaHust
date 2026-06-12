@@ -14,6 +14,7 @@ interface OrderRow {
   delivery_address: string;
   total_amount_vnd: number;
   created_at: string;
+  item_count: number;
 }
 
 interface OrderItemOption {
@@ -116,11 +117,12 @@ export default function MonitorOrdersPage() {
   const searchParams = useSearchParams();
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [statusFilter, setStatusFilter] = useState("");
+  const [query, setQuery] = useState("");
   const [dateRange, setDateRange] = useState(defaultRange);
   const [loading, setLoading] = useState(true);
   const [retrying, setRetrying] = useState<number | null>(null);
   const [error, setError] = useState("");
-  const [dispatchPendingCount, setDispatchPendingCount] = useState(0);
+  const [dispatchPending, setDispatchPending] = useState<OrderRow[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<OrderDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -128,6 +130,7 @@ export default function MonitorOrdersPage() {
   const [detailBusy, setDetailBusy] = useState(false);
   const [openedQueryOrderId, setOpenedQueryOrderId] = useState<string | null>(null);
   const { from, to } = dateRange;
+  const dispatchPendingCount = dispatchPending.length;
 
   const fetchOrders = useCallback(
     async (background = false) => {
@@ -138,6 +141,7 @@ export default function MonitorOrdersPage() {
       try {
         const qs = new URLSearchParams({ from, to });
         if (statusFilter) qs.set("status", statusFilter);
+        if (query.trim()) qs.set("q", query.trim());
         setOrders(await apiFetch<OrderRow[]>(`/admin/orders?${qs.toString()}`));
       } catch (e) {
         setError(String(e));
@@ -145,27 +149,26 @@ export default function MonitorOrdersPage() {
         if (!background) setLoading(false);
       }
     },
-    [statusFilter, from, to],
+    [statusFilter, query, from, to],
   );
 
   // The warning is scoped to the visible date window, not the entire dataset.
   const fetchDispatchPendingCount = useCallback(async () => {
     try {
       const qs = new URLSearchParams({ from, to, status: "DispatchPending" });
-      const rows = await apiFetch<OrderRow[]>(`/admin/orders?${qs.toString()}`);
-      setDispatchPendingCount(rows.length);
+      setDispatchPending(await apiFetch<OrderRow[]>(`/admin/orders?${qs.toString()}`));
     } catch {
-      // Non-critical; leave the previous count in place.
+      // Non-critical; leave the previous rows in place.
     }
   }, [from, to]);
 
   useEffect(() => {
-    // Defer the initial load to a macrotask so its setState is not called
-    // synchronously within the effect body (react-hooks/set-state-in-effect).
+    // Deferred kick doubles as the search debounce: fetchOrders changes on
+    // every keystroke, restarting this timer before the previous fetch fires.
     const kick = setTimeout(() => {
       void fetchOrders();
       void fetchDispatchPendingCount();
-    }, 0);
+    }, 250);
     const id = setInterval(() => {
       void fetchOrders(true);
       void fetchDispatchPendingCount();
@@ -270,11 +273,7 @@ export default function MonitorOrdersPage() {
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-fg">Monitor Orders</h1>
-          {dispatchPendingCount > 0 && (
-            <p className="mt-1 text-sm text-warning font-medium">
-              ⚠ {dispatchPendingCount} order{dispatchPendingCount > 1 ? "s" : ""} stuck in Dispatch Pending — retry needed
-            </p>
-          )}
+          <p className="mt-1 text-sm text-muted">View and manage all customer orders.</p>
         </div>
         <div className="flex flex-wrap items-end gap-3">
           <label className="text-xs font-medium text-muted">
@@ -312,6 +311,48 @@ export default function MonitorOrdersPage() {
         </div>
       </div>
 
+      {dispatchPendingCount > 0 && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warning bg-warning-subtle px-4 py-3">
+          <div className="text-sm text-fg">
+            <p className="font-semibold">
+              ⚠ {dispatchPendingCount} order{dispatchPendingCount > 1 ? "s" : ""} need
+              {dispatchPendingCount > 1 ? "" : "s"} attention — dispatch failed
+            </p>
+            <p className="mt-0.5 text-muted">
+              {dispatchPendingCount === 1
+                ? `${dispatchPending[0].order_code} couldn't be handed to the delivery provider. Retry now or cancel the order.`
+                : "These orders couldn't be handed to the delivery provider. Retry now or cancel them."}
+            </p>
+          </div>
+          {dispatchPendingCount === 1 ? (
+            <button
+              onClick={() => void retryDispatch(dispatchPending[0].order_id)}
+              disabled={retrying === dispatchPending[0].order_id}
+              className="rounded-lg bg-warning-solid px-4 py-2 text-sm font-medium text-on-brand hover:opacity-90 disabled:opacity-50"
+            >
+              {retrying === dispatchPending[0].order_id ? "Retrying…" : "Retry Dispatch"}
+            </button>
+          ) : (
+            <button
+              onClick={() => setStatusFilter("DispatchPending")}
+              className="rounded-lg bg-warning-solid px-4 py-2 text-sm font-medium text-on-brand hover:opacity-90"
+            >
+              Review
+            </button>
+          )}
+        </div>
+      )}
+
+      <div className="mb-4">
+        <input
+          type="search"
+          placeholder="Search by order ID or customer name…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="w-full rounded-lg border border-line bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
+        />
+      </div>
+
       <div className="flex gap-2 flex-wrap mb-4">
         {STATUS_FILTERS.map((f) => (
           <button
@@ -339,17 +380,17 @@ export default function MonitorOrdersPage() {
         <table className="min-w-full divide-y divide-line text-sm">
           <thead className="bg-surface">
             <tr>
-              {["Code", "Status", "Customer", "Address", "Total", "Time", "Actions"].map((h) => (
+              {["Code", "Status", "Customer", "Address", "Items", "Total", "Time", "Actions"].map((h) => (
                 <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-muted uppercase tracking-wider">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
             {loading && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted">Loading…</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-muted">Loading…</td></tr>
             )}
             {!loading && orders.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted">No orders</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-muted">No orders</td></tr>
             )}
             {!loading && orders.map((o) => (
               <tr key={o.order_id} className={`hover:bg-surface ${o.current_status === "DispatchPending" ? "bg-warning-subtle/50" : ""}`}>
@@ -360,6 +401,9 @@ export default function MonitorOrdersPage() {
                   <div className="text-muted text-xs">{o.recipient_phone}</div>
                 </td>
                 <td className="px-4 py-3 text-muted max-w-[200px] truncate">{o.delivery_address}</td>
+                <td className="px-4 py-3 text-muted whitespace-nowrap">
+                  {o.item_count} item{o.item_count === 1 ? "" : "s"}
+                </td>
                 <td className="px-4 py-3 font-medium">{formatVND(o.total_amount_vnd)}</td>
                 <td className="px-4 py-3 text-muted text-xs whitespace-nowrap">{formatDateTime(o.created_at)}</td>
                 <td className="px-4 py-3">
