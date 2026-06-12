@@ -464,3 +464,4 @@ Append-only session journal. Each session ends with a dated block. Keep blocks â
 
 **Carry-over for U6**
 - `quote_session_cart` silently skips stale lines (U5 preview semantics) â€” U6 order placement must fail per-line with `details.line_id`; do not reuse blind.
+- Fold a `CHECK (quantity BETWEEN 1 AND 99)` on `cart_lines` into migration 0008 (app layer fully capped via `MAX_LINE_QUANTITY`; DB-level belt deferred from PR28 review).
