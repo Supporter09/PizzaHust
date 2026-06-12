@@ -7,7 +7,7 @@ import json
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from app.api.cart_store import now_naive_utc
+from app.api.cart_store import MAX_LINE_QUANTITY, now_naive_utc
 from app.infra.db.models import Cart, CartLine
 
 
@@ -44,7 +44,7 @@ def merge_guest_cart_into_account(
     for line in guest.lines:
         key = _line_key(line)
         if key in existing:
-            existing[key].quantity += line.quantity
+            existing[key].quantity = min(MAX_LINE_QUANTITY, existing[key].quantity + line.quantity)
         else:
             account.lines.append(
                 CartLine(payload=line.payload, quantity=line.quantity, note=line.note)

@@ -88,3 +88,21 @@ def test_logout_keeps_account_cart_and_empties_browser():
     assert client.get("/api/cart").json()["lines"] == []
     client.post("/api/auth/login", json={"phone_number": "0933333333", "password": "secret-pass-1"})
     assert len(client.get("/api/cart").json()["lines"]) == 1
+
+
+def test_merge_quantity_sum_is_clamped_to_line_cap():
+    app, pid, m = _fixture("merge-cap")
+    client = TestClient(app)
+    _register(client, "0955555555")
+    client.post("/api/auth/login", json={"phone_number": "0955555555", "password": "secret-pass-1"})
+    _guest_add(client, pid, m, qty=60)  # account cart: 60
+    client.post(
+        "/api/auth/logout",
+        headers={"X-CSRF-Token": client.get("/api/cart").json()["csrf_token"]},
+    )
+
+    _guest_add(client, pid, m, qty=60)  # guest cart: 60
+    client.post("/api/auth/login", json={"phone_number": "0955555555", "password": "secret-pass-1"})
+    body = client.get("/api/cart").json()
+    assert len(body["lines"]) == 1
+    assert body["lines"][0]["quantity"] == 99  # 60+60 clamps to the write-path cap

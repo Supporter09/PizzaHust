@@ -20,7 +20,7 @@ from app.api.cart import (
     resolve_combo_line,
     resolve_item_line,
 )
-from app.api.cart_store import ensure_cart, load_cart, touch_and_gc
+from app.api.cart_store import MAX_LINE_QUANTITY, ensure_cart, load_cart, touch_and_gc
 from app.core.errors import APIError
 from app.domain.cart_payload import canonical_payload
 from app.domain.pricing import CartLine as PricingLine
@@ -35,17 +35,17 @@ router = APIRouter(prefix="/api/cart", tags=["cart"])
 
 
 class CartLineNoteIn(BaseModel):
-    quantity: int | None = Field(default=None, ge=1, le=99)
+    quantity: int | None = Field(default=None, ge=1, le=MAX_LINE_QUANTITY)
     note: str | None = Field(default=None, max_length=255)
 
 
 class AddItemLineIn(ItemQuoteLineIn):
     note: str | None = Field(default=None, max_length=255)
-    quantity: int = Field(ge=1, le=99)
+    quantity: int = Field(ge=1, le=MAX_LINE_QUANTITY)
 
 
 class AddComboLineIn(ComboQuoteLineIn):
-    quantity: int = Field(ge=1, le=99)
+    quantity: int = Field(ge=1, le=MAX_LINE_QUANTITY)
 
 
 # quantity is capped here, not on the shared quote models — /api/cart/quote

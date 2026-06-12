@@ -13,6 +13,10 @@ from app.infra.db.models import Cart
 
 GUEST_CART_TTL = timedelta(days=7)
 
+# Single cap for every cart-line write path: add (POST), edit (PATCH), and
+# login merge. The DB has no CHECK constraint — this constant is the invariant.
+MAX_LINE_QUANTITY = 99
+
 
 def now_naive_utc() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
