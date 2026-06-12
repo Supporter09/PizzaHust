@@ -142,7 +142,7 @@
       ],
       "status": "done",
       "owner": "Hoang",
-      "evidence": "verify.sh green at 884e8e4376a64778207728a51d51224256eb1e34, 2026-06-12T14:07:00Z"
+      "evidence": "verify.sh green at e33cd7f38ece2cca0f6e12fb8eea51fbe580a9d6 (stack tip incl. CodeRabbit fixes), 2026-06-12T15:18:00Z"
     },
     {
       "id": "U6",
@@ -185,7 +185,7 @@
       ],
       "status": "done",
       "owner": "Hoang",
-      "evidence": "verify.sh green at ff5bdcb91ab0151c0a0a99e768c39b750d7e4b2f, 2026-06-12T12:47:08Z"
+      "evidence": "verify.sh green at ff5bdcb (pre-rebase); rebased to 559c176, re-verified via stack tip e33cd7f, 2026-06-12T15:18:00Z"
     },
     {
       "id": "U11",
