@@ -10,8 +10,7 @@ test.describe("U2/U3 — item detail with generic options", () => {
     await expect(page.getByRole("radiogroup", { name: "Size" })).toBeVisible();
     await expect(page.getByRole("group", { name: "Toppings" })).toBeVisible();
 
-    // Add-to-cart is rendered but gated on the cart use case (U5).
-    await expect(page.getByRole("button", { name: /add to cart/i })).toBeDisabled();
+    await expect(page.getByRole("button", { name: /add to cart/i })).toBeEnabled();
 
     const estimate = page.getByTestId("line-estimate");
     const base = await estimate.textContent();

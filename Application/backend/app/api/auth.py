@@ -179,9 +179,17 @@ async def login(
     if needs_rehash(user.password_hash):
         user.password_hash = hash_password(payload.password)
         db.add(user)
-        db.commit()
+
+    from app.api.cart_merge import merge_guest_cart_into_account
+    from app.infra.auth.session_state import read_cart_id, set_cart_id
+
+    guest_cart_id = read_cart_id(request)
+    surviving = merge_guest_cart_into_account(db, guest_cart_id, user.user_id)
+    db.commit()
 
     csrf_token = set_authenticated_session(request, user)
+    if surviving is not None:
+        set_cart_id(request, surviving)
     _set_csrf_cookie(response, settings, csrf_token)
     return LoginResponse(user=AuthUserDTO.model_validate(user), csrf_token=csrf_token)
 

@@ -418,3 +418,50 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 **Next**
 - Human review of `u8-register`; then U9 on `u9-login` per plan.
+
+---
+
+## 2026-06-12 — U9 Log In (branch `u9-login`)
+
+**Done**
+- Login tab: 429 / 403 / 401 copy per plan; generic sign-in failure message.
+- E2E `auth-login.spec.ts`: wrong credentials + `returnTo=//evil.com` → `/account` fallback.
+- Context7: post-login `router.replace` aligns with auth redirect guidance.
+
+**Verified**
+- `./verify.sh` exit 0 at `ff5bdcb`, `2026-06-12T12:47:08Z` (24 e2e passed).
+
+**Next**
+- Review `u9-login`; then U5 `u5-manage-cart` (backend cart spine).
+
+---
+
+## 2026-06-12 — U5 Manage Cart (branch `u5-manage-cart`)
+
+**Done**
+- Backend: canonical payload, `carts`/`cart_lines`, session cart CRUD + checkout-quote, merge-on-login (read cart_id before `session.clear()`).
+- OpenAPI + `CONTRACTS.md` cart table; frontend CartProvider, `/cart`, menu/combo add-to-cart, dish note (U16 entry), `cart.spec.ts` e2e.
+
+**Verified**
+- `./verify.sh` exit 0 at `6c66287` (25 e2e incl. cart flow).
+
+**Next**
+- Review `u5-manage-cart`; then U6 `u6-place-order` per plan.
+
+---
+
+## 2026-06-12 — U5 review fixes (branch `u5-manage-cart`)
+
+**Done**
+- Review (code-reviewer + mockup diff vs `Design/cart.html`/`auth.html`): note-clear PATCH semantics (`null`/`""` → NULL), add-line quantity capped `le=99` (item + combo, OpenAPI/types regenerated), cart link in mobile hamburger, stepper max, cart price top-aligned with title (mockup parity).
+- New tests: note clear/keep, combo-note 400, qty-cap 400 (item+combo), guest-cart GC sweep + self-exclusion.
+
+**Verified**
+- `./verify.sh` exit 0 at `884e8e4`, `2026-06-12T14:07:00Z` (25 e2e).
+
+**Next**
+- PRs: `u8-register` → main, `u9-login` → `u8-register`, `u5-manage-cart` → `u9-login` (stacked). Merge top-down, then U6.
+
+**Carry-over for U6**
+- `quote_session_cart` silently skips stale lines (U5 preview semantics) — U6 order placement must fail per-line with `details.line_id`; do not reuse blind.
+- Fold a `CHECK (quantity BETWEEN 1 AND 99)` on `cart_lines` into migration 0008 (app layer fully capped via `MAX_LINE_QUANTITY`; DB-level belt deferred from PR28 review).

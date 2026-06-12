@@ -60,10 +60,9 @@ export function AuthCard({ tab }: AuthCardProps) {
       setErrorMessage("Please enter phone number and password.");
       return;
     }
-    if (!VN_PHONE_RE.test(phone)) {
-      setErrorMessage("Enter a valid 10-digit Vietnam mobile number.");
-      return;
-    }
+    // No format pre-filter on login: the VN_PHONE_RE rule (UC Table A) guards
+    // registration input; existing accounts authenticate by exact lookup, so
+    // the backend's 401 is the only authority here.
 
     setLoading(true);
     try {
@@ -71,9 +70,15 @@ export function AuthCard({ tab }: AuthCardProps) {
       router.replace(redirectAfterAuth(user.role, searchParams.get("returnTo")));
     } catch (error) {
       if (error instanceof ApiClientError) {
-        setErrorMessage(error.message);
+        if (error.status === 429) {
+          setErrorMessage("Too many attempts — wait a minute and try again.");
+        } else if (error.status === 403) {
+          setErrorMessage("This account is locked. Contact the store.");
+        } else {
+          setErrorMessage(error.message);
+        }
       } else {
-        setErrorMessage("Unable to login right now.");
+        setErrorMessage("Unable to sign in right now.");
       }
       setLoading(false);
     }

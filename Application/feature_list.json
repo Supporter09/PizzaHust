@@ -140,9 +140,9 @@
         "U3",
         "U4"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hoang",
-      "evidence": ""
+      "evidence": "verify.sh green at 89b7c30c62f50270cb5485d2c70d455f1c18522f (incl. PR28 CodeRabbit fixes), 2026-06-12T15:42:00Z"
     },
     {
       "id": "U6",
@@ -183,9 +183,9 @@
       "depends_on": [
         "infra-004"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hoang",
-      "evidence": ""
+      "evidence": "verify.sh green at ff5bdcb (pre-rebase); rebased to 559c176, re-verified via stack tip e33cd7f, 2026-06-12T15:18:00Z"
     },
     {
       "id": "U11",
