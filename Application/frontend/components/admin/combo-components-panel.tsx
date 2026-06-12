@@ -73,7 +73,7 @@ export default function ComboComponentsPanel({
           onClick={onTogglePicker}
           className="rounded-lg border border-line px-3 py-1.5 text-sm"
         >
-          Add Component
+          + Add Component
         </button>
       </div>
       <ul className="space-y-2">

@@ -201,7 +201,12 @@ export default function ComboEditor({ comboId }: { comboId: number | null }) {
         ]}
       />
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold text-fg">{title}</h1>
+        <div>
+          <h1 className="text-2xl font-semibold text-fg">{isCreate ? "New Combo" : "Edit Combo"}</h1>
+          {!isCreate && loaded ? (
+            <p className="mt-0.5 text-sm text-muted">{loaded.name}</p>
+          ) : null}
+        </div>
         <div className="flex gap-2">
           <Link href="/admin/combos" className="rounded-lg border border-line px-4 py-2 text-sm">
             Cancel
@@ -210,7 +215,7 @@ export default function ComboEditor({ comboId }: { comboId: number | null }) {
             type="button"
             disabled={!canSave}
             onClick={() => void onSave()}
-            className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-fg disabled:opacity-50"
+            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-on-brand disabled:opacity-50"
           >
             Save Combo
           </button>

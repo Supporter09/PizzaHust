@@ -1,5 +1,7 @@
 "use client";
 
+import { CoverFallback } from "@/components/cover-fallback";
+
 interface Props {
   name: string;
   onName: (v: string) => void;
@@ -27,7 +29,7 @@ export default function ComboBasicsSection({
       <div className="space-y-4">
         <div>
           <label htmlFor="combo-name" className="mb-1 block text-sm font-medium text-fg">
-            Combo name
+            Combo Name <span className="text-brand-fg">*</span>
           </label>
           <input
             id="combo-name"
@@ -59,10 +61,13 @@ export default function ComboBasicsSection({
                 className="mb-2 aspect-[16/6] w-full max-w-md rounded-lg object-cover"
               />
             ) : (
-              <div className="mb-2 aspect-[16/6] w-full max-w-md rounded-lg bg-surface-hover" />
+              <CoverFallback
+                label="No image"
+                className="mb-2 aspect-[16/6] w-full max-w-md rounded-lg"
+              />
             )}
-            <div className="flex gap-2">
-              <label className="cursor-pointer rounded-lg border border-line px-3 py-1.5 text-sm">
+            <div className="flex items-center gap-2">
+              <label className="flex min-h-11 cursor-pointer items-center rounded-lg border border-line px-3 py-1.5 text-sm">
                 Upload
                 <input
                   type="file"
@@ -75,11 +80,18 @@ export default function ComboBasicsSection({
                 />
               </label>
               {imageUrl && (
-                <button type="button" onClick={onImageRemove} className="text-sm text-brand">
+                <button
+                  type="button"
+                  onClick={onImageRemove}
+                  className="min-h-11 text-sm text-brand"
+                >
                   Remove
                 </button>
               )}
             </div>
+            <p className="mt-1 text-xs text-muted">
+              Wide format works best (16:6) — shown on combo cards.
+            </p>
           </div>
         )}
       </div>
