@@ -690,6 +690,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Place Order */
+        post: operations["place_order_api_orders_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/webhooks/delivery": {
         parameters: {
             query?: never;
@@ -1439,6 +1456,13 @@ export interface components {
             /** Sort Order */
             sort_order?: number | null;
         };
+        /** OrderAddressIn */
+        OrderAddressIn: {
+            /** Administrative Unit */
+            administrative_unit: string;
+            /** Street */
+            street: string;
+        };
         /** OrderCancelIn */
         OrderCancelIn: {
             /** Reason */
@@ -1467,6 +1491,35 @@ export interface components {
             total_amount_vnd: number;
             /** User Id */
             user_id: number | null;
+        };
+        /** PlaceOrderIn */
+        PlaceOrderIn: {
+            address: components["schemas"]["OrderAddressIn"];
+            /** Delivery Note */
+            delivery_note?: string | null;
+            /** Recipient Name */
+            recipient_name: string;
+            /** Recipient Phone */
+            recipient_phone: string;
+            /**
+             * Redeem Points
+             * @default 0
+             */
+            redeem_points: number;
+        };
+        /** PlaceOrderOut */
+        PlaceOrderOut: {
+            /** Order Code */
+            order_code: string;
+            /**
+             * Promised At
+             * Format: date-time
+             */
+            promised_at: string;
+            /** Status */
+            status: string;
+            /** Total Vnd */
+            total_vnd: number;
         };
         /** ProductComboItemIn */
         ProductComboItemIn: {
@@ -3270,6 +3323,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoyaltyMeResponse"];
+                };
+            };
+        };
+    };
+    place_order_api_orders_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaceOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceOrderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
