@@ -120,7 +120,7 @@ function CartLineCard({
     <article
       data-testid="cart-line"
       data-line-id={line.line_id}
-      className={`grid gap-4 rounded-2xl border border-line bg-card p-4 sm:grid-cols-[96px_1fr_auto] sm:items-center sm:gap-5 ${
+      className={`grid gap-4 rounded-2xl border border-line bg-card p-4 sm:grid-cols-[96px_1fr_auto] sm:gap-5 ${
         dimmed ? "opacity-60" : ""
       }`}
     >
@@ -165,7 +165,7 @@ function CartLineCard({
         </div>
       </div>
 
-      <div className="flex flex-col items-end gap-3 sm:gap-4">
+      <div className="flex flex-col items-end gap-3 sm:gap-4 sm:self-stretch sm:justify-between">
         <span className="text-lg font-bold tabular-nums text-brand">
           {line.line_total_vnd !== null ? formatVnd(line.line_total_vnd) : "—"}
         </span>
