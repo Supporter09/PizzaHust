@@ -418,7 +418,9 @@ delivery fee. No combo discount and (in this sprint) no loyalty redemption.
   ],
   "recipient_first_name": "Lan",
   "phone_last4": "1234",
-  "address_masked": "***, Ba Đình, Hà Nội"
+  "address_masked": "***, Ba Đình, Hà Nội",
+  "delivery_note": "Ring doorbell twice",
+  "promised_at": "2026-04-28T11:15:00Z"
 }
 ```
 

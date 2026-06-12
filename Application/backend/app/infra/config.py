@@ -25,6 +25,7 @@ class Settings(BaseSettings):
 
     # ge=1: a limit of 0 would reject every auth request.
     auth_rate_limit_per_minute: int = Field(default=5, ge=1, alias="AUTH_RATE_LIMIT_PER_MINUTE")
+    track_rate_limit_per_minute: int = Field(default=5, ge=1, alias="TRACK_RATE_LIMIT_PER_MINUTE")
 
     # Image upload (A1 product images). Files persist outside the container via a
     # mounted volume; served read-only by a StaticFiles mount at image_base_url.

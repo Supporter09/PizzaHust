@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session, selectinload
@@ -27,6 +27,7 @@ from app.domain.order_code import generate_order_code
 from app.domain.pricing import CartLine as PricingLine
 from app.domain.pricing import PricingError, compute_order_total
 from app.infra.auth.csrf import enforce_csrf
+from app.infra.auth.rate_limit import enforce_track_rate_limit
 from app.infra.auth.session_state import read_session
 from app.infra.config import Settings, get_settings_dependency
 from app.infra.db.combo_queries import slot_availability
@@ -64,6 +65,30 @@ class PlaceOrderOut(BaseModel):
     total_vnd: int
     status: str
     promised_at: datetime
+
+
+class TrackTimelineEntry(BaseModel):
+    status: str
+    at: datetime
+
+
+class TrackOut(BaseModel):
+    order_code: str
+    status: str
+    timeline: list[TrackTimelineEntry]
+    recipient_first_name: str
+    phone_last4: str
+    address_masked: str
+    delivery_note: str | None
+    promised_at: datetime
+
+
+def given_name(full_name: str) -> str:
+    return full_name.strip().split()[-1] if full_name.strip() else ""
+
+
+def mask_address(ward: str | None) -> str:
+    return f"***, {ward}, Hà Nội" if ward else "***, Hà Nội"
 
 
 def unique_order_code(db: Session) -> str:
@@ -227,6 +252,37 @@ def _persist_combo_line(
                         price_delta_vnd=delta,
                     )
                 )
+
+
+@router.get(
+    "/track/{code}",
+    response_model=TrackOut,
+    dependencies=[Depends(enforce_track_rate_limit)],
+)
+def track_order(code: str, db: Session = Depends(get_db, scope="function")) -> TrackOut:
+    normalized = code.strip().upper()
+    order = db.scalar(
+        select(Order).where(Order.order_code == normalized).options(selectinload(Order.tracking))
+    )
+    if order is None:
+        raise APIError(
+            code="NOT_FOUND",
+            message="Order not found.",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    timeline_rows = sorted(order.tracking, key=lambda t: t.created_at)
+    return TrackOut(
+        order_code=order.order_code,
+        status=order.current_status.value,
+        timeline=[
+            TrackTimelineEntry(status=row.status.value, at=row.created_at) for row in timeline_rows
+        ],
+        recipient_first_name=given_name(order.recipient_name),
+        phone_last4=order.recipient_phone[-4:],
+        address_masked=mask_address(order.delivery_ward),
+        delivery_note=order.delivery_note,
+        promised_at=order.promised_at,
+    )
 
 
 @router.post(

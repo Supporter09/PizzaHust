@@ -2723,6 +2723,84 @@
         "title": "RegisterResponse",
         "type": "object"
       },
+      "TrackOut": {
+        "properties": {
+          "address_masked": {
+            "title": "Address Masked",
+            "type": "string"
+          },
+          "delivery_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Note"
+          },
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "phone_last4": {
+            "title": "Phone Last4",
+            "type": "string"
+          },
+          "promised_at": {
+            "format": "date-time",
+            "title": "Promised At",
+            "type": "string"
+          },
+          "recipient_first_name": {
+            "title": "Recipient First Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TrackTimelineEntry"
+            },
+            "title": "Timeline",
+            "type": "array"
+          }
+        },
+        "required": [
+          "order_code",
+          "status",
+          "timeline",
+          "recipient_first_name",
+          "phone_last4",
+          "address_masked",
+          "delivery_note",
+          "promised_at"
+        ],
+        "title": "TrackOut",
+        "type": "object"
+      },
+      "TrackTimelineEntry": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "at"
+        ],
+        "title": "TrackTimelineEntry",
+        "type": "object"
+      },
       "UpdateProfileRequest": {
         "properties": {
           "address": {
@@ -5130,6 +5208,48 @@
           }
         },
         "summary": "Place Order",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/api/orders/track/{code}": {
+      "get": {
+        "operationId": "track_order_api_orders_track__code__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "title": "Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Track Order",
         "tags": [
           "orders"
         ]
