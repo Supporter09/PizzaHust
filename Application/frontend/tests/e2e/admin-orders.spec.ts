@@ -43,7 +43,13 @@ test.describe("A5 - Monitor Orders", () => {
     await page.locator("tbody").getByRole("button", { name: "View", exact: true }).first().click();
 
     await expect(page.getByRole("dialog")).toBeVisible();
-    await expect(page.getByText(/order detail/i)).toBeVisible();
+    // Exact match: a transient "Loading order detail…" element also exists.
+    await expect(page.getByText("Order Detail", { exact: true })).toBeVisible();
     await expect(page.getByText(/timeline & notes/i)).toBeVisible();
+
+    // Keyboard a11y: dialog focuses Close on open and closes on Escape.
+    await expect(page.getByRole("button", { name: "Close" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 });

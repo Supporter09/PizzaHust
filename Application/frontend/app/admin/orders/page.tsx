@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
@@ -214,12 +214,58 @@ export default function MonitorOrdersPage() {
     return () => clearTimeout(t);
   }, [loadOrderDetail, openedQueryOrderId, searchParams]);
 
-  function closeDetail() {
+  const closeDetail = useCallback(() => {
     setSelectedOrderId(null);
     setSelectedOrder(null);
     setDetailError("");
     setDetailLoading(false);
-  }
+  }, []);
+
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
+  // Dialog keyboard a11y: Escape closes, Tab stays inside, focus returns to the opener.
+  useEffect(() => {
+    if (selectedOrderId === null) {
+      return;
+    }
+    returnFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    closeButtonRef.current?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeDetail();
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) {
+        return;
+      }
+      const focusables = dialogRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusables.length === 0) {
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      const inside = dialogRef.current.contains(active);
+      if (event.shiftKey && (active === first || !inside)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !inside)) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      returnFocusRef.current?.focus();
+    };
+  }, [selectedOrderId, closeDetail]);
 
   async function retryDispatch(orderId: number) {
     setRetrying(orderId);
@@ -439,6 +485,7 @@ export default function MonitorOrdersPage() {
           onClick={closeDetail}
         >
           <div
+            ref={dialogRef}
             className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-line bg-surface shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
@@ -453,6 +500,7 @@ export default function MonitorOrdersPage() {
                 </p>
               </div>
               <button
+                ref={closeButtonRef}
                 onClick={closeDetail}
                 className="rounded-full border border-line bg-card px-3 py-1.5 text-sm text-fg hover:bg-surface-hover"
               >
