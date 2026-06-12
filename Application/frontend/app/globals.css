@@ -126,3 +126,16 @@ a {
   border-color: var(--brand);
   box-shadow: 0 0 0 4px var(--focus);
 }
+
+/* Branded diagonal-stripe placeholder for missing cover/thumbnail images.
+   Token-driven so it adapts to light/dark instead of hardcoding the mockup hex. */
+.cover-stripe {
+  background-color: color-mix(in srgb, var(--brand) 5%, var(--card));
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 9px,
+    color-mix(in srgb, var(--brand) 9%, transparent) 9px,
+    color-mix(in srgb, var(--brand) 9%, transparent) 18px
+  );
+}
