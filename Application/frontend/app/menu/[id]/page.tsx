@@ -84,6 +84,8 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
           if (active) setEstimate(q.total_vnd);
         })
         .catch(() => {
+          // Quote failure is non-fatal: the estimate degrades to "—" and the
+          // next selection change retries; the page itself stays usable.
           if (active) setEstimate(null);
         })
         .finally(() => {
@@ -171,7 +173,10 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
                   <span
                     data-testid="line-estimate"
                     aria-live="polite"
-                    className="text-2xl font-bold text-brand"
+                    aria-busy={quoting}
+                    className={`text-2xl font-bold tabular-nums text-brand transition-opacity ${
+                      quoting ? "opacity-50" : ""
+                    }`}
                   >
                     {item.option_groups.length > 0
                       ? estimate !== null
