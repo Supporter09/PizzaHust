@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { use, useCallback, useEffect, useRef, useState } from "react";
 
+import { useCart } from "@/components/cart-provider";
 import { CoverFallback } from "@/components/cover-fallback";
 import { OptionGroupSelector } from "@/components/menu/option-group-selector";
 import { QuantityStepper } from "@/components/menu/quantity-stepper";
@@ -24,6 +25,10 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
   const [quantity, setQuantity] = useState(1);
   const [estimate, setEstimate] = useState<number | null>(null);
   const [quoting, setQuoting] = useState(false);
+  const [dishNote, setDishNote] = useState("");
+  const [addMessage, setAddMessage] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const { addLine } = useCart();
 
   // Guards async continuations (incl. Try-again clicks) after unmount.
   const alive = useRef(true);
@@ -149,6 +154,23 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
           <div className="space-y-6">
             <h1 className="text-3xl font-bold text-fg">{item.name}</h1>
 
+            <div className="space-y-2">
+              <label htmlFor="dish-note" className="text-sm font-semibold text-fg">
+                Dish Note
+              </label>
+              <textarea
+                id="dish-note"
+                data-testid="dish-note"
+                maxLength={255}
+                rows={2}
+                value={dishNote}
+                onChange={(e) => setDishNote(e.target.value)}
+                placeholder="For the kitchen — e.g. well-done bake"
+                className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg"
+              />
+              <p className="text-xs text-muted">For the kitchen — e.g. well-done bake</p>
+            </div>
+
             {item.option_groups.map((g) => (
               <div key={g.group_id} className="space-y-2.5">
                 <h2 className="text-sm font-semibold text-fg">
@@ -187,16 +209,41 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
                       : formatVnd(item.base_price_vnd)}
                   </span>
                 </p>
-                {/* Cart is a later use case (U5/U6) — present but disabled. */}
-                <button
-                  type="button"
-                  disabled
-                  title="Cart coming soon"
-                  aria-label="Add to cart — cart coming soon"
-                  className="btn-primary inline-flex h-11 items-center px-6 opacity-50"
-                >
-                  Add to Cart
-                </button>
+                <div className="flex flex-col items-end gap-1">
+                  {addMessage ? (
+                    <p role="status" className="text-xs font-medium text-success">
+                      {addMessage}
+                    </p>
+                  ) : null}
+                  <button
+                    type="button"
+                    disabled={adding}
+                    aria-label="Add to cart"
+                    className="btn-primary inline-flex h-11 items-center px-6 disabled:opacity-60"
+                    onClick={async () => {
+                      setAdding(true);
+                      setAddMessage(null);
+                      try {
+                        const trimmed = dishNote.trim();
+                        await addLine({
+                          kind: "item",
+                          item_id: item.product_id,
+                          option_ids: Object.values(selections).flat(),
+                          quantity,
+                          note: trimmed.length > 0 ? trimmed : undefined,
+                        });
+                        setAddMessage("Added to cart");
+                        window.setTimeout(() => setAddMessage(null), 3000);
+                      } catch {
+                        setAddMessage("Could not add to cart");
+                      } finally {
+                        setAdding(false);
+                      }
+                    }}
+                  >
+                    Add to Cart
+                  </button>
+                </div>
               </div>
             </div>
           </div>

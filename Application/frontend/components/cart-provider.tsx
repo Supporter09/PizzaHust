@@ -19,6 +19,12 @@ import {
 } from "@/lib/api/cart";
 import { cartItemCount } from "@/lib/cart-item-count";
 import type { AddLinePayload, CartOut } from "@/lib/cart-types";
+import { syncCsrfCookie } from "@/lib/sync-csrf-cookie";
+
+function applyCart(next: CartOut): CartOut {
+  syncCsrfCookie(next.csrf_token);
+  return next;
+}
 
 type CartContextValue = {
   cart: CartOut | null;
@@ -40,7 +46,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const refresh = useCallback(async () => {
     try {
-      const next = await getCart();
+      const next = applyCart(await getCart());
       setCart(next);
     } catch {
       setCart(null);
@@ -57,26 +63,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [refresh, user?.user_id]);
 
   const addLine = useCallback(async (payload: AddLinePayload) => {
-    const next = await addCartLine(payload);
-    setCart(next);
+    setCart(applyCart(await addCartLine(payload)));
   }, []);
 
   const updateLine = useCallback(
     async (lineId: number, patch: { quantity?: number; note?: string | null }) => {
-      const next = await patchCartLine(lineId, patch);
-      setCart(next);
+      setCart(applyCart(await patchCartLine(lineId, patch)));
     },
     [],
   );
 
   const removeLine = useCallback(async (lineId: number) => {
-    const next = await deleteCartLine(lineId);
-    setCart(next);
+    setCart(applyCart(await deleteCartLine(lineId)));
   }, []);
 
   const clear = useCallback(async () => {
-    const next = await clearCartApi();
-    setCart(next);
+    setCart(applyCart(await clearCartApi()));
   }, []);
 
   const itemCount = useMemo(() => cartItemCount(cart), [cart]);
