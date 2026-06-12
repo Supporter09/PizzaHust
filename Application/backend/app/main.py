@@ -17,6 +17,7 @@ from app.api.admin.orders import router as admin_orders_router
 from app.api.admin.reports import router as admin_reports_router
 from app.api.auth import router as auth_router
 from app.api.cart import router as cart_router
+from app.api.carts import router as carts_router
 from app.api.combos import router as combos_router
 from app.api.config import router as config_router
 from app.api.errors import (
@@ -27,6 +28,7 @@ from app.api.errors import (
 )
 from app.api.loyalty import router as loyalty_router
 from app.api.menu import router as menu_router
+from app.api.orders import router as orders_router
 from app.api.webhooks import router as webhooks_router
 from app.infra.config import get_settings
 
@@ -63,7 +65,9 @@ app.add_exception_handler(RequestValidationError, handle_validation_error)
 app.include_router(config_router)
 app.include_router(menu_router)
 app.include_router(combos_router)
+app.include_router(carts_router)
 app.include_router(cart_router)
+app.include_router(orders_router)
 app.include_router(auth_router)
 app.include_router(loyalty_router)
 app.include_router(admin_orders_router)

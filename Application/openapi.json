@@ -1,6 +1,87 @@
 {
   "components": {
     "schemas": {
+      "AddComboLineIn": {
+        "additionalProperties": false,
+        "properties": {
+          "combo_id": {
+            "title": "Combo Id",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "combo",
+            "title": "Kind",
+            "type": "string"
+          },
+          "quantity": {
+            "maximum": 99.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "selections": {
+            "items": {
+              "$ref": "#/components/schemas/ComboSelectionIn"
+            },
+            "title": "Selections",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "combo_id",
+          "selections",
+          "quantity"
+        ],
+        "title": "AddComboLineIn",
+        "type": "object"
+      },
+      "AddItemLineIn": {
+        "additionalProperties": false,
+        "properties": {
+          "item_id": {
+            "title": "Item Id",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "item",
+            "title": "Kind",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "option_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Option Ids",
+            "type": "array"
+          },
+          "quantity": {
+            "maximum": 99.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "item_id",
+          "quantity"
+        ],
+        "title": "AddItemLineIn",
+        "type": "object"
+      },
       "AuthUserDTO": {
         "properties": {
           "address": {
@@ -80,6 +161,186 @@
           "image"
         ],
         "title": "Body_upload_item_image_api_admin_items__product_id__image_post",
+        "type": "object"
+      },
+      "CartLineNoteIn": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "maximum": 99.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity"
+          }
+        },
+        "title": "CartLineNoteIn",
+        "type": "object"
+      },
+      "CartLineOut": {
+        "properties": {
+          "descriptor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Descriptor"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "line_id": {
+            "title": "Line Id",
+            "type": "integer"
+          },
+          "line_total_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line Total Vnd"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "picks": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Picks"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "unavailable": {
+            "title": "Unavailable",
+            "type": "boolean"
+          },
+          "unit_price_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Price Vnd"
+          }
+        },
+        "required": [
+          "line_id",
+          "kind",
+          "quantity",
+          "note",
+          "payload",
+          "name",
+          "image_url",
+          "descriptor",
+          "picks",
+          "unit_price_vnd",
+          "line_total_vnd",
+          "unavailable"
+        ],
+        "title": "CartLineOut",
+        "type": "object"
+      },
+      "CartOut": {
+        "properties": {
+          "csrf_token": {
+            "title": "Csrf Token",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/CartLineOut"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/CartQuoteOut"
+          }
+        },
+        "required": [
+          "lines",
+          "quote",
+          "csrf_token"
+        ],
+        "title": "CartOut",
         "type": "object"
       },
       "CartQuoteIn": {
@@ -313,6 +574,28 @@
           }
         },
         "title": "CategoryPatch",
+        "type": "object"
+      },
+      "CheckoutQuoteIn": {
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuoteAddressIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "redeem_points": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Redeem Points",
+            "type": "integer"
+          }
+        },
+        "title": "CheckoutQuoteIn",
         "type": "object"
       },
       "ComboComponentOut": {
@@ -909,13 +1192,6 @@
             ],
             "title": "Address"
           },
-          "benefits": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Benefits",
-            "type": "array"
-          },
           "current_points": {
             "title": "Current Points",
             "type": "integer"
@@ -939,21 +1215,6 @@
             "title": "Is Locked",
             "type": "boolean"
           },
-          "last_order_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Last Order At"
-          },
-          "loyalty": {
-            "$ref": "#/components/schemas/CustomerLoyaltyOut"
-          },
           "membership_tier": {
             "title": "Membership Tier",
             "type": "string"
@@ -965,27 +1226,6 @@
           "phone_number": {
             "title": "Phone Number",
             "type": "string"
-          },
-          "recent_orders": {
-            "items": {
-              "$ref": "#/components/schemas/CustomerOrderOut"
-            },
-            "title": "Recent Orders",
-            "type": "array"
-          },
-          "stats": {
-            "$ref": "#/components/schemas/CustomerStatsOut"
-          },
-          "top_orders": {
-            "items": {
-              "$ref": "#/components/schemas/CustomerOrderOut"
-            },
-            "title": "Top Orders",
-            "type": "array"
-          },
-          "total_points_earned": {
-            "title": "Total Points Earned",
-            "type": "integer"
           },
           "user_id": {
             "title": "User Id",
@@ -999,106 +1239,11 @@
           "email",
           "is_locked",
           "current_points",
-          "total_points_earned",
           "membership_tier",
           "order_count",
-          "last_order_at",
-          "address",
-          "stats",
-          "loyalty",
-          "benefits",
-          "recent_orders",
-          "top_orders"
+          "address"
         ],
         "title": "CustomerDetailOut",
-        "type": "object"
-      },
-      "CustomerLoyaltyOut": {
-        "properties": {
-          "accrual_rate_vnd": {
-            "title": "Accrual Rate Vnd",
-            "type": "integer"
-          },
-          "current_balance_value_vnd": {
-            "title": "Current Balance Value Vnd",
-            "type": "integer"
-          },
-          "current_points": {
-            "title": "Current Points",
-            "type": "integer"
-          },
-          "max_redeem_pct": {
-            "title": "Max Redeem Pct",
-            "type": "number"
-          },
-          "membership_tier": {
-            "title": "Membership Tier",
-            "type": "string"
-          },
-          "redeem_value_vnd": {
-            "title": "Redeem Value Vnd",
-            "type": "integer"
-          },
-          "total_points_earned": {
-            "title": "Total Points Earned",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "current_points",
-          "total_points_earned",
-          "membership_tier",
-          "accrual_rate_vnd",
-          "redeem_value_vnd",
-          "max_redeem_pct",
-          "current_balance_value_vnd"
-        ],
-        "title": "CustomerLoyaltyOut",
-        "type": "object"
-      },
-      "CustomerOrderOut": {
-        "properties": {
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "current_status": {
-            "title": "Current Status",
-            "type": "string"
-          },
-          "delivery_address": {
-            "title": "Delivery Address",
-            "type": "string"
-          },
-          "order_code": {
-            "title": "Order Code",
-            "type": "string"
-          },
-          "order_id": {
-            "title": "Order Id",
-            "type": "integer"
-          },
-          "promised_at": {
-            "format": "date-time",
-            "title": "Promised At",
-            "type": "string"
-          },
-          "total_amount_vnd": {
-            "title": "Total Amount Vnd",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "order_id",
-          "order_code",
-          "current_status",
-          "total_amount_vnd",
-          "created_at",
-          "promised_at",
-          "delivery_address"
-        ],
-        "title": "CustomerOrderOut",
         "type": "object"
       },
       "CustomerOut": {
@@ -1126,18 +1271,6 @@
             "title": "Is Locked",
             "type": "boolean"
           },
-          "last_order_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Last Order At"
-          },
           "membership_tier": {
             "title": "Membership Tier",
             "type": "string"
@@ -1149,10 +1282,6 @@
           "phone_number": {
             "title": "Phone Number",
             "type": "string"
-          },
-          "total_points_earned": {
-            "title": "Total Points Earned",
-            "type": "integer"
           },
           "user_id": {
             "title": "User Id",
@@ -1166,53 +1295,10 @@
           "email",
           "is_locked",
           "current_points",
-          "total_points_earned",
           "membership_tier",
-          "order_count",
-          "last_order_at"
+          "order_count"
         ],
         "title": "CustomerOut",
-        "type": "object"
-      },
-      "CustomerStatsOut": {
-        "properties": {
-          "average_order_value_vnd": {
-            "title": "Average Order Value Vnd",
-            "type": "integer"
-          },
-          "delivered_orders": {
-            "title": "Delivered Orders",
-            "type": "integer"
-          },
-          "last_order_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Last Order At"
-          },
-          "total_orders": {
-            "title": "Total Orders",
-            "type": "integer"
-          },
-          "total_spend_vnd": {
-            "title": "Total Spend Vnd",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "total_orders",
-          "delivered_orders",
-          "total_spend_vnd",
-          "average_order_value_vnd",
-          "last_order_at"
-        ],
-        "title": "CustomerStatsOut",
         "type": "object"
       },
       "DeliveryConfigOut": {
@@ -1786,15 +1872,6 @@
         "title": "MeResponse",
         "type": "object"
       },
-      "MembershipTier": {
-        "enum": [
-          "standard",
-          "silver",
-          "gold"
-        ],
-        "title": "MembershipTier",
-        "type": "string"
-      },
       "MenuCategoryOut": {
         "properties": {
           "category_id": {
@@ -2131,6 +2208,26 @@
         "title": "OptionPatch",
         "type": "object"
       },
+      "OrderAddressIn": {
+        "properties": {
+          "administrative_unit": {
+            "title": "Administrative Unit",
+            "type": "string"
+          },
+          "street": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Street",
+            "type": "string"
+          }
+        },
+        "required": [
+          "administrative_unit",
+          "street"
+        ],
+        "title": "OrderAddressIn",
+        "type": "object"
+      },
       "OrderCancelIn": {
         "properties": {
           "reason": {
@@ -2146,211 +2243,6 @@
           }
         },
         "title": "OrderCancelIn",
-        "type": "object"
-      },
-      "OrderDetailOut": {
-        "properties": {
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "current_status": {
-            "title": "Current Status",
-            "type": "string"
-          },
-          "delivery_address": {
-            "title": "Delivery Address",
-            "type": "string"
-          },
-          "delivery_fee_vnd": {
-            "title": "Delivery Fee Vnd",
-            "type": "integer"
-          },
-          "delivery_reference": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Delivery Reference"
-          },
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/OrderItemOut"
-            },
-            "title": "Items",
-            "type": "array"
-          },
-          "order_code": {
-            "title": "Order Code",
-            "type": "string"
-          },
-          "order_id": {
-            "title": "Order Id",
-            "type": "integer"
-          },
-          "payment_method": {
-            "title": "Payment Method",
-            "type": "string"
-          },
-          "promised_at": {
-            "format": "date-time",
-            "title": "Promised At",
-            "type": "string"
-          },
-          "recipient_name": {
-            "title": "Recipient Name",
-            "type": "string"
-          },
-          "recipient_phone": {
-            "title": "Recipient Phone",
-            "type": "string"
-          },
-          "total_amount_vnd": {
-            "title": "Total Amount Vnd",
-            "type": "integer"
-          },
-          "tracking": {
-            "items": {
-              "$ref": "#/components/schemas/OrderTrackingOut"
-            },
-            "title": "Tracking",
-            "type": "array"
-          },
-          "user_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User Id"
-          }
-        },
-        "required": [
-          "order_id",
-          "order_code",
-          "current_status",
-          "recipient_name",
-          "recipient_phone",
-          "delivery_address",
-          "total_amount_vnd",
-          "created_at",
-          "user_id",
-          "promised_at",
-          "payment_method",
-          "delivery_fee_vnd",
-          "delivery_reference",
-          "items",
-          "tracking"
-        ],
-        "title": "OrderDetailOut",
-        "type": "object"
-      },
-      "OrderItemOptionOut": {
-        "properties": {
-          "group_name": {
-            "title": "Group Name",
-            "type": "string"
-          },
-          "id": {
-            "title": "Id",
-            "type": "integer"
-          },
-          "option_name": {
-            "title": "Option Name",
-            "type": "string"
-          },
-          "price_delta_vnd": {
-            "title": "Price Delta Vnd",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "group_name",
-          "option_name",
-          "price_delta_vnd"
-        ],
-        "title": "OrderItemOptionOut",
-        "type": "object"
-      },
-      "OrderItemOut": {
-        "properties": {
-          "combo_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Combo Id"
-          },
-          "display_name": {
-            "title": "Display Name",
-            "type": "string"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
-          "options": {
-            "items": {
-              "$ref": "#/components/schemas/OrderItemOptionOut"
-            },
-            "title": "Options",
-            "type": "array"
-          },
-          "order_item_id": {
-            "title": "Order Item Id",
-            "type": "integer"
-          },
-          "product_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Product Id"
-          },
-          "quantity": {
-            "title": "Quantity",
-            "type": "integer"
-          },
-          "unit_price_vnd": {
-            "title": "Unit Price Vnd",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "order_item_id",
-          "product_id",
-          "combo_id",
-          "display_name",
-          "quantity",
-          "unit_price_vnd",
-          "notes",
-          "options"
-        ],
-        "title": "OrderItemOut",
         "type": "object"
       },
       "OrderSummaryOut": {
@@ -2414,57 +2306,76 @@
         "title": "OrderSummaryOut",
         "type": "object"
       },
-      "OrderTrackingOut": {
+      "PlaceOrderIn": {
         "properties": {
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
+          "address": {
+            "$ref": "#/components/schemas/OrderAddressIn"
           },
-          "note": {
+          "delivery_note": {
             "anyOf": [
               {
+                "maxLength": 255,
                 "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Note"
+            "title": "Delivery Note"
           },
-          "note_source": {
-            "title": "Note Source",
+          "recipient_name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Recipient Name",
+            "type": "string"
+          },
+          "recipient_phone": {
+            "pattern": "^0(3|5|7|8|9)\\d{8}$",
+            "title": "Recipient Phone",
+            "type": "string"
+          },
+          "redeem_points": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Redeem Points",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "recipient_name",
+          "recipient_phone",
+          "address"
+        ],
+        "title": "PlaceOrderIn",
+        "type": "object"
+      },
+      "PlaceOrderOut": {
+        "properties": {
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "promised_at": {
+            "format": "date-time",
+            "title": "Promised At",
             "type": "string"
           },
           "status": {
             "title": "Status",
             "type": "string"
           },
-          "tracking_id": {
-            "title": "Tracking Id",
+          "total_vnd": {
+            "title": "Total Vnd",
             "type": "integer"
-          },
-          "updated_by": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Updated By"
           }
         },
         "required": [
-          "tracking_id",
+          "order_code",
+          "total_vnd",
           "status",
-          "note_source",
-          "created_at",
-          "note",
-          "updated_by"
+          "promised_at"
         ],
-        "title": "OrderTrackingOut",
+        "title": "PlaceOrderOut",
         "type": "object"
       },
       "ProductComboItemIn": {
@@ -2812,155 +2723,82 @@
         "title": "RegisterResponse",
         "type": "object"
       },
-      "ReportOverviewOut": {
+      "TrackOut": {
         "properties": {
-          "series": {
-            "items": {
-              "$ref": "#/components/schemas/ReportSeriesOut"
-            },
-            "title": "Series",
-            "type": "array"
-          },
-          "summary": {
-            "$ref": "#/components/schemas/ReportSummaryOut"
-          },
-          "top_items": {
-            "items": {
-              "$ref": "#/components/schemas/ReportTopItemOut"
-            },
-            "title": "Top Items",
-            "type": "array"
-          }
-        },
-        "required": [
-          "summary",
-          "series",
-          "top_items"
-        ],
-        "title": "ReportOverviewOut",
-        "type": "object"
-      },
-      "ReportSeriesOut": {
-        "properties": {
-          "date": {
-            "title": "Date",
+          "address_masked": {
+            "title": "Address Masked",
             "type": "string"
           },
-          "order_count": {
-            "title": "Order Count",
-            "type": "integer"
+          "delivery_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Note"
           },
-          "revenue_vnd": {
-            "title": "Revenue Vnd",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "date",
-          "revenue_vnd",
-          "order_count"
-        ],
-        "title": "ReportSeriesOut",
-        "type": "object"
-      },
-      "ReportSummaryOut": {
-        "properties": {
-          "active_customers": {
-            "title": "Active Customers",
-            "type": "integer"
-          },
-          "avg_order_value_vnd": {
-            "title": "Avg Order Value Vnd",
-            "type": "integer"
-          },
-          "total_orders": {
-            "title": "Total Orders",
-            "type": "integer"
-          },
-          "total_revenue_vnd": {
-            "title": "Total Revenue Vnd",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "total_revenue_vnd",
-          "total_orders",
-          "avg_order_value_vnd",
-          "active_customers"
-        ],
-        "title": "ReportSummaryOut",
-        "type": "object"
-      },
-      "ReportTopItemOut": {
-        "properties": {
-          "name": {
-            "title": "Name",
+          "order_code": {
+            "title": "Order Code",
             "type": "string"
           },
-          "order_count": {
-            "title": "Order Count",
-            "type": "integer"
-          },
-          "revenue_vnd": {
-            "title": "Revenue Vnd",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "name",
-          "order_count",
-          "revenue_vnd"
-        ],
-        "title": "ReportTopItemOut",
-        "type": "object"
-      },
-      "SalesReportRowOut": {
-        "properties": {
-          "date": {
-            "title": "Date",
+          "phone_last4": {
+            "title": "Phone Last4",
             "type": "string"
           },
-          "order_count": {
-            "title": "Order Count",
-            "type": "integer"
+          "promised_at": {
+            "format": "date-time",
+            "title": "Promised At",
+            "type": "string"
           },
-          "revenue_vnd": {
-            "title": "Revenue Vnd",
-            "type": "integer"
+          "recipient_first_name": {
+            "title": "Recipient First Name",
+            "type": "string"
           },
-          "top_items": {
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "timeline": {
             "items": {
-              "$ref": "#/components/schemas/TopItemOut"
+              "$ref": "#/components/schemas/TrackTimelineEntry"
             },
-            "title": "Top Items",
+            "title": "Timeline",
             "type": "array"
           }
         },
         "required": [
-          "date",
-          "order_count",
-          "revenue_vnd",
-          "top_items"
+          "order_code",
+          "status",
+          "timeline",
+          "recipient_first_name",
+          "phone_last4",
+          "address_masked",
+          "delivery_note",
+          "promised_at"
         ],
-        "title": "SalesReportRowOut",
+        "title": "TrackOut",
         "type": "object"
       },
-      "TopItemOut": {
+      "TrackTimelineEntry": {
         "properties": {
-          "count": {
-            "title": "Count",
-            "type": "integer"
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
           },
-          "name": {
-            "title": "Name",
+          "status": {
+            "title": "Status",
             "type": "string"
           }
         },
         "required": [
-          "name",
-          "count"
+          "status",
+          "at"
         ],
-        "title": "TopItemOut",
+        "title": "TrackTimelineEntry",
         "type": "object"
       },
       "UpdateProfileRequest": {
@@ -3536,68 +3374,6 @@
                 }
               ],
               "title": "Q"
-            }
-          },
-          {
-            "in": "query",
-            "name": "tier",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/MembershipTier"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Tier"
-            }
-          },
-          {
-            "in": "query",
-            "name": "locked",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Locked"
-            }
-          },
-          {
-            "in": "query",
-            "name": "sort_by",
-            "required": false,
-            "schema": {
-              "default": "points",
-              "enum": [
-                "tier",
-                "points",
-                "orders",
-                "name"
-              ],
-              "title": "Sort By",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "sort_dir",
-            "required": false,
-            "schema": {
-              "default": "desc",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "title": "Sort Dir",
-              "type": "string"
             }
           },
           {
@@ -4536,40 +4312,6 @@
           },
           {
             "in": "query",
-            "name": "from",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "format": "date",
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "From"
-            }
-          },
-          {
-            "in": "query",
-            "name": "to",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "format": "date",
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "To"
-            }
-          },
-          {
-            "in": "query",
             "name": "page",
             "required": false,
             "schema": {
@@ -4643,7 +4385,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrderDetailOut"
+                  "$ref": "#/components/schemas/OrderSummaryOut"
                 }
               }
             },
@@ -4744,144 +4486,6 @@
         "summary": "Retry Dispatch",
         "tags": [
           "admin-orders"
-        ]
-      }
-    },
-    "/api/admin/reports/overview": {
-      "get": {
-        "operationId": "sales_overview_api_admin_reports_overview_get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "from",
-            "required": true,
-            "schema": {
-              "format": "date",
-              "title": "From",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "to",
-            "required": true,
-            "schema": {
-              "format": "date",
-              "title": "To",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReportOverviewOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Sales Overview",
-        "tags": [
-          "admin-reports"
-        ]
-      }
-    },
-    "/api/admin/reports/sales": {
-      "get": {
-        "operationId": "sales_report_api_admin_reports_sales_get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "from",
-            "required": true,
-            "schema": {
-              "format": "date",
-              "title": "From",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "to",
-            "required": true,
-            "schema": {
-              "format": "date",
-              "title": "To",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "group_by",
-            "required": false,
-            "schema": {
-              "default": "day",
-              "enum": [
-                "day",
-                "week"
-              ],
-              "title": "Group By",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "format",
-            "required": false,
-            "schema": {
-              "default": "json",
-              "enum": [
-                "json",
-                "csv"
-              ],
-              "title": "Format",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/SalesReportRowOut"
-                  },
-                  "title": "Response Sales Report Api Admin Reports Sales Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Sales Report",
-        "tags": [
-          "admin-reports"
         ]
       }
     },
@@ -5045,6 +4649,235 @@
         "summary": "Register",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/cart": {
+      "delete": {
+        "operationId": "clear_cart_api_cart_delete",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Clear Cart",
+        "tags": [
+          "cart"
+        ]
+      },
+      "get": {
+        "operationId": "get_cart_api_cart_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Cart",
+        "tags": [
+          "cart"
+        ]
+      }
+    },
+    "/api/cart/checkout-quote": {
+      "post": {
+        "operationId": "checkout_quote_api_cart_checkout_quote_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutQuoteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartQuoteOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Checkout Quote",
+        "tags": [
+          "cart"
+        ]
+      }
+    },
+    "/api/cart/lines": {
+      "post": {
+        "operationId": "add_cart_line_api_cart_lines_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "combo": "#/components/schemas/AddComboLineIn",
+                    "item": "#/components/schemas/AddItemLineIn"
+                  },
+                  "propertyName": "kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/AddItemLineIn"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AddComboLineIn"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Cart Line",
+        "tags": [
+          "cart"
+        ]
+      }
+    },
+    "/api/cart/lines/{line_id}": {
+      "delete": {
+        "operationId": "delete_cart_line_api_cart_lines__line_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "line_id",
+            "required": true,
+            "schema": {
+              "title": "Line Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Cart Line",
+        "tags": [
+          "cart"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_cart_line_api_cart_lines__line_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "line_id",
+            "required": true,
+            "schema": {
+              "title": "Line Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CartLineNoteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Cart Line",
+        "tags": [
+          "cart"
         ]
       }
     },
@@ -5336,6 +5169,89 @@
         "summary": "Loyalty Me",
         "tags": [
           "loyalty"
+        ]
+      }
+    },
+    "/api/orders": {
+      "post": {
+        "operationId": "place_order_api_orders_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceOrderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceOrderOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Place Order",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/api/orders/track/{code}": {
+      "get": {
+        "operationId": "track_order_api_orders_track__code__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "title": "Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Track Order",
+        "tags": [
+          "orders"
         ]
       }
     },

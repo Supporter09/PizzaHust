@@ -1,7 +1,7 @@
 """add order_tracking.note_source for phase-linked feedback tags
 
-Revision ID: 0005_order_tracking_note_source
-Revises: 0005_generic_options
+Revision ID: 0009_order_tracking_note_source
+Revises: 0008_order_notes_and_combo_picks
 Create Date: 2026-06-11 00:00:00.000000
 """
 
@@ -10,8 +10,8 @@ from __future__ import annotations
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0005_order_tracking_note_source"
-down_revision = "0005_generic_options"
+revision = "0009_order_tracking_note_source"
+down_revision = "0008_order_notes_and_combo_picks"
 branch_labels = None
 depends_on = None
 

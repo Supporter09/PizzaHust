@@ -85,3 +85,38 @@ async def enforce_auth_rate_limit(
             message="Too many requests. Please try again later.",
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
         )
+
+
+_track_limiter: InMemoryRateLimiter | None = None
+_track_limiter_limit: int | None = None
+
+
+def reset_track_rate_limiter() -> None:
+    global _track_limiter
+    global _track_limiter_limit
+    _track_limiter = None
+    _track_limiter_limit = None
+
+
+def _get_track_limiter(limit: int) -> InMemoryRateLimiter:
+    global _track_limiter
+    global _track_limiter_limit
+
+    if _track_limiter is None or _track_limiter_limit != limit:
+        _track_limiter = InMemoryRateLimiter(limit=limit, window_seconds=60)
+        _track_limiter_limit = limit
+    return _track_limiter
+
+
+async def enforce_track_rate_limit(
+    request: Request,
+    settings: Annotated[Settings, Depends(get_settings_dependency)],
+) -> None:
+    limiter = _get_track_limiter(settings.track_rate_limit_per_minute)
+    key = f"track:{_client_ip(request)}"
+    if not limiter.allow(key):
+        raise APIError(
+            code="RATE_LIMITED",
+            message="Too many requests. Please try again later.",
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        )

@@ -4,6 +4,7 @@ from datetime import datetime
 from enum import Enum, StrEnum
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     CheckConstraint,
     DateTime,
@@ -289,6 +290,8 @@ class Order(Base):
     recipient_name: Mapped[str] = mapped_column(String(100), nullable=False)
     recipient_phone: Mapped[str] = mapped_column(String(15), nullable=False)
     delivery_address: Mapped[str] = mapped_column(String(255), nullable=False)
+    delivery_ward: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    delivery_note: Mapped[str | None] = mapped_column(String(255), nullable=True)
     total_amount_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
     delivery_fee_vnd: Mapped[int] = mapped_column(
         Integer,
@@ -342,6 +345,9 @@ class OrderItem(Base):
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.order_id"), nullable=False)
     product_id: Mapped[int | None] = mapped_column(ForeignKey("products.product_id"), nullable=True)
     combo_id: Mapped[int | None] = mapped_column(ForeignKey("combos.combo_id"), nullable=True)
+    parent_order_item_id: Mapped[int | None] = mapped_column(
+        ForeignKey("order_items.order_item_id"), nullable=True
+    )
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
     unit_price_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
     notes: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -349,6 +355,10 @@ class OrderItem(Base):
     order: Mapped[Order] = relationship(back_populates="items")
     product: Mapped[Product | None] = relationship(back_populates="order_items")
     combo: Mapped[Combo | None] = relationship(back_populates="order_items")
+    parent: Mapped[OrderItem | None] = relationship(
+        back_populates="children", remote_side="OrderItem.order_item_id"
+    )
+    children: Mapped[list[OrderItem]] = relationship(back_populates="parent")
     options: Mapped[list[OrderItemOption]] = relationship(
         back_populates="order_item",
         cascade="all, delete-orphan",
@@ -367,6 +377,43 @@ class WebhookEvent(Base):
         nullable=False,
         server_default=func.now(),
     )
+
+
+class Cart(Base):
+    __tablename__ = "carts"
+    __table_args__ = (Index("ix_carts_user_id", "user_id", unique=True),)
+
+    cart_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.user_id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False), nullable=False, server_default=func.now()
+    )
+    touched_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False)
+
+    lines: Mapped[list[CartLine]] = relationship(
+        back_populates="cart", cascade="all, delete-orphan", order_by="CartLine.line_id"
+    )
+
+
+class CartLine(Base):
+    __tablename__ = "cart_lines"
+    __table_args__ = (
+        CheckConstraint("quantity >= 1 AND quantity <= 99", name="ck_cart_lines_quantity_range"),
+        Index("ix_cart_lines_cart_id", "cart_id"),
+    )
+
+    line_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    cart_id: Mapped[int] = mapped_column(
+        ForeignKey("carts.cart_id", ondelete="CASCADE"), nullable=False
+    )
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
+    note: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False), nullable=False, server_default=func.now()
+    )
+
+    cart: Mapped[Cart] = relationship(back_populates="lines")
 
 
 class OrderTracking(Base):
