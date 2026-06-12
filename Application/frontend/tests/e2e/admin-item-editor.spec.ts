@@ -12,14 +12,15 @@ async function loginAsAdmin(page: Page) {
 async function openMargheritaEditor(page: Page) {
   await page.goto(`${E2E_BASE_URL}/admin/items`);
   await page.getByRole("link", { name: "Margherita Classic" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Margherita Classic", exact: true }),
-  ).toBeVisible();
+  // Editor heading is "Edit Dish"; the item name renders as the subtitle.
+  await expect(page.getByRole("heading", { name: "Edit Dish", exact: true })).toBeVisible();
+  await expect(page.getByText(/Margherita Classic ·/)).toBeVisible();
 }
 
 async function openMargheritaCustomizer(page: Page) {
   await page.goto(`${E2E_BASE_URL}/menu`);
-  await page.getByRole("link", { name: /Margherita Classic/ }).click();
+  // Cards expose two links (cover + title) with the same accessible name.
+  await page.getByRole("link", { name: /Margherita Classic/ }).first().click();
   await expect(page.getByRole("heading", { name: "Margherita Classic" })).toBeVisible();
 }
 
