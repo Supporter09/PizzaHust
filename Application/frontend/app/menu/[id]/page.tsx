@@ -129,6 +129,7 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="self-start overflow-hidden rounded-2xl border border-line bg-card">
             {item.image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={item.image_url}
                 alt={item.name}
@@ -141,12 +142,7 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
           </div>
 
           <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold text-fg">{item.name}</h1>
-              {item.description ? (
-                <p className="mt-2 text-muted">{item.description}</p>
-              ) : null}
-            </div>
+            <h1 className="text-3xl font-bold text-fg">{item.name}</h1>
 
             {item.option_groups.map((g) => (
               <div key={g.group_id} className="space-y-2.5">
