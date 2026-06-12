@@ -26,6 +26,7 @@ test.describe("Happy path", () => {
   // FUTURE(U-register): register currently redirects to /login (no auto-login),
   // but register() waits for /menu|/. Revisit when the register→menu flow exists.
   test.fixme("01 – register new account", async ({ page }) => {
+    // U8: register auto-logs-in to /account; revisit when happy-path spine is wired.
     await register(page);
     await expect(page).not.toHaveURL(/register/);
   });
@@ -51,7 +52,7 @@ test.describe("Happy path", () => {
     await page.getByLabel(/password/i).fill("demo1234");
     const [res] = await Promise.all([
       page.waitForResponse((r) => r.url().includes("/api/auth/login")),
-      page.getByRole("button", { name: /login/i }).click(),
+      page.getByRole("button", { name: "Sign In" }).click(),
     ]);
     // The seed account may or may not exist, but the response must be definitive.
     expect([200, 401]).toContain(res.status());
