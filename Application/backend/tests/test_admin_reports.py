@@ -13,6 +13,7 @@ from uuid import uuid4
 from app.api.admin.reports import sales_overview, sales_report
 from app.infra.db.models import Category, Order, OrderItem, OrderStatus, Product, User, UserRole
 from app.infra.db.session import create_session_factory
+from tests.admin_test_utils import admin_client
 from tests.auth_test_utils import build_test_app
 
 
@@ -204,3 +205,15 @@ def test_sales_report_keeps_json_and_csv_contracts() -> None:
     assert csv_response.media_type == "text/csv"
     assert "date,order_count,revenue_vnd,top_items" in csv_response.body.decode()
     assert "2026-06-12,1,220000,Hawaiian:2" in csv_response.body.decode()
+
+
+def test_reports_reject_reversed_date_window() -> None:
+    client = admin_client("reports-window")
+
+    sales = client.get("/api/admin/reports/sales?from=2026-06-12&to=2026-06-10")
+    overview = client.get("/api/admin/reports/overview?from=2026-06-12&to=2026-06-10")
+
+    assert sales.status_code == 400
+    assert "VALIDATION_FAILED" in sales.text
+    assert overview.status_code == 400
+    assert "VALIDATION_FAILED" in overview.text

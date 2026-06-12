@@ -8,7 +8,7 @@ from collections import Counter, defaultdict
 from datetime import date, datetime, time, timedelta
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
@@ -59,6 +59,8 @@ class ReportOverviewOut(BaseModel):
 
 
 def _date_bounds(start: date, end: date) -> tuple[datetime, datetime]:
+    if start > end:
+        raise HTTPException(status_code=400, detail="VALIDATION_FAILED")
     return (
         datetime.combine(start, time.min),
         datetime.combine(end + timedelta(days=1), time.min),
