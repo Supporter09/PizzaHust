@@ -97,9 +97,12 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
   }, [item, selections, quantity]);
 
   return (
-    <section className="space-y-6">
-      <Link href="/menu" className="text-sm font-medium text-brand hover:underline">
-        ← Back to Menu
+    <section className="space-y-8">
+      <Link
+        href="/menu"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline"
+      >
+        <span aria-hidden="true">←</span> Back to Menu
       </Link>
 
       {status === "loading" ? (

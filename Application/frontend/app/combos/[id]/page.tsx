@@ -47,9 +47,12 @@ export default function ComboCustomizePage({ params }: { params: Promise<{ id: s
   }, [load]);
 
   return (
-    <section className="space-y-6">
-      <Link href="/combos" className="text-sm font-medium text-brand hover:underline">
-        ← Back to Combos
+    <section className="space-y-8">
+      <Link
+        href="/combos"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline"
+      >
+        <span aria-hidden="true">←</span> Back to Combos
       </Link>
 
       {status === "loading" ? (
