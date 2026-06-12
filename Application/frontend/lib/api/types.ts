@@ -398,6 +398,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/reports/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sales Overview */
+        get: operations["sales_overview_api_admin_reports_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/reports/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sales Report */
+        get: operations["sales_report_api_admin_reports_sales_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/login": {
         parameters: {
             query?: never;
@@ -1110,6 +1144,13 @@ export interface components {
         CustomerDetailOut: {
             /** Address */
             address: string | null;
+            /** Benefits */
+            benefits: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
             /** Current Points */
             current_points: number;
             /** Email */
@@ -1118,17 +1159,74 @@ export interface components {
             full_name: string;
             /** Is Locked */
             is_locked: boolean;
+            /** Last Order At */
+            last_order_at: string | null;
+            loyalty: components["schemas"]["CustomerLoyaltyOut"];
             /** Membership Tier */
             membership_tier: string;
             /** Order Count */
             order_count: number;
             /** Phone Number */
             phone_number: string;
+            /** Recent Orders */
+            recent_orders: components["schemas"]["CustomerOrderOut"][];
+            stats: components["schemas"]["CustomerStatsOut"];
+            /** Top Orders */
+            top_orders: components["schemas"]["CustomerOrderOut"][];
+            /** Total Points Earned */
+            total_points_earned: number;
+            /** Total Spend Vnd */
+            total_spend_vnd: number;
             /** User Id */
             user_id: number;
         };
+        /** CustomerLoyaltyOut */
+        CustomerLoyaltyOut: {
+            /** Accrual Rate Vnd */
+            accrual_rate_vnd: number;
+            /** Current Balance Value Vnd */
+            current_balance_value_vnd: number;
+            /** Current Points */
+            current_points: number;
+            /** Max Redeem Pct */
+            max_redeem_pct: number;
+            /** Membership Tier */
+            membership_tier: string;
+            /** Redeem Value Vnd */
+            redeem_value_vnd: number;
+            /** Total Points Earned */
+            total_points_earned: number;
+        };
+        /** CustomerOrderOut */
+        CustomerOrderOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Current Status */
+            current_status: string;
+            /** Delivery Address */
+            delivery_address: string;
+            /** Order Code */
+            order_code: string;
+            /** Order Id */
+            order_id: number;
+            /**
+             * Promised At
+             * Format: date-time
+             */
+            promised_at: string;
+            /** Total Amount Vnd */
+            total_amount_vnd: number;
+        };
         /** CustomerOut */
         CustomerOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
             /** Current Points */
             current_points: number;
             /** Email */
@@ -1137,14 +1235,33 @@ export interface components {
             full_name: string;
             /** Is Locked */
             is_locked: boolean;
+            /** Last Order At */
+            last_order_at: string | null;
             /** Membership Tier */
             membership_tier: string;
             /** Order Count */
             order_count: number;
             /** Phone Number */
             phone_number: string;
+            /** Total Points Earned */
+            total_points_earned: number;
+            /** Total Spend Vnd */
+            total_spend_vnd: number;
             /** User Id */
             user_id: number;
+        };
+        /** CustomerStatsOut */
+        CustomerStatsOut: {
+            /** Average Order Value Vnd */
+            average_order_value_vnd: number;
+            /** Delivered Orders */
+            delivered_orders: number;
+            /** Last Order At */
+            last_order_at: string | null;
+            /** Total Orders */
+            total_orders: number;
+            /** Total Spend Vnd */
+            total_spend_vnd: number;
         };
         /** DeliveryConfigOut */
         DeliveryConfigOut: {
@@ -1354,6 +1471,11 @@ export interface components {
             csrf_token: string;
             user: components["schemas"]["AuthUserDTO"];
         };
+        /**
+         * MembershipTier
+         * @enum {string}
+         */
+        MembershipTier: "standard" | "silver" | "gold";
         /** MenuCategoryOut */
         MenuCategoryOut: {
             /** Category Id */
@@ -1485,6 +1607,77 @@ export interface components {
             /** Reason */
             reason?: string | null;
         };
+        /** OrderDetailOut */
+        OrderDetailOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Current Status */
+            current_status: string;
+            /** Delivery Address */
+            delivery_address: string;
+            /** Delivery Fee Vnd */
+            delivery_fee_vnd: number;
+            /** Delivery Reference */
+            delivery_reference: string | null;
+            /** Item Count */
+            item_count: number;
+            /** Items */
+            items: components["schemas"]["OrderItemOut"][];
+            /** Order Code */
+            order_code: string;
+            /** Order Id */
+            order_id: number;
+            /** Payment Method */
+            payment_method: string;
+            /**
+             * Promised At
+             * Format: date-time
+             */
+            promised_at: string;
+            /** Recipient Name */
+            recipient_name: string;
+            /** Recipient Phone */
+            recipient_phone: string;
+            /** Total Amount Vnd */
+            total_amount_vnd: number;
+            /** Tracking */
+            tracking: components["schemas"]["OrderTrackingOut"][];
+            /** User Id */
+            user_id: number | null;
+        };
+        /** OrderItemOptionOut */
+        OrderItemOptionOut: {
+            /** Group Name */
+            group_name: string;
+            /** Id */
+            id: number;
+            /** Option Name */
+            option_name: string;
+            /** Price Delta Vnd */
+            price_delta_vnd: number;
+        };
+        /** OrderItemOut */
+        OrderItemOut: {
+            /** Combo Id */
+            combo_id: number | null;
+            /** Display Name */
+            display_name: string;
+            /** Notes */
+            notes: string | null;
+            /** Options */
+            options: components["schemas"]["OrderItemOptionOut"][];
+            /** Order Item Id */
+            order_item_id: number;
+            /** Product Id */
+            product_id: number | null;
+            /** Quantity */
+            quantity: number;
+            /** Unit Price Vnd */
+            unit_price_vnd: number;
+        };
         /** OrderSummaryOut */
         OrderSummaryOut: {
             /**
@@ -1496,6 +1689,8 @@ export interface components {
             current_status: string;
             /** Delivery Address */
             delivery_address: string;
+            /** Item Count */
+            item_count: number;
             /** Order Code */
             order_code: string;
             /** Order Id */
@@ -1508,6 +1703,24 @@ export interface components {
             total_amount_vnd: number;
             /** User Id */
             user_id: number | null;
+        };
+        /** OrderTrackingOut */
+        OrderTrackingOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Note */
+            note: string | null;
+            /** Note Source */
+            note_source: string;
+            /** Status */
+            status: string;
+            /** Tracking Id */
+            tracking_id: number;
+            /** Updated By */
+            updated_by: number | null;
         };
         /** PlaceOrderIn */
         PlaceOrderIn: {
@@ -1645,6 +1858,61 @@ export interface components {
         /** RegisterResponse */
         RegisterResponse: {
             user: components["schemas"]["AuthUserDTO"];
+        };
+        /** ReportOverviewOut */
+        ReportOverviewOut: {
+            /** Series */
+            series: components["schemas"]["ReportSeriesOut"][];
+            summary: components["schemas"]["ReportSummaryOut"];
+            /** Top Items */
+            top_items: components["schemas"]["ReportTopItemOut"][];
+        };
+        /** ReportSeriesOut */
+        ReportSeriesOut: {
+            /** Date */
+            date: string;
+            /** Order Count */
+            order_count: number;
+            /** Revenue Vnd */
+            revenue_vnd: number;
+        };
+        /** ReportSummaryOut */
+        ReportSummaryOut: {
+            /** Active Customers */
+            active_customers: number;
+            /** Avg Order Value Vnd */
+            avg_order_value_vnd: number;
+            /** Total Orders */
+            total_orders: number;
+            /** Total Revenue Vnd */
+            total_revenue_vnd: number;
+        };
+        /** ReportTopItemOut */
+        ReportTopItemOut: {
+            /** Name */
+            name: string;
+            /** Order Count */
+            order_count: number;
+            /** Revenue Vnd */
+            revenue_vnd: number;
+        };
+        /** SalesReportRowOut */
+        SalesReportRowOut: {
+            /** Date */
+            date: string;
+            /** Order Count */
+            order_count: number;
+            /** Revenue Vnd */
+            revenue_vnd: number;
+            /** Top Items */
+            top_items: components["schemas"]["TopItemOut"][];
+        };
+        /** TopItemOut */
+        TopItemOut: {
+            /** Count */
+            count: number;
+            /** Name */
+            name: string;
         };
         /** TrackOut */
         TrackOut: {
@@ -2078,6 +2346,10 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string | null;
+                tier?: components["schemas"]["MembershipTier"] | null;
+                locked?: boolean | null;
+                sort_by?: "tier" | "points" | "orders" | "name";
+                sort_dir?: "asc" | "desc";
                 page?: number;
                 page_size?: number;
             };
@@ -2717,6 +2989,9 @@ export interface operations {
         parameters: {
             query?: {
                 status?: string | null;
+                q?: string | null;
+                from?: string | null;
+                to?: string | null;
                 page?: number;
                 page_size?: number;
             };
@@ -2763,7 +3038,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OrderSummaryOut"];
+                    "application/json": components["schemas"]["OrderDetailOut"];
                 };
             };
             /** @description Validation Error */
@@ -2827,6 +3102,72 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sales_overview_api_admin_reports_overview_get: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOverviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sales_report_api_admin_reports_sales_get: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                group_by?: "day" | "week";
+                format?: "json" | "csv";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesReportRowOut"][];
+                };
             };
             /** @description Validation Error */
             422: {
