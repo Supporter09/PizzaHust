@@ -1,21 +1,19 @@
 # session-handoff.md
 
-**Current state:** `U8` Register — **done** on branch `u8-register` (ready for your review; PR to `main` next).
+**Current state:** `U9` Log In — **done** on branch `u9-login` (ready for review; PR to `main` next).
 
-**Resume command (after merge — start U9):**
+**Resume command (after merge — start U5):**
 
 ```bash
 cd Application && ./init.sh && docker compose up -d backend frontend
-git checkout main && git pull && git checkout -b u9-login
-# Mark U9 in-progress in feature_list.json, then Task 2.1 per plan
+git checkout main && git pull && git checkout -b u5-manage-cart
+# Mark U5 in-progress in feature_list.json; plan Task 3.1 canonical cart payload
 ```
 
-**State:** Tabbed `AuthCard` on `/login` and `/register` (Suspense + `useSearchParams`). Register chains auto-login → `/account` (or safe `returnTo`). `sanitizeReturnTo` in `lib/sanitize-return-to.ts`. `login()` returns `SessionUser` for role redirects.
+**State:** `AuthCard` login errors (429/403/401). `auth-login.spec.ts` green. U8+U9 auth UX complete (no backend auth changes).
 
-**Next feature:** `U9` Log In (`depends_on`: infra-004) — login error states (429/403), `returnTo` e2e on branch `u9-login`. **Pause here until U8 branch is reviewed.**
+**Next feature:** `U5` Manage Cart (`depends_on`: U3 ✅, U4 ✅) — server cart, merge-on-login, CartProvider, `/cart` page. **Pause until U9 branch reviewed.**
 
-**Blockers:** None for U9 (frontend-only on existing auth API).
+**Blockers:** None.
 
-**Follow-ups (non-blocking):**
-- Code review: AuthCard tab ARIA wiring; consider `AuthUserDTO` from generated types instead of `SessionUser`.
-- Mockup fidelity shots: capture `Design/auth.html` vs `/register` (register tab) at 1440×1000 + 390×844 light/dark under `docs/superpowers/` if not already done.
+**Follow-ups:** Mockup diff `Design/auth.html` sign-in tab (CLOSE-OUT screenshots, not committed).

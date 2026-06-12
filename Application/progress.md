@@ -418,3 +418,18 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 **Next**
 - Human review of `u8-register`; then U9 on `u9-login` per plan.
+
+---
+
+## 2026-06-12 — U9 Log In (branch `u9-login`)
+
+**Done**
+- Login tab: 429 / 403 / 401 copy per plan; generic sign-in failure message.
+- E2E `auth-login.spec.ts`: wrong credentials + `returnTo=//evil.com` → `/account` fallback.
+- Context7: post-login `router.replace` aligns with auth redirect guidance.
+
+**Verified**
+- `./verify.sh` exit 0 at `ff5bdcb`, `2026-06-12T12:47:08Z` (24 e2e passed).
+
+**Next**
+- Review `u9-login`; then U5 `u5-manage-cart` (backend cart spine).

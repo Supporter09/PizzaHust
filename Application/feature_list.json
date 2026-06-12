@@ -183,9 +183,9 @@
       "depends_on": [
         "infra-004"
       ],
-      "status": "in-progress",
+      "status": "done",
       "owner": "Hoang",
-      "evidence": ""
+      "evidence": "verify.sh green at ff5bdcb91ab0151c0a0a99e768c39b750d7e4b2f, 2026-06-12T12:47:08Z"
     },
     {
       "id": "U11",
