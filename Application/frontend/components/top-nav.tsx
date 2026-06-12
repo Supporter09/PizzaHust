@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useAuth } from "@/components/auth-provider";
+import { useCart } from "@/components/cart-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const LINKS = [
@@ -94,6 +95,9 @@ export function TopNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
+  const { itemCount } = useCart();
+  const cartLabel =
+    itemCount > 0 ? `Cart, ${itemCount} items` : "Cart";
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -120,16 +124,19 @@ export function TopNav() {
 
         <div className="hidden items-center gap-1 sm:flex">
           <ThemeToggle />
-          {/* Cart is a later use case (U5/U6) — present but disabled, like the card quick-adds. */}
-          <button
-            type="button"
-            disabled
-            title="Cart coming soon"
-            aria-label="Cart — coming soon"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-muted opacity-50"
+          <Link
+            href="/cart"
+            title={cartLabel}
+            aria-label={cartLabel}
+            className="relative inline-flex h-11 w-11 items-center justify-center rounded-full text-fg hover:bg-surface-hover"
           >
             <CartIcon />
-          </button>
+            {itemCount > 0 ? (
+              <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-[11px] font-bold text-on-brand">
+                {itemCount > 99 ? "99+" : itemCount}
+              </span>
+            ) : null}
+          </Link>
           <Link
             href={accountHref}
             title={accountLabel}
