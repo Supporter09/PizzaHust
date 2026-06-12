@@ -186,6 +186,14 @@ export function TopNav() {
             </Link>
           ))}
           <Link
+            href="/cart"
+            aria-label={cartLabel}
+            className={`${pathname === "/cart" ? "font-semibold text-brand-fg" : "text-muted"} py-3 hover:text-brand-fg`}
+            onClick={() => setMenuOpen(false)}
+          >
+            Cart{itemCount > 0 ? ` (${itemCount > 99 ? "99+" : itemCount})` : ""}
+          </Link>
+          <Link
             href={accountHref}
             className="py-3 text-muted hover:text-brand-fg"
             onClick={() => setMenuOpen(false)}
