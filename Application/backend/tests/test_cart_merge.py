@@ -2,7 +2,13 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from tests.admin_test_utils import enable_option, new_category, new_option, new_option_group, new_product
+from tests.admin_test_utils import (
+    enable_option,
+    new_category,
+    new_option,
+    new_option_group,
+    new_product,
+)
 from tests.auth_test_utils import build_test_app
 
 
@@ -52,7 +58,10 @@ def test_login_merges_guest_into_existing_account_cart_with_qty_sum():
     app, pid, m = _fixture("merge-sum")
     client_a = TestClient(app)
     _register(client_a, "0922222222")
-    client_a.post("/api/auth/login", json={"phone_number": "0922222222", "password": "secret-pass-1"})
+    client_a.post(
+        "/api/auth/login",
+        json={"phone_number": "0922222222", "password": "secret-pass-1"},
+    )
     _guest_add(client_a, pid, m, qty=1)
     client_a.post(
         "/api/auth/logout",
@@ -60,7 +69,10 @@ def test_login_merges_guest_into_existing_account_cart_with_qty_sum():
     )
 
     _guest_add(client_a, pid, m, qty=2)
-    client_a.post("/api/auth/login", json={"phone_number": "0922222222", "password": "secret-pass-1"})
+    client_a.post(
+        "/api/auth/login",
+        json={"phone_number": "0922222222", "password": "secret-pass-1"},
+    )
     body = client_a.get("/api/cart").json()
     assert len(body["lines"]) == 1
     assert body["lines"][0]["quantity"] == 3

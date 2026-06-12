@@ -23,9 +23,7 @@ def load_cart(db: Session, request: Request) -> Cart | None:
     session = read_session(request)
     if session.user_id is not None:
         return db.scalar(
-            select(Cart)
-            .where(Cart.user_id == session.user_id)
-            .options(selectinload(Cart.lines))
+            select(Cart).where(Cart.user_id == session.user_id).options(selectinload(Cart.lines))
         )
     cart_id = read_cart_id(request)
     if cart_id is None:

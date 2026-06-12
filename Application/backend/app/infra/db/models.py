@@ -4,13 +4,13 @@ from datetime import datetime
 from enum import Enum, StrEnum
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     CheckConstraint,
     DateTime,
     ForeignKey,
     Index,
     Integer,
-    JSON,
     String,
     Text,
     UniqueConstraint,
@@ -378,7 +378,9 @@ class CartLine(Base):
     __table_args__ = (Index("ix_cart_lines_cart_id", "cart_id"),)
 
     line_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    cart_id: Mapped[int] = mapped_column(ForeignKey("carts.cart_id", ondelete="CASCADE"), nullable=False)
+    cart_id: Mapped[int] = mapped_column(
+        ForeignKey("carts.cart_id", ondelete="CASCADE"), nullable=False
+    )
     payload: Mapped[dict] = mapped_column(JSON, nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
     note: Mapped[str | None] = mapped_column(String(255), nullable=True)
