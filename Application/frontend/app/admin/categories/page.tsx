@@ -19,6 +19,9 @@ export default function CategoriesPage() {
   const [editActive, setEditActive] = useState(true);
   const [busy, setBusy] = useState(false);
   const [confirmId, setConfirmId] = useState<number | null>(null);
+  // Create form is hidden by default so the list is the default view; the
+  // top-right "Add Category" button toggles it open.
+  const [showForm, setShowForm] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -46,12 +49,14 @@ export default function CategoriesPage() {
     setForm(EMPTY);
     setEditingId(null);
     setEditActive(true);
+    setShowForm(false);
   }
 
   function startEdit(c: CategoryOut) {
     setEditingId(c.category_id);
     setEditActive(c.is_active);
     setForm({ name: c.name, description: c.description ?? "" });
+    setShowForm(true);
   }
 
   async function submit(e: React.FormEvent) {
@@ -126,9 +131,36 @@ export default function CategoriesPage() {
   return (
     <div>
       <Breadcrumb items={[{ label: "Admin", href: "/admin" }, { label: "Categories" }]} />
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-fg">Categories</h1>
-        <span className="text-sm text-muted">{cats.length} categories</span>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-fg">Menu Categories</h1>
+          <p className="mt-1 text-sm text-muted">
+            Organize how items are grouped on the customer menu.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (showForm) {
+              resetForm();
+            } else {
+              setShowForm(true);
+            }
+          }}
+          aria-expanded={showForm}
+          className="inline-flex h-11 shrink-0 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+        >
+          <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4">
+            <path
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              d="M10 4v12M4 10h12"
+            />
+          </svg>
+          Add Category
+        </button>
       </div>
 
       {error && (
@@ -137,46 +169,46 @@ export default function CategoriesPage() {
         </div>
       )}
 
-      <form
-        onSubmit={submit}
-        className="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-line bg-card p-4 sm:grid-cols-3"
-      >
-        <div>
-          <label className="mb-1 block text-xs font-medium text-muted">Name</label>
-          <input
-            required
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
-          />
-        </div>
-        <div className="sm:col-span-2">
-          <label className="mb-1 block text-xs font-medium text-muted">Description</label>
-          <input
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
-          />
-        </div>
-        <div className="flex items-center gap-3 sm:col-span-3">
-          {editingId !== null && (
-            <label className="flex items-center gap-2 text-sm text-fg">
-              <input
-                type="checkbox"
-                checked={editActive}
-                onChange={(e) => setEditActive(e.target.checked)}
-              />
-              Active
-            </label>
-          )}
-          <button
-            type="submit"
-            disabled={busy}
-            className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50"
-          >
-            {editingId === null ? "Add category" : "Save changes"}
-          </button>
-          {editingId !== null && (
+      {showForm && (
+        <form
+          onSubmit={submit}
+          className="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-line bg-card p-4 sm:grid-cols-3"
+        >
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted">Name</label>
+            <input
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-xs font-medium text-muted">Description</label>
+            <input
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
+            />
+          </div>
+          <div className="flex items-center gap-3 sm:col-span-3">
+            {editingId !== null && (
+              <label className="flex items-center gap-2 text-sm text-fg">
+                <input
+                  type="checkbox"
+                  checked={editActive}
+                  onChange={(e) => setEditActive(e.target.checked)}
+                />
+                Active
+              </label>
+            )}
+            <button
+              type="submit"
+              disabled={busy}
+              className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50"
+            >
+              {editingId === null ? "Add category" : "Save changes"}
+            </button>
             <button
               type="button"
               onClick={resetForm}
@@ -184,9 +216,9 @@ export default function CategoriesPage() {
             >
               Cancel
             </button>
-          )}
-        </div>
-      </form>
+          </div>
+        </form>
+      )}
 
       <div className="overflow-x-auto rounded-xl border border-line bg-card">
         <table className="min-w-full divide-y divide-line text-sm">
@@ -252,25 +284,35 @@ export default function CategoriesPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => startEdit(c)}
-                        className="rounded px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-hover"
+                        aria-label={`Edit ${c.name}`}
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-surface-hover hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                       >
-                        Edit
+                        <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4">
+                          <path
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M13.5 3.5l3 3-9 9H4.5v-3l9-9zM12 5l3 3"
+                          />
+                        </svg>
                       </button>
                       {confirmId === c.category_id ? (
                         <>
                           <button
                             onClick={() => void remove(c.category_id)}
                             disabled={busy}
-                            className="rounded bg-danger-solid px-2.5 py-1 text-xs font-medium text-on-brand hover:opacity-90 disabled:opacity-50"
+                            className="inline-flex h-11 items-center rounded-lg bg-danger-solid px-3 text-xs font-medium text-on-brand hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40"
                           >
                             Confirm
                           </button>
                           <button
                             onClick={() => setConfirmId(null)}
-                            className="rounded px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-hover"
+                            className="inline-flex h-11 items-center rounded-lg px-3 text-xs font-medium text-muted hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                           >
                             Cancel
                           </button>
@@ -278,9 +320,19 @@ export default function CategoriesPage() {
                       ) : (
                         <button
                           onClick={() => setConfirmId(c.category_id)}
-                          className="rounded px-2.5 py-1 text-xs font-medium text-danger hover:bg-danger-subtle"
+                          aria-label={`Delete ${c.name}`}
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-danger hover:bg-danger-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40"
                         >
-                          Delete
+                          <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4">
+                            <path
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.6"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M4 6h12M8 6V4.5h4V6m-6 0v9.5a1 1 0 001 1h6a1 1 0 001-1V6M8.5 9v5M11.5 9v5"
+                            />
+                          </svg>
                         </button>
                       )}
                     </div>
