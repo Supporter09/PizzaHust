@@ -32,6 +32,15 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
 
   // Guards async continuations (incl. Try-again clicks) after unmount.
   const alive = useRef(true);
+  // One toast timer at a time — a stale success timer must not erase a newer message.
+  const addMessageTimer = useRef<number | null>(null);
+  useEffect(() => {
+    return () => {
+      if (addMessageTimer.current !== null) {
+        window.clearTimeout(addMessageTimer.current);
+      }
+    };
+  }, []);
 
   const load = useCallback(() => {
     if (!Number.isInteger(numericId) || numericId < 1) {
@@ -223,6 +232,10 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
                     onClick={async () => {
                       setAdding(true);
                       setAddMessage(null);
+                      if (addMessageTimer.current !== null) {
+                        window.clearTimeout(addMessageTimer.current);
+                        addMessageTimer.current = null;
+                      }
                       try {
                         const trimmed = dishNote.trim();
                         await addLine({
@@ -233,7 +246,7 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
                           note: trimmed.length > 0 ? trimmed : undefined,
                         });
                         setAddMessage("Added to cart");
-                        window.setTimeout(() => setAddMessage(null), 3000);
+                        addMessageTimer.current = window.setTimeout(() => setAddMessage(null), 3000);
                       } catch {
                         setAddMessage("Could not add to cart");
                       } finally {

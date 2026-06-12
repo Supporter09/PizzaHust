@@ -41,7 +41,10 @@ function CartLineNote({
       <button
         type="button"
         className="mt-2 text-xs font-medium text-brand hover:underline"
-        onClick={() => setEditing(true)}
+        onClick={() => {
+          setDraft("");
+          setEditing(true);
+        }}
       >
         Add dish note
       </button>

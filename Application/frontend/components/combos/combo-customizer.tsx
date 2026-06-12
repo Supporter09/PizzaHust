@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useCart } from "@/components/cart-provider";
 import { PickOptions } from "@/components/combos/pick-options";
@@ -40,6 +40,16 @@ export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
   const [adding, setAdding] = useState(false);
   const [addMessage, setAddMessage] = useState<string | null>(null);
   const { addLine } = useCart();
+
+  // One toast timer at a time — a stale success timer must not erase a newer message.
+  const addMessageTimer = useRef<number | null>(null);
+  useEffect(() => {
+    return () => {
+      if (addMessageTimer.current !== null) {
+        window.clearTimeout(addMessageTimer.current);
+      }
+    };
+  }, []);
 
   const ready = isQuoteReady(selections);
   const canQuote = ready && !expired;
@@ -177,15 +187,19 @@ export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
           ) : null}
           <button
             type="button"
-            disabled={!ready || adding}
+            disabled={!ready || adding || selectionIssue}
             className="btn-primary inline-flex h-12 items-center px-6 disabled:cursor-not-allowed disabled:opacity-55"
             onClick={async () => {
               setAdding(true);
               setAddMessage(null);
+              if (addMessageTimer.current !== null) {
+                window.clearTimeout(addMessageTimer.current);
+                addMessageTimer.current = null;
+              }
               try {
                 await addLine(buildComboLine(combo.combo_id, selections, 1));
                 setAddMessage("Added to cart");
-                window.setTimeout(() => setAddMessage(null), 3000);
+                addMessageTimer.current = window.setTimeout(() => setAddMessage(null), 3000);
               } catch {
                 setAddMessage("Could not add to cart");
               } finally {
