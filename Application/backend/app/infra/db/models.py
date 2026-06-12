@@ -10,6 +10,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    JSON,
     String,
     Text,
     UniqueConstraint,
@@ -354,6 +355,38 @@ class WebhookEvent(Base):
         nullable=False,
         server_default=func.now(),
     )
+
+
+class Cart(Base):
+    __tablename__ = "carts"
+    __table_args__ = (Index("ix_carts_user_id", "user_id", unique=True),)
+
+    cart_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.user_id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False), nullable=False, server_default=func.now()
+    )
+    touched_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False)
+
+    lines: Mapped[list[CartLine]] = relationship(
+        back_populates="cart", cascade="all, delete-orphan", order_by="CartLine.line_id"
+    )
+
+
+class CartLine(Base):
+    __tablename__ = "cart_lines"
+    __table_args__ = (Index("ix_cart_lines_cart_id", "cart_id"),)
+
+    line_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    cart_id: Mapped[int] = mapped_column(ForeignKey("carts.cart_id", ondelete="CASCADE"), nullable=False)
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
+    note: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False), nullable=False, server_default=func.now()
+    )
+
+    cart: Mapped[Cart] = relationship(back_populates="lines")
 
 
 class OrderTracking(Base):

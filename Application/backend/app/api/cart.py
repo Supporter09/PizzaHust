@@ -126,7 +126,7 @@ def _combo_not_active() -> APIError:
     )
 
 
-def _pick_option_deltas(db: Session, product: Product, option_ids: list[int]) -> list[int]:
+def pick_option_deltas(db: Session, product: Product, option_ids: list[int]) -> list[int]:
     rows = db.execute(
         select(Option, OptionGroup)
         .join(OptionGroup, Option.group_id == OptionGroup.group_id)
@@ -161,19 +161,19 @@ def _pick_option_deltas(db: Session, product: Product, option_ids: list[int]) ->
     return [deltas_by_id[oid] for oid in selected]
 
 
-def _resolve_item_line(db: Session, line: ItemQuoteLineIn) -> CartLine:
+def resolve_item_line(db: Session, line: ItemQuoteLineIn) -> CartLine:
     product = db.scalar(
         select(Product).where(Product.product_id == line.item_id, Product.is_active.is_(True))
     )
     if product is None:
         raise _bad("Unknown or inactive product.")
 
-    deltas = _pick_option_deltas(db, product, line.option_ids)
+    deltas = pick_option_deltas(db, product, line.option_ids)
     unit = compute_unit_price(base_price_vnd=product.base_price_vnd, option_deltas_vnd=deltas)
     return CartLine(unit_price_vnd=unit, quantity=line.quantity)
 
 
-def _resolve_combo_line(db: Session, line: ComboQuoteLineIn) -> tuple[CartLine, int]:
+def resolve_combo_line(db: Session, line: ComboQuoteLineIn) -> tuple[CartLine, int]:
     """Returns (CartLine for the order-total pipeline, combo discount for this line)."""
     combo = db.scalar(
         select(Combo)
@@ -243,7 +243,7 @@ def _resolve_combo_line(db: Session, line: ComboQuoteLineIn) -> tuple[CartLine, 
                 surcharges.append(
                     pick_surcharge(product.base_price_vnd, ref_by_component[sel.combo_item_id])
                 )
-            option_deltas.extend(_pick_option_deltas(db, product, pick.option_ids))
+            option_deltas.extend(pick_option_deltas(db, product, pick.option_ids))
 
     pricing = combo_line_pricing(
         combo_price_vnd=combo.combo_price_vnd,
@@ -264,11 +264,11 @@ def quote_cart(
     combo_discount = 0
     for line in payload.lines:
         if isinstance(line, ComboQuoteLineIn):
-            cart_line, discount = _resolve_combo_line(db, line)
+            cart_line, discount = resolve_combo_line(db, line)
             lines.append(cart_line)
             combo_discount += discount
         else:
-            lines.append(_resolve_item_line(db, line))
+            lines.append(resolve_item_line(db, line))
     district = payload.address.administrative_unit if payload.address else None
     try:
         quote = compute_order_total(

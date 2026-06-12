@@ -12,6 +12,7 @@ SESSION_KEY_USER_ID = "user_id"
 SESSION_KEY_ROLE = "role"
 SESSION_KEY_SESSION_ID = "session_id"
 SESSION_KEY_CSRF = "csrf"
+SESSION_KEY_CART_ID = "cart_id"
 
 
 class SessionData(dict[str, Any]):
@@ -63,6 +64,18 @@ def ensure_csrf_token(request: Request) -> str:
 
 def clear_authenticated_session(request: Request) -> None:
     request.session.clear()
+
+
+def read_cart_id(request: Request) -> int | None:
+    value = request.session.get(SESSION_KEY_CART_ID)
+    try:
+        return int(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def set_cart_id(request: Request, cart_id: int) -> None:
+    request.session[SESSION_KEY_CART_ID] = cart_id
 
 
 def read_session(request: Request) -> SessionData:
