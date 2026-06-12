@@ -90,7 +90,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/combos"
-              className="inline-flex h-11 items-center rounded-xl border border-white/40 px-6 font-semibold text-on-brand hover:bg-white/10"
+              className="inline-flex h-11 items-center rounded-xl border border-white/40 px-6 font-semibold text-on-brand transition hover:-translate-y-0.5 hover:bg-white/10"
             >
               View Combos
             </Link>
