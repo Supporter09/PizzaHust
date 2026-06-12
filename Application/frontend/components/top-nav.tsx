@@ -7,10 +7,87 @@ import { useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 
+const LINKS = [
+  { href: "/", label: "Home", active: (p: string) => p === "/" },
+  { href: "/menu", label: "Menu", active: (p: string) => p.startsWith("/menu") },
+  { href: "/combos", label: "Combos", active: (p: string) => p.startsWith("/combos") },
+  // Track Order omitted — U7 is unbuilt.
+];
+
 function navClass(active: boolean): string {
   return active
-    ? "text-brand-fg font-semibold"
-    : "text-muted hover:text-brand-fg transition-colors";
+    ? "rounded-full bg-brand-subtle px-4 py-2 font-semibold text-brand-fg"
+    : "rounded-full px-4 py-2 text-muted transition-colors hover:text-brand-fg";
+}
+
+function CartIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+    >
+      <circle cx="8" cy="21" r="1" />
+      <circle cx="19" cy="21" r="1" />
+      <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+    </svg>
+  );
+}
+
+function PersonIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+    >
+      <circle cx="12" cy="8" r="4" />
+      <path d="M5 21a7 7 0 0 1 14 0" />
+    </svg>
+  );
+}
+
+function PizzaMark() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+    >
+      <path d="M15 11h.01M11 15h.01M16 16h.01" />
+      <path d="m2 16 20 6-6-20A20 20 0 0 0 2 16" />
+      <path d="M5.71 17.11a17.04 17.04 0 0 1 11.4-11.4" />
+    </svg>
+  );
+}
+
+function Brand() {
+  return (
+    <Link href="/" className="flex items-center gap-2.5">
+      <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-on-brand">
+        <PizzaMark />
+      </span>
+      <span className="text-lg font-bold tracking-tight">
+        <span className="text-fg">Pizza</span>
+        <span className="text-brand-fg">Hust</span>
+      </span>
+    </Link>
+  );
 }
 
 export function TopNav() {
@@ -25,48 +102,51 @@ export function TopNav() {
     router.push("/login");
   };
 
-  const links = user
-    ? [{ href: "/account", label: "Account" }]
-    : [
-        { href: "/login", label: "Login" },
-        { href: "/register", label: "Register" },
-      ];
+  const accountHref = user ? "/account" : "/login";
+  const accountLabel = loading ? "Account" : user ? `Account — ${user.full_name}` : "Sign in";
 
   return (
     <header className="border-b border-line bg-card/95 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 font-semibold text-fg">
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-brand text-sm text-on-brand">
-            P
-          </span>
-          PizzaHust
-        </Link>
+        <Brand />
 
-        <nav className="hidden items-center gap-6 text-sm sm:flex">
-          <Link href="/" className={navClass(pathname === "/")}>
-            Home
-          </Link>
-          <Link href="/menu" className={navClass(pathname.startsWith("/menu"))}>
-            Menu
-          </Link>
-          <Link href="/combos" className={navClass(pathname.startsWith("/combos"))}>
-            Combos
-          </Link>
-          {links.map((link) => (
-            <Link key={link.href} href={link.href} className={navClass(pathname === link.href)}>
+        <nav className="hidden items-center gap-1 text-sm sm:flex">
+          {LINKS.map((link) => (
+            <Link key={link.href} href={link.href} className={navClass(link.active(pathname))}>
               {link.label}
             </Link>
           ))}
+        </nav>
+
+        <div className="hidden items-center gap-1 sm:flex">
+          <ThemeToggle />
+          {/* Cart is a later use case (U5/U6) — present but disabled, like the card quick-adds. */}
+          <button
+            type="button"
+            disabled
+            title="Cart coming soon"
+            aria-label="Cart — coming soon"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-muted opacity-50"
+          >
+            <CartIcon />
+          </button>
+          <Link
+            href={accountHref}
+            title={accountLabel}
+            aria-label={accountLabel}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-fg hover:bg-surface-hover"
+          >
+            <PersonIcon />
+          </Link>
           {user ? (
-            <button type="button" className="text-muted hover:text-brand-fg" onClick={handleLogout}>
+            <button
+              type="button"
+              className="px-2 text-sm text-muted hover:text-brand-fg"
+              onClick={handleLogout}
+            >
               Logout
             </button>
           ) : null}
-          <ThemeToggle />
-        </nav>
-
-        <div className="hidden text-xs text-muted sm:block sm:text-sm">
-          {loading ? "Checking session..." : user ? `Hi, ${user.full_name}` : "Guest"}
         </div>
 
         <button
@@ -88,37 +168,32 @@ export function TopNav() {
           id="mobile-nav"
           className="flex flex-col gap-1 border-t border-line px-4 py-2 text-sm sm:hidden"
         >
-          <Link
-            href="/"
-            className={`${navClass(pathname === "/")} py-3`}
-            onClick={() => setMenuOpen(false)}
-          >
-            Home
-          </Link>
-          <Link
-            href="/menu"
-            className={`${navClass(pathname.startsWith("/menu"))} py-3`}
-            onClick={() => setMenuOpen(false)}
-          >
-            Menu
-          </Link>
-          <Link
-            href="/combos"
-            className={`${navClass(pathname.startsWith("/combos"))} py-3`}
-            onClick={() => setMenuOpen(false)}
-          >
-            Combos
-          </Link>
-          {links.map((link) => (
+          {LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`${navClass(pathname === link.href)} py-3`}
+              className={`${link.active(pathname) ? "font-semibold text-brand-fg" : "text-muted"} py-3`}
               onClick={() => setMenuOpen(false)}
             >
               {link.label}
             </Link>
           ))}
+          <Link
+            href={accountHref}
+            className="py-3 text-muted hover:text-brand-fg"
+            onClick={() => setMenuOpen(false)}
+          >
+            {user ? "Account" : "Login"}
+          </Link>
+          {!user ? (
+            <Link
+              href="/register"
+              className="py-3 text-muted hover:text-brand-fg"
+              onClick={() => setMenuOpen(false)}
+            >
+              Register
+            </Link>
+          ) : null}
           {user ? (
             <button
               type="button"
