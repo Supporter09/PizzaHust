@@ -81,7 +81,8 @@ export default function HomePage() {
           <div className="flex flex-wrap gap-3">
             <Link
               href="/menu"
-              className="inline-flex h-11 items-center rounded-xl bg-on-brand px-6 font-semibold text-brand hover:bg-white/90"
+              style={{ color: "var(--brand-hover)" }}
+              className="inline-flex h-11 items-center rounded-xl bg-on-brand px-6 font-bold shadow-md transition hover:-translate-y-0.5"
             >
               Order Now
             </Link>
