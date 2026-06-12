@@ -65,8 +65,16 @@ Error codes (closed set, extend in this doc only):
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/api/cart/quote` | Compute pricing for a candidate cart + address |
+| GET | `/api/cart` | Session cart + per-line display + preview quote + `csrf_token`. Never creates a cart row. |
+| POST | `/api/cart/lines` | Add line `{kind…, quantity, note?}` (CSRF). Creates cart + session claim if absent. Returns full cart. |
+| PATCH | `/api/cart/lines/{line_id}` | `{quantity?, note?}` (CSRF). Returns full cart. |
+| DELETE | `/api/cart/lines/{line_id}` | Remove line (CSRF). Returns full cart. |
+| DELETE | `/api/cart` | Clear all lines; cart row remains (CSRF). Returns full cart. |
+| POST | `/api/cart/checkout-quote` | Quote the session cart with `{address?, redeem_points?=0}` (CSRF). Empty cart → `VALIDATION_FAILED`. |
+| POST | `/api/cart/quote` | Compute pricing for a candidate cart + address (customizer preview; unchanged) |
 | POST | `/api/orders` | Place COD order. Returns `{ order_code, total_vnd, status }`. Rejects with `OUT_OF_SERVICE_AREA` if address invalid |
+
+**`GET /api/cart` response (U5):** `{ lines: CartLineOut[], quote: CartQuoteOut, csrf_token }` where each line includes `line_id`, `kind`, `quantity`, `note`, `payload`, `name`, `image_url`, `descriptor` or `picks`, `unit_price_vnd`, `line_total_vnd`, `unavailable`. Preview quote uses `delivery_fee_vnd: 0` until checkout-quote.
 
 > **Authoritative pricing (U3).** `POST /api/cart/quote` is the single source of
 > truth for line and cart pricing. The former U2 client-side preview
