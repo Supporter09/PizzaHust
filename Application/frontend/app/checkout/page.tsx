@@ -41,19 +41,14 @@ export default function CheckoutPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const quoteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (user) {
-      setName(user.full_name);
-      setPhone(user.phone_number);
-    }
-  }, [user]);
+  const orderPlacedRef = useRef(false);
 
   useEffect(() => {
     void getDeliveryConfig().then((c) => setWards(c.service_area));
   }, []);
 
   useEffect(() => {
+    if (orderPlacedRef.current) return;
     if (!loading && (!cart || cart.lines.length === 0)) {
       router.replace("/cart");
     }
@@ -89,8 +84,6 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (quoteTimer.current) clearTimeout(quoteTimer.current);
     if (!ward || !street.trim()) {
-      setQuote(null);
-      setQuoteError(null);
       return;
     }
     quoteTimer.current = setTimeout(() => {
@@ -101,17 +94,23 @@ export default function CheckoutPage() {
     };
   }, [ward, street, runQuote]);
 
+  const addressReady = ward.length > 0 && street.trim().length > 0;
+  const summaryQuote = addressReady ? quote : null;
+
+  const resolvedName = name.trim() || user?.full_name.trim() || "";
+  const resolvedPhone = phone.replace(/\s/g, "") || user?.phone_number || "";
+
   const canSubmit = useMemo(() => {
     return (
-      name.trim().length > 0 &&
-      isValidVnPhone(phone) &&
+      resolvedName.length > 0 &&
+      isValidVnPhone(resolvedPhone) &&
       ward.length > 0 &&
       street.trim().length > 0 &&
       quote !== null &&
       quoteError === null &&
       !submitting
     );
-  }, [name, phone, ward, street, quote, quoteError, submitting]);
+  }, [resolvedName, resolvedPhone, ward, street, quote, quoteError, submitting]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,14 +119,15 @@ export default function CheckoutPage() {
     setSubmitError(null);
     try {
       const out = await placeOrder({
-        recipient_name: name.trim(),
-        recipient_phone: phone.replace(/\s/g, ""),
+        recipient_name: resolvedName,
+        recipient_phone: resolvedPhone,
         address: { administrative_unit: ward, street: street.trim() },
         delivery_note: deliveryNote.trim() || null,
         redeem_points: 0,
       });
-      await refresh();
+      orderPlacedRef.current = true;
       router.push(`/order-confirmed/${encodeURIComponent(out.order_code)}`);
+      void refresh();
     } catch (err) {
       if (err instanceof ApiClientError && err.code === "VALIDATION_FAILED") {
         setStaleBanner(true);
@@ -184,7 +184,7 @@ export default function CheckoutPage() {
                 id="checkout-name"
                 type="text"
                 required
-                value={name}
+                value={name || user?.full_name || ""}
                 onChange={(e) => setName(e.target.value)}
                 className="mt-1.5 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-fg"
               />
@@ -197,7 +197,7 @@ export default function CheckoutPage() {
                 id="checkout-phone"
                 type="tel"
                 required
-                value={phone}
+                value={phone || user?.phone_number || ""}
                 onChange={(e) => setPhone(e.target.value)}
                 className="mt-1.5 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-fg"
               />
@@ -210,7 +210,13 @@ export default function CheckoutPage() {
                 id="checkout-ward"
                 required
                 value={ward}
-                onChange={(e) => setWard(e.target.value)}
+                onChange={(e) => {
+                  setWard(e.target.value);
+                  if (!e.target.value) {
+                    setQuote(null);
+                    setQuoteError(null);
+                  }
+                }}
                 className="mt-1.5 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-fg"
               >
                 <option value="">Select ward</option>
@@ -230,7 +236,13 @@ export default function CheckoutPage() {
                 type="text"
                 required
                 value={street}
-                onChange={(e) => setStreet(e.target.value)}
+                onChange={(e) => {
+                  setStreet(e.target.value);
+                  if (!e.target.value.trim()) {
+                    setQuote(null);
+                    setQuoteError(null);
+                  }
+                }}
                 className="mt-1.5 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-fg"
               />
             </div>
@@ -295,15 +307,17 @@ export default function CheckoutPage() {
               </li>
             ))}
           </ul>
-          {quote ? (
+          {summaryQuote ? (
             <div className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted">Delivery</span>
-                <span className="font-medium tabular-nums">{formatVnd(quote.delivery_fee_vnd)}</span>
+                <span className="font-medium tabular-nums">
+                  {formatVnd(summaryQuote.delivery_fee_vnd)}
+                </span>
               </div>
               <div className="flex justify-between border-t border-line pt-2 text-base font-bold">
                 <span>Total</span>
-                <span className="tabular-nums text-brand">{formatVnd(quote.total_vnd)}</span>
+                <span className="tabular-nums text-brand">{formatVnd(summaryQuote.total_vnd)}</span>
               </div>
             </div>
           ) : (

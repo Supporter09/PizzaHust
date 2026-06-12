@@ -197,9 +197,7 @@ def pick_option_snapshots(
             status_code=400,
             details=details,
         )
-    return [
-        (name_by_id[oid][0], name_by_id[oid][1], deltas_by_id[oid]) for oid in selected
-    ]
+    return [(name_by_id[oid][0], name_by_id[oid][1], deltas_by_id[oid]) for oid in selected]
 
 
 def resolve_item_line(db: Session, line: ItemQuoteLineIn) -> CartLine:

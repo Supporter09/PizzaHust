@@ -26,8 +26,8 @@ from app.api.errors import (
     handle_validation_error,
 )
 from app.api.loyalty import router as loyalty_router
-from app.api.orders import router as orders_router
 from app.api.menu import router as menu_router
+from app.api.orders import router as orders_router
 from app.api.webhooks import router as webhooks_router
 from app.infra.config import get_settings
 

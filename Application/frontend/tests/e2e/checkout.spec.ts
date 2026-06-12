@@ -12,8 +12,11 @@ test.describe("U6 — Checkout", () => {
     await page.goto("/cart");
     await page.getByTestId("cart-checkout").click();
     await expect(page).toHaveURL(/\/checkout/);
+    await expect(page.getByRole("heading", { name: "Checkout" })).toBeVisible();
 
-    await page.locator("#checkout-ward").selectOption({ index: 1 });
+    const ward = page.locator("#checkout-ward");
+    await expect(ward.locator("option")).toHaveCount(52, { timeout: 15_000 });
+    await ward.selectOption({ label: "Ba Dinh" });
     await page.locator("#checkout-street").fill("1 Phố Huế");
     await page.locator("#checkout-name").fill("Nguyen Van An");
     await page.locator("#checkout-phone").fill("0912345678");
