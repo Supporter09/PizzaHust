@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { CoverFallback } from "@/components/cover-fallback";
 import { formatVnd } from "@/lib/format";
 import type { PublicCombo } from "@/lib/api/combos";
 
@@ -17,12 +18,10 @@ export function ComboCard({ combo }: { combo: PublicCombo }) {
             className="aspect-[16/7] w-full object-cover"
           />
         ) : (
-          <div className="flex aspect-[16/7] w-full items-center justify-center bg-surface-active text-sm text-muted">
-            No image
-          </div>
+          <CoverFallback label={combo.name} className="aspect-[16/7] w-full" />
         )}
         {combo.savings_vnd > 0 ? (
-          <span className="absolute right-3 top-3 rounded-full bg-warning-subtle px-3 py-1.5 text-xs font-bold text-warning">
+          <span className="absolute right-3 top-3 rounded-full bg-success-subtle px-3 py-1.5 text-xs font-bold text-success">
             Save {formatVnd(combo.savings_vnd)}
           </span>
         ) : null}
@@ -41,7 +40,7 @@ export function ComboCard({ combo }: { combo: PublicCombo }) {
                   className="h-9 w-9 shrink-0 rounded-lg object-cover"
                 />
               ) : (
-                <span aria-hidden="true" className="h-9 w-9 shrink-0 rounded-lg bg-surface-active" />
+                <CoverFallback className="h-9 w-9 shrink-0 rounded-lg" />
               )}
               <span className="min-w-7 font-bold">{it.quantity}×</span>
               <span>{it.name}</span>

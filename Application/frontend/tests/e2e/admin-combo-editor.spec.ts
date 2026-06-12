@@ -16,9 +16,13 @@ test.describe("A10 – Admin combo editor", () => {
 
   test("combos list shows seeded slot combo with savings badge", async ({ page }) => {
     await page.goto(`${E2E_BASE_URL}/admin/combos`);
-    const card = page.getByRole("link", { name: /Pick-Any Feast/ });
+    // Cards are no longer one big link; scope by the card heading instead.
+    const card = page
+      .locator("div.rounded-xl")
+      .filter({ has: page.getByRole("heading", { name: "Pick-Any Feast" }) });
     await expect(card).toBeVisible();
     await expect(card).toContainText(/customer's choice/);
+    await expect(card.getByRole("link", { name: "Edit" })).toBeVisible();
   });
 
   test("creates a combo with a choice slot via the picker and deletes it", async ({ page }) => {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { use, useCallback, useEffect, useRef, useState } from "react";
 
+import { CoverFallback } from "@/components/cover-fallback";
 import { OptionGroupSelector } from "@/components/menu/option-group-selector";
 import { QuantityStepper } from "@/components/menu/quantity-stepper";
 import { ApiClientError } from "@/lib/api/client";
@@ -96,9 +97,12 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
   }, [item, selections, quantity]);
 
   return (
-    <section className="space-y-6">
-      <Link href="/menu" className="text-sm font-medium text-brand hover:underline">
-        ← Back to Menu
+    <section className="space-y-8">
+      <Link
+        href="/menu"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline"
+      >
+        <span aria-hidden="true">←</span> Back to Menu
       </Link>
 
       {status === "loading" ? (
@@ -126,58 +130,70 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
 
       {status === "ready" && item ? (
         <div className="grid gap-8 lg:grid-cols-2">
-          <div className="overflow-hidden rounded-2xl border border-line bg-card">
+          <div className="self-start overflow-hidden rounded-2xl border border-line bg-card">
             {item.image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={item.image_url}
                 alt={item.name}
                 loading="lazy"
-                className="h-72 w-full object-cover"
+                className="h-72 w-full object-cover sm:h-96"
               />
             ) : (
-              <div className="flex h-72 w-full items-center justify-center bg-surface-active text-sm text-muted">
-                No image
-              </div>
+              <CoverFallback label={item.name} className="h-72 w-full sm:h-96" />
             )}
           </div>
 
           <div className="space-y-6">
             <h1 className="text-3xl font-bold text-fg">{item.name}</h1>
 
-            {item.option_groups.length > 0 ? (
-              <>
-                {item.option_groups.map((g) => (
-                  <div key={g.group_id} className="space-y-2">
-                    <h2 className="text-sm font-semibold text-muted">
-                      {g.name}
-                      {g.select_type === "multi" ? " (Optional)" : ""}
-                    </h2>
-                    <OptionGroupSelector
-                      group={g}
-                      selectedIds={selections[g.group_id] ?? []}
-                      onChange={(ids) =>
-                        setSelections((prev) => ({ ...prev, [g.group_id]: ids }))
-                      }
-                    />
-                  </div>
-                ))}
-                <div className="flex items-center justify-between gap-4 border-t border-line pt-4">
-                  <QuantityStepper value={quantity} onChange={setQuantity} />
-                  <p className="text-right">
-                    <span className="block text-xs text-muted">Estimated</span>
-                    <span
-                      data-testid="line-estimate"
-                      aria-live="polite"
-                      className="text-2xl font-bold text-brand"
-                    >
-                      {estimate !== null ? formatVnd(estimate) : quoting ? "…" : "—"}
-                    </span>
-                  </p>
-                </div>
-              </>
-            ) : (
-              <p className="text-2xl font-bold text-brand">{formatVnd(item.base_price_vnd)}</p>
-            )}
+            {item.option_groups.map((g) => (
+              <div key={g.group_id} className="space-y-2.5">
+                <h2 className="text-sm font-semibold text-fg">
+                  {g.name}
+                  {g.select_type === "multi" ? " (Optional)" : ""}
+                </h2>
+                <OptionGroupSelector
+                  group={g}
+                  selectedIds={selections[g.group_id] ?? []}
+                  onChange={(ids) => setSelections((prev) => ({ ...prev, [g.group_id]: ids }))}
+                />
+              </div>
+            ))}
+
+            <div className="flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5">
+              <QuantityStepper value={quantity} onChange={setQuantity} />
+              <div className="flex items-center gap-4">
+                <p className="text-right">
+                  <span className="block text-xs text-muted">
+                    {item.option_groups.length > 0 ? "Estimated" : "Price"}
+                  </span>
+                  <span
+                    data-testid="line-estimate"
+                    aria-live="polite"
+                    className="text-2xl font-bold text-brand"
+                  >
+                    {item.option_groups.length > 0
+                      ? estimate !== null
+                        ? formatVnd(estimate)
+                        : quoting
+                          ? "…"
+                          : "—"
+                      : formatVnd(item.base_price_vnd)}
+                  </span>
+                </p>
+                {/* Cart is a later use case (U5/U6) — present but disabled. */}
+                <button
+                  type="button"
+                  disabled
+                  title="Cart coming soon"
+                  aria-label="Add to cart — cart coming soon"
+                  className="btn-primary inline-flex h-11 items-center px-6 opacity-50"
+                >
+                  Add to Cart
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       ) : null}

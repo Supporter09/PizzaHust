@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 
+import { AppChrome } from "@/components/app-chrome";
 import { AuthProvider } from "@/components/auth-provider";
 import { ThemeBootstrap } from "@/components/theme-bootstrap";
-import { TopNav } from "@/components/top-nav";
 import { bootstrapTheme } from "@/lib/theme";
 
 import "./globals.css";
@@ -33,8 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <ThemeBootstrap />
         <AuthProvider>
-          <TopNav />
-          <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">{children}</main>
+          <AppChrome>{children}</AppChrome>
         </AuthProvider>
       </body>
     </html>

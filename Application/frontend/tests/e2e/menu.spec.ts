@@ -24,6 +24,7 @@ test.describe("U1 — Browse Menus", () => {
     const drinksCount = await cards.count();
     expect(drinksCount).toBeGreaterThan(0);
     expect(drinksCount).toBeLessThan(all);
-    await expect(page.getByText("Cola")).toBeVisible();
+    // Heading role: the card cover's decorative label also carries the name.
+    await expect(page.getByRole("heading", { name: "Cola", exact: true })).toBeVisible();
   });
 });

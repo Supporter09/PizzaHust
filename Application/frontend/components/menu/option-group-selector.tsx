@@ -24,12 +24,13 @@ export function OptionGroupSelector({ group, selectedIds, onChange }: Props) {
     );
   }
 
+  // Single-select (size/crust) wraps as a row; multi-select (toppings) fills a grid.
+  const layout = single
+    ? "flex flex-wrap gap-3"
+    : "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4";
+
   return (
-    <div
-      role={single ? "radiogroup" : "group"}
-      aria-label={group.name}
-      className="flex flex-wrap gap-2"
-    >
+    <div role={single ? "radiogroup" : "group"} aria-label={group.name} className={layout}>
       {group.options.map((o) => {
         const selected = selectedIds.includes(o.option_id);
         return (
@@ -39,14 +40,18 @@ export function OptionGroupSelector({ group, selectedIds, onChange }: Props) {
             role={single ? "radio" : "checkbox"}
             aria-checked={selected}
             onClick={() => toggle(o.option_id)}
-            className={`inline-flex h-11 items-center rounded-full px-4 text-sm font-medium transition-colors ${
+            className={`flex min-h-[52px] min-w-[84px] flex-col items-center justify-center gap-0.5 rounded-xl border px-4 py-2.5 text-center text-sm transition-colors ${
               selected
-                ? "bg-brand text-on-brand"
-                : "bg-surface-active text-fg hover:bg-surface-hover"
+                ? "border-brand bg-brand-subtle font-semibold text-brand-fg"
+                : "border-line bg-card text-fg hover:border-muted"
             }`}
           >
-            {o.name}
-            {o.price_delta_vnd > 0 ? ` +${formatVnd(o.price_delta_vnd)}` : ""}
+            <span>{o.name}</span>
+            {o.price_delta_vnd > 0 ? (
+              <span className={`text-xs ${selected ? "text-brand-fg" : "text-muted"}`}>
+                +{formatVnd(o.price_delta_vnd)}
+              </span>
+            ) : null}
           </button>
         );
       })}

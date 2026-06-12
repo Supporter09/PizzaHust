@@ -3,14 +3,15 @@ import { expect, test } from "@playwright/test";
 test.describe("U2/U3 — item detail with generic options", () => {
   test("pizza: option chips drive the server-quoted estimate", async ({ page }) => {
     await page.goto("/menu");
-    await page.getByRole("link", { name: /Margherita Classic/ }).click();
+    // Cards expose two links (cover + title) with the same accessible name.
+    await page.getByRole("link", { name: /Margherita Classic/ }).first().click();
 
     await expect(page.getByRole("heading", { name: "Margherita Classic" })).toBeVisible();
     await expect(page.getByRole("radiogroup", { name: "Size" })).toBeVisible();
     await expect(page.getByRole("group", { name: "Toppings" })).toBeVisible();
 
-    // No add-to-cart yet (U5).
-    await expect(page.getByRole("button", { name: /add to cart/i })).toHaveCount(0);
+    // Add-to-cart is rendered but gated on the cart use case (U5).
+    await expect(page.getByRole("button", { name: /add to cart/i })).toBeDisabled();
 
     const estimate = page.getByTestId("line-estimate");
     const base = await estimate.textContent();
@@ -37,12 +38,14 @@ test.describe("U2/U3 — item detail with generic options", () => {
     await expect(estimate).not.toHaveText(afterTopping ?? "");
   });
 
-  test("dish without options: static price, no estimate", async ({ page }) => {
+  test("dish without options: static price, no quote needed", async ({ page }) => {
     await page.goto("/menu");
-    await page.getByRole("link", { name: /Truffle Fries/ }).click();
+    await page.getByRole("link", { name: /Truffle Fries/ }).first().click();
     await expect(page.getByRole("heading", { name: "Truffle Fries" })).toBeVisible();
     await expect(page.getByRole("radiogroup")).toHaveCount(0);
-    await expect(page.getByTestId("line-estimate")).toHaveCount(0);
+    // No options -> the price line shows the static base price (no server quote).
+    await expect(page.getByText("Price", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("line-estimate")).not.toHaveText("—");
   });
 
   test("unknown id shows not-found", async ({ page }) => {

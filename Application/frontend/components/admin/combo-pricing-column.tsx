@@ -37,7 +37,7 @@ export default function ComboPricingColumn({
         </div>
         <div className="mt-3">
           <label htmlFor="combo-price" className="mb-1 block text-sm font-medium text-fg">
-            Combo price
+            Combo Price <span className="text-brand-fg">*</span>
           </label>
           <input
             id="combo-price"
@@ -48,9 +48,11 @@ export default function ComboPricingColumn({
           />
         </div>
         {savings > 0 && (
-          <div className="mt-4 flex justify-between border-t border-line pt-3 text-sm font-semibold text-fg">
+          <div className="mt-4 flex items-center justify-between border-t border-line pt-3 text-sm font-semibold text-fg">
             <span>Customer saves</span>
-            <span>{formatVnd(savings)}</span>
+            <span className="rounded-full bg-warning-subtle px-2.5 py-1 font-bold text-warning">
+              {formatVnd(savings)}
+            </span>
           </div>
         )}
         {priceNum > componentsTotal && componentsTotal > 0 && (
@@ -89,7 +91,22 @@ export default function ComboPricingColumn({
             />
           </div>
         </div>
-        {status && <p className="mt-2 text-xs text-muted">Status: {status}</p>}
+        {status && (
+          <div className="mt-3 flex gap-1.5">
+            {(["Scheduled", "Active", "Expired"] as const).map((s) => (
+              <span
+                key={s}
+                className={
+                  s === status
+                    ? "rounded-full bg-brand-subtle px-2.5 py-1 text-xs font-semibold text-brand-fg"
+                    : "rounded-full border border-line px-2.5 py-1 text-xs text-muted"
+                }
+              >
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

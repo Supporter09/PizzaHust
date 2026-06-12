@@ -1,3 +1,4 @@
+import { CoverFallback } from "@/components/cover-fallback";
 import { formatVnd } from "@/lib/format";
 import { formatComboComponent } from "@/lib/format-combo-component";
 import type { ComboDetail } from "@/lib/api/combos";
@@ -9,9 +10,7 @@ export function ComboSummaryCard({ combo }: { combo: ComboDetail }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={combo.image_url} alt="" className="aspect-video w-full object-cover" />
       ) : (
-        <div className="flex aspect-video w-full items-center justify-center bg-surface-active text-sm text-muted">
-          No image
-        </div>
+        <CoverFallback label={combo.name} className="aspect-video w-full" />
       )}
       <div className="space-y-2 p-5">
         <div className="flex flex-wrap items-start justify-between gap-2">
