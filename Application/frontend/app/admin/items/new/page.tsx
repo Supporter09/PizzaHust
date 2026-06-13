@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -158,7 +159,20 @@ export default function NewItemPage() {
             ))}
           </div>
           <p className="mt-1 text-xs text-muted">
-            Pizzas get size/crust/topping options. Options are also seeded from the category preset.
+            Pizzas get size/crust/topping options, seeded from the{" "}
+            {activeCategories.find((c) => String(c.category_id) === categoryId) ? (
+              <>
+                <Link
+                  href={`/admin/categories/${categoryId}/preset`}
+                  className="font-medium text-brand-fg underline-offset-2 hover:underline"
+                >
+                  {activeCategories.find((c) => String(c.category_id) === categoryId)!.name} preset
+                </Link>
+                .
+              </>
+            ) : (
+              "category preset."
+            )}
           </p>
         </div>
         <div className="flex items-center gap-3 sm:col-span-2">
