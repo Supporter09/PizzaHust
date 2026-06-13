@@ -5,6 +5,38 @@ import os
 from pathlib import Path
 from uuid import uuid4
 
+from sqlalchemy import text
+
+
+def _create_sqlite_kitchen_queue_view(engine) -> None:
+    """Portable kitchen_queue_view for SQLite tests.
+
+    Membership mirrors migration 0012 (Received/Preparing/ReadyForDispatch).
+    priority_score uses a SQLite age expression; tests assert membership and
+    *relative* ordering only — the exact MySQL formula is covered by smoke.
+    """
+    with engine.begin() as conn:
+        conn.execute(text("DROP VIEW IF EXISTS kitchen_queue_view"))
+        conn.execute(
+            text(
+                """
+                CREATE VIEW kitchen_queue_view AS
+                SELECT
+                    o.order_id,
+                    o.order_code,
+                    o.current_status,
+                    o.created_at,
+                    o.promised_at,
+                    (strftime('%s', 'now') - strftime('%s', o.created_at))
+                        + max(strftime('%s', 'now') - strftime('%s', o.promised_at), 0) * 5
+                        + (CASE WHEN o.current_status = 'Preparing' THEN 10 ELSE 0 END)
+                        AS priority_score
+                FROM orders o
+                WHERE o.current_status IN ('Received', 'Preparing', 'ReadyForDispatch')
+                """
+            )
+        )
+
 
 def build_test_app(db_slug: str, *, auth_rate_limit_per_minute: int | None = None):
     db_path = Path(__file__).resolve().parent / f"{db_slug}-{uuid4()}.sqlite3"
@@ -27,6 +59,7 @@ def build_test_app(db_slug: str, *, auth_rate_limit_per_minute: int | None = Non
     engine = create_db_engine(os.environ["DATABASE_URL"])
     metadata.drop_all(bind=engine)
     metadata.create_all(bind=engine)
+    _create_sqlite_kitchen_queue_view(engine)
     engine.dispose()
 
     import app.main as main_module
