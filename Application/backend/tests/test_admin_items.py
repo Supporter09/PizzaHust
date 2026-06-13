@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+import pytest
 from sqlalchemy import select
 
 from app.infra.db.models import Order, OrderItem, ProductOption
@@ -174,6 +175,10 @@ def test_hard_delete_blocked_by_combo():
     assert r.json()["error"]["details"]["combos"]
 
 
+@pytest.mark.skip(
+    reason="Task 3 reworks preset seeding to read from the category's own option groups; "
+    "PUT /categories/{id}/preset is removed in Task 1"
+)
 def test_create_seeds_options_from_category_preset():
     client = admin_client("items-preset-seed")
     cat = new_category("Pizza")

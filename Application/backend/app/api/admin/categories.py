@@ -9,14 +9,13 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.admin.option_groups import GroupOut
 from app.core.errors import APIError
 from app.infra.auth import require_role
 from app.infra.db.deps import get_db
-from app.infra.db.models import Category, CategoryPresetGroup, OptionGroup, Product, User, UserRole
+from app.infra.db.models import Category, Product, User, UserRole
 
 router = APIRouter(prefix="/api/admin/categories", tags=["admin-categories"])
 require_admin = require_role(UserRole.ADMIN)
@@ -46,32 +45,11 @@ class CategoryPatch(BaseModel):
     is_active: bool | None = None
 
 
-class PresetPut(BaseModel):
-    group_ids: list[int]
-
-
 def _name_taken(db: Session, name: str, exclude_id: int | None = None) -> bool:
     stmt = select(Category).where(Category.name == name)
     if exclude_id is not None:
         stmt = stmt.where(Category.category_id != exclude_id)
     return db.scalar(stmt) is not None
-
-
-def _require_category(db: Session, category_id: int) -> Category:
-    cat = db.get(Category, category_id)
-    if cat is None:
-        raise APIError(code="NOT_FOUND", message="Category not found.", status_code=404)
-    return cat
-
-
-def _fetch_preset_groups(db: Session, category_id: int) -> list[GroupOut]:
-    stmt = (
-        select(OptionGroup)
-        .join(CategoryPresetGroup, CategoryPresetGroup.group_id == OptionGroup.group_id)
-        .where(CategoryPresetGroup.category_id == category_id)
-        .order_by(CategoryPresetGroup.sort_order, OptionGroup.name)
-    )
-    return [GroupOut.model_validate(g) for g in db.scalars(stmt).all()]
 
 
 @router.get("", response_model=list[CategoryOut])
@@ -151,40 +129,3 @@ def delete_category(
             status_code=409,
         )
     db.delete(cat)
-
-
-@router.get("/{category_id}/preset", response_model=list[GroupOut])
-def get_preset(
-    category_id: int,
-    db: Session = Depends(get_db, scope="function"),
-    _a: User = Depends(require_admin),
-) -> list[GroupOut]:
-    _require_category(db, category_id)
-    return _fetch_preset_groups(db, category_id)
-
-
-@router.put("/{category_id}/preset", response_model=list[GroupOut])
-def put_preset(
-    category_id: int,
-    body: PresetPut,
-    db: Session = Depends(get_db, scope="function"),
-    _a: User = Depends(require_admin),
-) -> list[GroupOut]:
-    _require_category(db, category_id)
-    wanted = list(dict.fromkeys(body.group_ids))
-    if wanted:
-        known = set(
-            db.scalars(select(OptionGroup.group_id).where(OptionGroup.group_id.in_(wanted))).all()
-        )
-        missing = [gid for gid in wanted if gid not in known]
-        if missing:
-            raise APIError(
-                code="NOT_FOUND",
-                message=f"Unknown option group ids: {missing}.",
-                status_code=404,
-            )
-    db.execute(delete(CategoryPresetGroup).where(CategoryPresetGroup.category_id == category_id))
-    for i, gid in enumerate(wanted):
-        db.add(CategoryPresetGroup(category_id=category_id, group_id=gid, sort_order=i))
-    db.flush()
-    return _fetch_preset_groups(db, category_id)

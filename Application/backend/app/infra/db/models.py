@@ -138,6 +138,9 @@ class Category(Base):
     )
 
     products: Mapped[list[Product]] = relationship(back_populates="category")
+    option_groups: Mapped[list[OptionGroup]] = relationship(
+        back_populates="category", cascade="all, delete-orphan"
+    )
 
 
 class Product(Base):
@@ -183,9 +186,16 @@ class ProductImage(Base):
 
 class OptionGroup(Base):
     __tablename__ = "option_groups"
+    __table_args__ = (
+        UniqueConstraint("category_id", "name", name="uq_option_groups_category_name"),
+        Index("ix_option_groups_category_id", "category_id"),
+    )
 
     group_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    category_id: Mapped[int] = mapped_column(
+        ForeignKey("categories.category_id", ondelete="CASCADE"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
     select_type: Mapped[str] = mapped_column(
         SqlEnum("single", "multi", name="option_select_type"),
         nullable=False,
@@ -197,6 +207,7 @@ class OptionGroup(Base):
     )
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
 
+    category: Mapped[Category] = relationship(back_populates="option_groups")
     options: Mapped[list[Option]] = relationship(
         back_populates="group", cascade="all, delete-orphan"
     )
@@ -231,21 +242,6 @@ class ProductOption(Base):
     option_id: Mapped[int] = mapped_column(
         ForeignKey("options.option_id", ondelete="CASCADE"), primary_key=True
     )
-
-
-class CategoryPresetGroup(Base):
-    """Per-category preset: option groups auto-enabled on dishes created in this
-    category (template applied once at creation; see api/admin/items.create_item)."""
-
-    __tablename__ = "category_preset_groups"
-
-    category_id: Mapped[int] = mapped_column(
-        ForeignKey("categories.category_id", ondelete="CASCADE"), primary_key=True
-    )
-    group_id: Mapped[int] = mapped_column(
-        ForeignKey("option_groups.group_id", ondelete="CASCADE"), primary_key=True
-    )
-    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
 
 
 class OrderItemOption(Base):

@@ -138,12 +138,34 @@ def _new_order_item(db) -> OrderItem:
     return oi
 
 
+_DEFAULT_OPTION_CATEGORY = "Option Groups"
+
+
 def new_option_group(
-    name: str = "Size", *, select_type: str = "single", required: bool = True, sort_order: int = 0
+    name: str = "Size",
+    *,
+    category_id: int | None = None,
+    select_type: str = "single",
+    required: bool = True,
+    sort_order: int = 0,
 ) -> int:
+    """Option groups now belong to a category. When no ``category_id`` is given a
+    shared default category is created/reused so callers that don't care about
+    scoping keep working (names stay unique per category)."""
     with create_session_factory()() as db:
+        if category_id is None:
+            cat = db.scalar(select(Category).where(Category.name == _DEFAULT_OPTION_CATEGORY))
+            if cat is None:
+                cat = Category(name=_DEFAULT_OPTION_CATEGORY, is_active=True)
+                db.add(cat)
+                db.flush()
+            category_id = cat.category_id
         g = OptionGroup(
-            name=name, select_type=select_type, required=required, sort_order=sort_order
+            category_id=category_id,
+            name=name,
+            select_type=select_type,
+            required=required,
+            sort_order=sort_order,
         )
         db.add(g)
         db.commit()

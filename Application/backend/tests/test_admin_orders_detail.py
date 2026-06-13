@@ -46,7 +46,12 @@ def _seed_order_with_detail(
         db.add(product)
         db.flush()
 
-        group = OptionGroup(name=f"Toppings-{suffix}", select_type="multi", required=False)
+        group = OptionGroup(
+            category_id=category.category_id,
+            name=f"Toppings-{suffix}",
+            select_type="multi",
+            required=False,
+        )
         option = Option(
             group=group,
             name=f"Cheese-{suffix}",
