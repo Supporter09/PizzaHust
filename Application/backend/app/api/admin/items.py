@@ -21,8 +21,10 @@ from app.infra.auth import require_role
 from app.infra.db.deps import get_db
 from app.infra.db.models import (
     Category,
+    CategoryPresetGroup,
     Combo,
     ComboItem,
+    Option,
     OrderItem,
     Product,
     ProductImage,
@@ -84,6 +86,24 @@ def _require_active_category(db: Session, category_id: int) -> None:
         )
 
 
+def _apply_category_preset(db: Session, product: Product) -> None:
+    """Seed per-dish option enablement from the category's preset (template at
+    creation; a category with no preset is a no-op)."""
+    preset_group_ids = db.scalars(
+        select(CategoryPresetGroup.group_id).where(
+            CategoryPresetGroup.category_id == product.category_id
+        )
+    ).all()
+    if not preset_group_ids:
+        return
+    option_ids = db.scalars(
+        select(Option.option_id).where(Option.group_id.in_(preset_group_ids))
+    ).all()
+    for oid in option_ids:
+        db.add(ProductOption(product_id=product.product_id, option_id=oid))
+    db.flush()
+
+
 @router.get("", response_model=list[ItemOut])
 def list_items(
     kind: Literal["pizza", "side"] | None = None,
@@ -121,6 +141,7 @@ def create_item(
     )
     db.add(p)
     db.flush()
+    _apply_category_preset(db, p)
     return ItemOut.model_validate(p)
 
 

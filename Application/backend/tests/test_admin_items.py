@@ -172,3 +172,28 @@ def test_hard_delete_blocked_by_combo():
     r = client.delete(f"/api/admin/items/{pid}?hard=true")
     assert r.status_code == 409
     assert r.json()["error"]["details"]["combos"]
+
+
+def test_create_seeds_options_from_category_preset():
+    client = admin_client("items-preset-seed")
+    cat = new_category("Pizza")
+    g_size = new_option_group("Size", select_type="single", required=True)
+    s = new_option(g_size, "S")
+    m = new_option(g_size, "M")
+    client.put(f"/api/admin/categories/{cat}/preset", json={"group_ids": [g_size]})
+
+    pid = _create_pizza(client, cat).json()["product_id"]
+    groups = client.get(f"/api/admin/items/{pid}/options").json()
+    enabled = {o["option_id"] for g in groups for o in g["options"] if o["enabled"]}
+    assert enabled == {s, m}
+
+
+def test_create_without_preset_enables_nothing():
+    client = admin_client("items-no-preset")
+    cat = new_category("Pizza")
+    g_size = new_option_group("Size", select_type="single", required=True)
+    new_option(g_size, "S")
+    pid = _create_pizza(client, cat).json()["product_id"]
+    groups = client.get(f"/api/admin/items/{pid}/options").json()
+    assert any(g["options"] for g in groups)  # options exist; we're asserting none are enabled
+    assert all(not o["enabled"] for g in groups for o in g["options"])
