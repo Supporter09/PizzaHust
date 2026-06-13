@@ -12,7 +12,7 @@ Before writing code, in this order:
 4. Read `CONTRACTS.md` (REST endpoints, schemas, error envelope).
 5. Read `session-handoff.md` (where the previous session left off).
 6. Read `feature_list.json` (active feature, dependencies, ownership).
-7. Run `./init.sh` (idempotent: containers, deps, migrations, seed).
+7. Run `./init.sh` on macOS/Linux or `.\init.ps1` on Windows (idempotent: containers, deps, migrations, seed).
 
 ## Working Rules
 
@@ -59,6 +59,7 @@ In this order:
 | `progress.md` | Append-only session journal |
 | `session-handoff.md` | Snapshot of current session state |
 | `init.sh` | Bootstrap: compose up, deps, migrations, seed |
+| `init.ps1` | Windows bootstrap: compose up, deps, migrations, seed |
 | `verify.sh` | Static + unit + contract + integration + smoke (pytest+httpx) + Playwright |
 | `docker-compose.yml` | mysql, backend, frontend, delivery-mock |
 | `.env.example` | All required environment variables |

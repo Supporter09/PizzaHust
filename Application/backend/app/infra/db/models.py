@@ -49,6 +49,13 @@ class OrderStatus(StrEnum):
     CANCELLED = "Cancelled"
 
 
+class TrackingNoteSource(StrEnum):
+    SYSTEM = "system"
+    KITCHEN = "kitchen"
+    TRANSPORT = "transport"
+    CUSTOMER = "customer"
+
+
 user_role_enum = SqlEnum(
     UserRole,
     name="user_role",
@@ -64,6 +71,12 @@ membership_tier_enum = SqlEnum(
 order_status_enum = SqlEnum(
     OrderStatus,
     name="order_status",
+    validate_strings=True,
+    values_callable=enum_values,
+)
+tracking_note_source_enum = SqlEnum(
+    TrackingNoteSource,
+    name="tracking_note_source",
     validate_strings=True,
     values_callable=enum_values,
 )
@@ -101,6 +114,9 @@ class User(Base):
         nullable=False,
         default=MembershipTier.STANDARD,
         server_default=MembershipTier.STANDARD.value,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False), nullable=False, server_default=func.now()
     )
 
     orders: Mapped[list[Order]] = relationship(back_populates="user", foreign_keys="Order.user_id")
@@ -405,12 +421,22 @@ class CartLine(Base):
 
 class OrderTracking(Base):
     __tablename__ = "order_tracking"
-    __table_args__ = (Index("ix_order_tracking_order_id", "order_id"),)
+    __table_args__ = (
+        Index("ix_order_tracking_order_id", "order_id"),
+        Index("ix_order_tracking_status", "status"),
+        Index("ix_order_tracking_note_source", "note_source"),
+    )
 
     tracking_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.order_id"), nullable=False)
     updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.user_id"), nullable=True)
     status: Mapped[OrderStatus] = mapped_column(order_status_enum, nullable=False)
+    note_source: Mapped[TrackingNoteSource] = mapped_column(
+        tracking_note_source_enum,
+        nullable=False,
+        default=TrackingNoteSource.SYSTEM,
+        server_default=TrackingNoteSource.SYSTEM.value,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=False),
         nullable=False,

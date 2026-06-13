@@ -1,0 +1,10 @@
+.venv
+.mypy_cache
+.pytest_cache
+.ruff_cache
+.tmp
+.pytest-tmp-*
+pytest-cache-files-*
+pizzahust_backend.egg-info
+__pycache__
+*.pyc

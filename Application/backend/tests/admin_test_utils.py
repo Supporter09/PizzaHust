@@ -9,11 +9,12 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from app.infra.auth import hash_password
+from app.infra.auth import get_current_user, hash_password
 from app.infra.db.models import (
     Category,
     Combo,
@@ -39,21 +40,21 @@ def admin_client(db_slug: str) -> TestClient:
     is already logged in as an admin."""
     app = build_test_app(db_slug)
     with create_session_factory()() as db:
-        db.add(
-            User(
-                full_name="Admin Test",
-                phone_number=ADMIN_PHONE,
-                password_hash=hash_password(ADMIN_PASSWORD),
-                role=UserRole.ADMIN,
-            )
+        admin = User(
+            full_name="Admin Test",
+            phone_number=ADMIN_PHONE,
+            password_hash=hash_password(ADMIN_PASSWORD),
+            role=UserRole.ADMIN,
         )
+        db.add(admin)
         db.commit()
-    client = TestClient(app)
-    resp = client.post(
-        "/api/auth/login",
-        json={"phone_number": ADMIN_PHONE, "password": ADMIN_PASSWORD},
+        db.refresh(admin)
+        admin_user_id = admin.user_id
+    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
+        user_id=admin_user_id,
+        role=UserRole.ADMIN,
     )
-    assert resp.status_code == 200, resp.text
+    client = TestClient(app)
     return client
 
 

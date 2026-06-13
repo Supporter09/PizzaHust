@@ -46,7 +46,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: mysql+pymysql://pizza:pizza@mysql:3306/pizzahust
-      # Secrets come from .env (init.sh creates it from .env.example) — never
+      # Secrets come from .env (init.sh / init.ps1 create it from .env.example) — never
       # hardcode them here so each environment supplies its own.
       SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
       ADMIN_SEED_PHONE: "0900000001"

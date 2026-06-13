@@ -439,6 +439,31 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 ---
 
+## 2026-06-12 — A5/A6/A7 Admin Ops Expansion
+
+**Done**
+1. A5 Monitor Orders
+   - Order monitor now defaults to the current day window and keeps explicit date filtering.
+   - Order detail dialog now shows per-phase tracking notes plus line-item option snapshots.
+   - Relation change: `OrderItem` detail now comes from `order_item_options` snapshot rows, populated from the generic option catalog (`OptionGroup` / `Option` / `ProductOption`).
+2. A6 Manage Customer Accounts
+   - Customer detail route now includes order history, quick stats, tier/points signals, and better sort/filter support for prospect tracking.
+   - No new schema relation was needed beyond the existing customer/order links.
+3. A7 Sales and Order Reports
+   - Reports dashboard now includes Total Revenue, Total Orders, Avg Order Value, Active Customers, Daily Revenue, Daily Orders, and Top Selling Items.
+   - Backend report aggregates and frontend contracts were updated to match the dashboard cards and charts.
+4. Harness state
+   - `feature_list.json` progress marked done for A5/A6/A7.
+   - OpenAPI and generated frontend types were refreshed after the contract changes.
+
+**Verified**
+- Backend lint/type/tests/alembic passed.
+- OpenAPI export/drift check passed.
+- Frontend typecheck/lint/unit tests/build passed.
+- Browser smoke/e2e intentionally skipped in WSL per user request, so this branch is considered done without that last step.
+
+---
+
 ## 2026-06-12 — U8 Register (branch `u8-register`)
 
 **Done**
@@ -499,3 +524,26 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 **Carry-over for U6**
 - `quote_session_cart` silently skips stale lines (U5 preview semantics) — U6 order placement must fail per-line with `details.line_id`; do not reuse blind.
 - Fold a `CHECK (quantity BETWEEN 1 AND 99)` on `cart_lines` into migration 0008 (app layer fully capped via `MAX_LINE_QUANTITY`; DB-level belt deferred from PR28 review).
+
+---
+
+## 2026-06-13 — PR #25 review fixes (merge + mockup parity)
+
+**Done**
+- Merged `main` (U6/U7) into the branch; linearized migrations: dropped the `0007` merge head, re-parented `note_source` as `0009` onto `0008` (single head, clean upgrade verified).
+- New `0010_users_created_at` so A6 can show customer join date.
+- A5: `q` search + `item_count` on `/api/admin/orders`; search box, Items column, and a dispatch-failed banner with inline Retry CTA on the monitor page.
+- A6: `total_spend_vnd` + `created_at` on customer list; Total Spent / Join Date columns + View Details action; Account Access lock/unlock card and "Customer since" on the dossier.
+- A7: replaced fake green "vs previous N days" deltas with neutral window/caption text.
+- Admin layout: restored the icon sidebar (Back to Website, Kitchen Queue placeholder, sticky) per mockups; removed the dead `/admin/pizza-options` link.
+- E2E: scoped order/customer row selectors so sidebar links and the banner "Review" button can't be matched.
+
+**Verified**
+- Backend: 291 pytest passed, ruff check/format clean, mypy domain clean, lint-imports kept; `alembic upgrade head` green on a fresh DB.
+- Frontend: tsc clean, eslint clean, 62 vitest passed, `next build` exit 0; OpenAPI + types regenerated (contract parity).
+- All four admin screens re-shot against `Design/admin-*.html` (light + dark) — see `Application/docs/superpowers/pr25-mockup-check/` (not committed).
+
+**Known follow-ups (not in this batch)**
+- Timezone policy: DB stores UTC `CURRENT_TIMESTAMP` while date windows use local "today" — orders placed 00:00–07:00 +07 land on the previous UTC date.
+- Reports aggregate in Python over the full range with no range cap.
+- Reports `top_items.order_count` counts units (quantity), not distinct orders.

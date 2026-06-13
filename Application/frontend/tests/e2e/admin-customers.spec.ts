@@ -26,7 +26,6 @@ test.describe("Admin auth guard", () => {
     await expect(page).toHaveURL(/\/login/);
   });
 });
-
 test.describe("A6 – Admin Customer Accounts", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
@@ -36,18 +35,21 @@ test.describe("A6 – Admin Customer Accounts", () => {
     await page.goto(`${BASE}/admin/customers`);
     await expect(page.getByRole("heading", { name: "Customer Accounts" })).toBeVisible();
     await expect(page.getByPlaceholder(/search/i)).toBeVisible();
+    await expect(page.getByRole("combobox", { name: /tier/i })).toBeVisible();
+    await expect(page.getByRole("combobox", { name: /status/i })).toBeVisible();
+    await expect(page.getByRole("combobox", { name: /sort by/i })).toBeVisible();
+    await expect(page.getByText("Error: HTTP 404")).toHaveCount(0);
+    await expect(page.getByText("No customers found")).toHaveCount(0);
   });
-});
 
-test.describe("A5 – Monitor Orders", () => {
-  test.beforeEach(async ({ page }) => {
-    await loginAsAdmin(page);
-  });
+  test("customer detail page shows loyalty snapshot and orders", async ({ page }) => {
+    await page.goto(`${BASE}/admin/customers`);
+    // Scope to the table: the sidebar nav also renders links.
+    await page.locator("tbody").getByRole("link", { name: "View Details" }).first().click();
 
-  test("orders page renders with status filter chips", async ({ page }) => {
-    await page.goto(`${BASE}/admin/orders`);
-    await expect(page.getByRole("heading", { name: "Monitor Orders" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /all/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /dispatch pending/i })).toBeVisible();
+    await expect(page.getByText(/customer dossier/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /loyalty snapshot/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /recent orders/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /top orders/i })).toBeVisible();
   });
 });

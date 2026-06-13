@@ -1192,6 +1192,18 @@
             ],
             "title": "Address"
           },
+          "benefits": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Benefits",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
           "current_points": {
             "title": "Current Points",
             "type": "integer"
@@ -1215,6 +1227,21 @@
             "title": "Is Locked",
             "type": "boolean"
           },
+          "last_order_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Order At"
+          },
+          "loyalty": {
+            "$ref": "#/components/schemas/CustomerLoyaltyOut"
+          },
           "membership_tier": {
             "title": "Membership Tier",
             "type": "string"
@@ -1226,6 +1253,31 @@
           "phone_number": {
             "title": "Phone Number",
             "type": "string"
+          },
+          "recent_orders": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerOrderOut"
+            },
+            "title": "Recent Orders",
+            "type": "array"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/CustomerStatsOut"
+          },
+          "top_orders": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerOrderOut"
+            },
+            "title": "Top Orders",
+            "type": "array"
+          },
+          "total_points_earned": {
+            "title": "Total Points Earned",
+            "type": "integer"
+          },
+          "total_spend_vnd": {
+            "title": "Total Spend Vnd",
+            "type": "integer"
           },
           "user_id": {
             "title": "User Id",
@@ -1239,15 +1291,117 @@
           "email",
           "is_locked",
           "current_points",
+          "total_points_earned",
           "membership_tier",
           "order_count",
-          "address"
+          "last_order_at",
+          "total_spend_vnd",
+          "created_at",
+          "address",
+          "stats",
+          "loyalty",
+          "benefits",
+          "recent_orders",
+          "top_orders"
         ],
         "title": "CustomerDetailOut",
         "type": "object"
       },
+      "CustomerLoyaltyOut": {
+        "properties": {
+          "accrual_rate_vnd": {
+            "title": "Accrual Rate Vnd",
+            "type": "integer"
+          },
+          "current_balance_value_vnd": {
+            "title": "Current Balance Value Vnd",
+            "type": "integer"
+          },
+          "current_points": {
+            "title": "Current Points",
+            "type": "integer"
+          },
+          "max_redeem_pct": {
+            "title": "Max Redeem Pct",
+            "type": "number"
+          },
+          "membership_tier": {
+            "title": "Membership Tier",
+            "type": "string"
+          },
+          "redeem_value_vnd": {
+            "title": "Redeem Value Vnd",
+            "type": "integer"
+          },
+          "total_points_earned": {
+            "title": "Total Points Earned",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "current_points",
+          "total_points_earned",
+          "membership_tier",
+          "accrual_rate_vnd",
+          "redeem_value_vnd",
+          "max_redeem_pct",
+          "current_balance_value_vnd"
+        ],
+        "title": "CustomerLoyaltyOut",
+        "type": "object"
+      },
+      "CustomerOrderOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_status": {
+            "title": "Current Status",
+            "type": "string"
+          },
+          "delivery_address": {
+            "title": "Delivery Address",
+            "type": "string"
+          },
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "integer"
+          },
+          "promised_at": {
+            "format": "date-time",
+            "title": "Promised At",
+            "type": "string"
+          },
+          "total_amount_vnd": {
+            "title": "Total Amount Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "order_id",
+          "order_code",
+          "current_status",
+          "total_amount_vnd",
+          "created_at",
+          "promised_at",
+          "delivery_address"
+        ],
+        "title": "CustomerOrderOut",
+        "type": "object"
+      },
       "CustomerOut": {
         "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
           "current_points": {
             "title": "Current Points",
             "type": "integer"
@@ -1271,6 +1425,18 @@
             "title": "Is Locked",
             "type": "boolean"
           },
+          "last_order_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Order At"
+          },
           "membership_tier": {
             "title": "Membership Tier",
             "type": "string"
@@ -1282,6 +1448,14 @@
           "phone_number": {
             "title": "Phone Number",
             "type": "string"
+          },
+          "total_points_earned": {
+            "title": "Total Points Earned",
+            "type": "integer"
+          },
+          "total_spend_vnd": {
+            "title": "Total Spend Vnd",
+            "type": "integer"
           },
           "user_id": {
             "title": "User Id",
@@ -1295,10 +1469,55 @@
           "email",
           "is_locked",
           "current_points",
+          "total_points_earned",
           "membership_tier",
-          "order_count"
+          "order_count",
+          "last_order_at",
+          "total_spend_vnd",
+          "created_at"
         ],
         "title": "CustomerOut",
+        "type": "object"
+      },
+      "CustomerStatsOut": {
+        "properties": {
+          "average_order_value_vnd": {
+            "title": "Average Order Value Vnd",
+            "type": "integer"
+          },
+          "delivered_orders": {
+            "title": "Delivered Orders",
+            "type": "integer"
+          },
+          "last_order_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Order At"
+          },
+          "total_orders": {
+            "title": "Total Orders",
+            "type": "integer"
+          },
+          "total_spend_vnd": {
+            "title": "Total Spend Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_orders",
+          "delivered_orders",
+          "total_spend_vnd",
+          "average_order_value_vnd",
+          "last_order_at"
+        ],
+        "title": "CustomerStatsOut",
         "type": "object"
       },
       "DeliveryConfigOut": {
@@ -1872,6 +2091,15 @@
         "title": "MeResponse",
         "type": "object"
       },
+      "MembershipTier": {
+        "enum": [
+          "standard",
+          "silver",
+          "gold"
+        ],
+        "title": "MembershipTier",
+        "type": "string"
+      },
       "MenuCategoryOut": {
         "properties": {
           "category_id": {
@@ -2245,6 +2473,216 @@
         "title": "OrderCancelIn",
         "type": "object"
       },
+      "OrderDetailOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_status": {
+            "title": "Current Status",
+            "type": "string"
+          },
+          "delivery_address": {
+            "title": "Delivery Address",
+            "type": "string"
+          },
+          "delivery_fee_vnd": {
+            "title": "Delivery Fee Vnd",
+            "type": "integer"
+          },
+          "delivery_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Reference"
+          },
+          "item_count": {
+            "title": "Item Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "integer"
+          },
+          "payment_method": {
+            "title": "Payment Method",
+            "type": "string"
+          },
+          "promised_at": {
+            "format": "date-time",
+            "title": "Promised At",
+            "type": "string"
+          },
+          "recipient_name": {
+            "title": "Recipient Name",
+            "type": "string"
+          },
+          "recipient_phone": {
+            "title": "Recipient Phone",
+            "type": "string"
+          },
+          "total_amount_vnd": {
+            "title": "Total Amount Vnd",
+            "type": "integer"
+          },
+          "tracking": {
+            "items": {
+              "$ref": "#/components/schemas/OrderTrackingOut"
+            },
+            "title": "Tracking",
+            "type": "array"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          }
+        },
+        "required": [
+          "order_id",
+          "order_code",
+          "current_status",
+          "recipient_name",
+          "recipient_phone",
+          "delivery_address",
+          "total_amount_vnd",
+          "created_at",
+          "user_id",
+          "item_count",
+          "promised_at",
+          "payment_method",
+          "delivery_fee_vnd",
+          "delivery_reference",
+          "items",
+          "tracking"
+        ],
+        "title": "OrderDetailOut",
+        "type": "object"
+      },
+      "OrderItemOptionOut": {
+        "properties": {
+          "group_name": {
+            "title": "Group Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "option_name": {
+            "title": "Option Name",
+            "type": "string"
+          },
+          "price_delta_vnd": {
+            "title": "Price Delta Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "group_name",
+          "option_name",
+          "price_delta_vnd"
+        ],
+        "title": "OrderItemOptionOut",
+        "type": "object"
+      },
+      "OrderItemOut": {
+        "properties": {
+          "combo_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Combo Id"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItemOptionOut"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "order_item_id": {
+            "title": "Order Item Id",
+            "type": "integer"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "unit_price_vnd": {
+            "title": "Unit Price Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "order_item_id",
+          "product_id",
+          "combo_id",
+          "display_name",
+          "quantity",
+          "unit_price_vnd",
+          "notes",
+          "options"
+        ],
+        "title": "OrderItemOut",
+        "type": "object"
+      },
       "OrderSummaryOut": {
         "properties": {
           "created_at": {
@@ -2259,6 +2697,10 @@
           "delivery_address": {
             "title": "Delivery Address",
             "type": "string"
+          },
+          "item_count": {
+            "title": "Item Count",
+            "type": "integer"
           },
           "order_code": {
             "title": "Order Code",
@@ -2301,9 +2743,63 @@
           "delivery_address",
           "total_amount_vnd",
           "created_at",
-          "user_id"
+          "user_id",
+          "item_count"
         ],
         "title": "OrderSummaryOut",
+        "type": "object"
+      },
+      "OrderTrackingOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "note_source": {
+            "title": "Note Source",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tracking_id": {
+            "title": "Tracking Id",
+            "type": "integer"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "required": [
+          "tracking_id",
+          "status",
+          "note_source",
+          "created_at",
+          "note",
+          "updated_by"
+        ],
+        "title": "OrderTrackingOut",
         "type": "object"
       },
       "PlaceOrderIn": {
@@ -2721,6 +3217,157 @@
           "user"
         ],
         "title": "RegisterResponse",
+        "type": "object"
+      },
+      "ReportOverviewOut": {
+        "properties": {
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/ReportSeriesOut"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ReportSummaryOut"
+          },
+          "top_items": {
+            "items": {
+              "$ref": "#/components/schemas/ReportTopItemOut"
+            },
+            "title": "Top Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "summary",
+          "series",
+          "top_items"
+        ],
+        "title": "ReportOverviewOut",
+        "type": "object"
+      },
+      "ReportSeriesOut": {
+        "properties": {
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          },
+          "revenue_vnd": {
+            "title": "Revenue Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "revenue_vnd",
+          "order_count"
+        ],
+        "title": "ReportSeriesOut",
+        "type": "object"
+      },
+      "ReportSummaryOut": {
+        "properties": {
+          "active_customers": {
+            "title": "Active Customers",
+            "type": "integer"
+          },
+          "avg_order_value_vnd": {
+            "title": "Avg Order Value Vnd",
+            "type": "integer"
+          },
+          "total_orders": {
+            "title": "Total Orders",
+            "type": "integer"
+          },
+          "total_revenue_vnd": {
+            "title": "Total Revenue Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_revenue_vnd",
+          "total_orders",
+          "avg_order_value_vnd",
+          "active_customers"
+        ],
+        "title": "ReportSummaryOut",
+        "type": "object"
+      },
+      "ReportTopItemOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          },
+          "revenue_vnd": {
+            "title": "Revenue Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "order_count",
+          "revenue_vnd"
+        ],
+        "title": "ReportTopItemOut",
+        "type": "object"
+      },
+      "SalesReportRowOut": {
+        "properties": {
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "order_count": {
+            "title": "Order Count",
+            "type": "integer"
+          },
+          "revenue_vnd": {
+            "title": "Revenue Vnd",
+            "type": "integer"
+          },
+          "top_items": {
+            "items": {
+              "$ref": "#/components/schemas/TopItemOut"
+            },
+            "title": "Top Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "date",
+          "order_count",
+          "revenue_vnd",
+          "top_items"
+        ],
+        "title": "SalesReportRowOut",
+        "type": "object"
+      },
+      "TopItemOut": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "count"
+        ],
+        "title": "TopItemOut",
         "type": "object"
       },
       "TrackOut": {
@@ -3374,6 +4021,68 @@
                 }
               ],
               "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tier",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/MembershipTier"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tier"
+            }
+          },
+          {
+            "in": "query",
+            "name": "locked",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Locked"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "points",
+              "enum": [
+                "tier",
+                "points",
+                "orders",
+                "name"
+              ],
+              "title": "Sort By",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort_dir",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "title": "Sort Dir",
+              "type": "string"
             }
           },
           {
@@ -4312,6 +5021,56 @@
           },
           {
             "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "in": "query",
             "name": "page",
             "required": false,
             "schema": {
@@ -4385,7 +5144,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrderSummaryOut"
+                  "$ref": "#/components/schemas/OrderDetailOut"
                 }
               }
             },
@@ -4486,6 +5245,145 @@
         "summary": "Retry Dispatch",
         "tags": [
           "admin-orders"
+        ]
+      }
+    },
+    "/api/admin/reports/overview": {
+      "get": {
+        "operationId": "sales_overview_api_admin_reports_overview_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "To",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOverviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sales Overview",
+        "tags": [
+          "admin-reports"
+        ]
+      }
+    },
+    "/api/admin/reports/sales": {
+      "get": {
+        "operationId": "sales_report_api_admin_reports_sales_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "To",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "group_by",
+            "required": false,
+            "schema": {
+              "default": "day",
+              "enum": [
+                "day",
+                "week"
+              ],
+              "title": "Group By",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "required": false,
+            "schema": {
+              "default": "json",
+              "enum": [
+                "json",
+                "csv"
+              ],
+              "title": "Format",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SalesReportRowOut"
+                  },
+                  "title": "Response Sales Report Api Admin Reports Sales Get",
+                  "type": "array"
+                }
+              },
+              "text/csv": {}
+            },
+            "description": "JSON rows, or a CSV attachment when format=csv."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sales Report",
+        "tags": [
+          "admin-reports"
         ]
       }
     },

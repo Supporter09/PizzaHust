@@ -11,7 +11,7 @@ from datetime import datetime
 
 from sqlalchemy import select
 
-from app.infra.db.models import Order, OrderStatus, OrderTracking
+from app.infra.db.models import Order, OrderStatus, OrderTracking, TrackingNoteSource
 from app.infra.db.session import create_session_factory
 from app.infra.delivery import get_delivery_port
 from app.infra.delivery.mock import DeliveryError
@@ -50,6 +50,9 @@ def _new_order(status: OrderStatus, code: str) -> int:
             total_amount_vnd=250_000,
             promised_at=datetime(2026, 1, 1, 12, 0, 0),
             current_status=status,
+            # Explicit local timestamp: the DB server_default is UTC, which
+            # falls outside list_orders' local-today default window overnight.
+            created_at=datetime.now(),
         )
         db.add(order)
         db.commit()
@@ -66,6 +69,17 @@ def _tracking_count(order_id: int) -> int:
     with create_session_factory()() as db:
         rows = db.scalars(select(OrderTracking).where(OrderTracking.order_id == order_id)).all()
         return len(rows)
+
+
+def _tracking_rows(order_id: int) -> list[OrderTracking]:
+    with create_session_factory()() as db:
+        return list(
+            db.scalars(
+                select(OrderTracking)
+                .where(OrderTracking.order_id == order_id)
+                .order_by(OrderTracking.tracking_id)
+            ).all()
+        )
 
 
 def test_retry_dispatch_hands_off_and_advances_to_delivering() -> None:
@@ -85,6 +99,7 @@ def test_retry_dispatch_hands_off_and_advances_to_delivering() -> None:
     assert fake.seen.cod_amount_vnd == 250_000
     assert fake.seen.pickup_address  # sourced from config, non-empty
     assert _tracking_count(order_id) == 1
+    assert _tracking_rows(order_id)[0].note_source == TrackingNoteSource.TRANSPORT
 
 
 def test_retry_dispatch_provider_failure_keeps_order_retryable() -> None:
@@ -119,6 +134,40 @@ def test_retry_dispatch_missing_order_404() -> None:
     resp = client.post("/api/admin/orders/999999/retry-dispatch")
 
     assert resp.status_code == 404
+
+
+def test_list_orders_rejects_unknown_status() -> None:
+    client = admin_client("orders-bad-status")
+
+    resp = client.get("/api/admin/orders?status=Unknown")
+
+    assert resp.status_code == 400
+
+
+def test_list_orders_filters_by_status_and_paginates() -> None:
+    client = admin_client("orders-filter-page")
+    _new_order(OrderStatus.RECEIVED, "PIZZ-LIST001")
+    _new_order(OrderStatus.RECEIVED, "PIZZ-LIST002")
+    _new_order(OrderStatus.DELIVERED, "PIZZ-LIST003")
+
+    resp = client.get("/api/admin/orders?status=Received&page=1&page_size=1")
+
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert len(rows) == 1
+    assert rows[0]["current_status"] == "Received"
+
+
+def test_cancel_order_moves_cancellable_order_to_cancelled() -> None:
+    client = admin_client("cancel-ok")
+    order_id = _new_order(OrderStatus.RECEIVED, "PIZZ-CANOK1")
+
+    resp = client.post(f"/api/admin/orders/{order_id}/cancel", json={"reason": "duplicate"})
+
+    assert resp.status_code == 204, resp.text
+    assert _get_order(order_id).current_status == OrderStatus.CANCELLED
+    assert _tracking_count(order_id) == 1
+    assert _tracking_rows(order_id)[0].note_source == TrackingNoteSource.SYSTEM
 
 
 def test_cancel_order_rejects_terminal_delivery_failed() -> None:

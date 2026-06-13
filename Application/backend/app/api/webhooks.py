@@ -20,7 +20,13 @@ from app.domain.order_state import (
 )
 from app.infra.config import get_settings
 from app.infra.db.deps import get_db
-from app.infra.db.models import Order, OrderStatus, OrderTracking, WebhookEvent
+from app.infra.db.models import (
+    Order,
+    OrderStatus,
+    OrderTracking,
+    TrackingNoteSource,
+    WebhookEvent,
+)
 
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
 
@@ -95,6 +101,7 @@ async def delivery_webhook(
             order_id=order.order_id,
             updated_by=None,
             status=new_status,
+            note_source=TrackingNoteSource.TRANSPORT,
             note=f"delivery webhook: {event.state}",
         )
     )

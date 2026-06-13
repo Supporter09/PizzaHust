@@ -24,7 +24,7 @@ echo "=== [3/6] Booting MySQL + delivery-mock ==="
 docker compose up -d mysql delivery-mock
 
 echo "Waiting for MySQL..."
-until docker compose exec -T mysql mysqladmin ping -h127.0.0.1 --silent >/dev/null 2>&1; do
+until docker compose exec -T mysql mysqladmin ping -h127.0.0.1 -uroot -proot --silent >/dev/null 2>&1; do
   sleep 2
 done
 
