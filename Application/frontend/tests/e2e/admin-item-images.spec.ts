@@ -18,8 +18,19 @@ async function loginAsAdmin(page: Page) {
 }
 
 test.describe("A9 - admin image gallery", () => {
+  let createdPid: number | null = null;
+
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
+  });
+
+  // Soft-deactivate the throwaway dish so it never leaks into the shared dev DB
+  // (a stray cheap pizza otherwise undercuts other tests' combo-savings checks).
+  test.afterEach(async ({ page }) => {
+    if (createdPid !== null) {
+      await page.request.delete(`${API_URL}/api/admin/items/${createdPid}`);
+      createdPid = null;
+    }
   });
 
   test("upload two, set cover, remove one", async ({ page }) => {
@@ -28,11 +39,12 @@ test.describe("A9 - admin image gallery", () => {
       data: {
         category_id: cats[0].category_id,
         name: `A9 ${Date.now()}`,
-        base_price_vnd: 1,
+        base_price_vnd: 200_000,
         kind: "pizza",
       },
     });
     const pid = (await created.json()).product_id;
+    createdPid = pid;
 
     await page.goto(`${BASE}/admin/items/${pid}`);
     await expect(page.getByRole("heading", { name: "Images" })).toBeVisible();
