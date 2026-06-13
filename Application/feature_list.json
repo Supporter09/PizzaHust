@@ -417,6 +417,19 @@
       "status": "todo",
       "owner": "Hung",
       "evidence": ""
+    },
+    {
+      "id": "A11",
+      "name": "Admin Menu Management Overhaul",
+      "depends_on": [
+        "A1",
+        "A2",
+        "A3",
+        "A8"
+      ],
+      "status": "done",
+      "owner": "Hung",
+      "evidence": "verify.sh all feature gates green at 63ae5b8 (2026-06-13T17:29:35Z); e2e 39 passed/4 skipped/1 pre-existing fail (admin-orders.spec.ts:28 — unrelated; needs a today-order, order-placing smoke is @pytest.mark.skip; zero orders-domain diff on this branch)"
     }
   ]
 }

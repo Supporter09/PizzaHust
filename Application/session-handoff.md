@@ -1,23 +1,25 @@
 # session-handoff.md
 
-**Current state:** `K1` View Incoming Orders done and verified on branch `feat/k1-incoming-orders` (`verify.sh` green at `8fed231`). The kitchen spine has its first screen: a read-only, role-guarded incoming-orders queue at `/kitchen`.
+**Current state:** `A11` Admin Menu Management Overhaul done and verified on branch `feat/admin-menu-overhaul` (`63ae5b8`). All feature gates green; the branch is complete and ready to merge / open a PR.
 
-**Next feature:** `K2` Update Preparation Status (`depends_on: ["K1"]`, owner Hung) — adds the kitchen action buttons (Accept → Preparing, Mark Ready) to the queue cards. The attach point is already marked by a placeholder comment in `frontend/app/kitchen/queue-client.tsx`; the order-state transitions live in `backend/app/domain/order_state.py` (do not recompute in the frontend).
+**Pre-existing gate failure (unrelated):** `tests/e2e/admin-orders.spec.ts:28` fails because it requires a "today" order in the DB, but `POST /api/orders` smoke is `@pytest.mark.skip(reason="needs U6 order placement + kitchen (K1-K3) + tracking endpoint")` and the orders table is empty for today. This branch has zero diff in the orders domain — the test fails the same way on `main`. Do NOT touch this test until the order-placement smoke is un-skipped.
+
+**Next options (in priority order):**
+
+1. **Merge/PR `feat/admin-menu-overhaul` → `main`** — the branch is ready; address CodeRabbit feedback if any, then merge.
+2. **Fix `admin-orders.spec.ts:28` data dependency** — K1 is now merged; the missing piece is un-skipping the order-placement smoke (or seeding a today-order in e2e setup). This unblocks a clean `verify.sh` exit 0.
+3. **`K2` Update Preparation Status** (`depends_on: ["K1"]`, owner Hung) — kitchen action buttons (Accept → Preparing, Mark Ready) on queue cards. Attach point already marked in `frontend/app/kitchen/queue-client.tsx`; transitions in `backend/app/domain/order_state.py`.
 
 **Resume command:**
 
 ```bash
-git checkout feat/k1-incoming-orders && git pull
+git checkout feat/admin-menu-overhaul
 cd Application && ./init.sh && docker compose up -d backend frontend
-# Open PR for feat/k1-incoming-orders → main when ready; next branch e.g. k2-prep-status
+# Open PR for feat/admin-menu-overhaul → main when ready; next branch e.g. k2-prep-status
 ```
 
-**State:** K1 shipped migration `0012` (`kitchen_queue_view` now surfaces `ReadyForDispatch`, not `DispatchPending`), read-only `GET /api/kitchen/orders` returning lean prep-ticket DTOs (per-line item/options/note, combo children nested under their parent line, delivery note surfaced), pure queue helpers (`lib/kitchen-queue.ts`), `/kitchen` chrome suppression + role-guarded shell + 3s-polling queue page, and a seeded `ReadyForDispatch` demo order. MySQL smoke + Playwright `kitchen.spec.ts` cover the non-kitchen redirect and the kitchen-login-sees-tickets path.
+**What shipped in A11:** migration `0013_category_preset_groups`, `GET /PUT /api/admin/categories/{id}/preset`, `DELETE /api/admin/items/{id}?hard=true` (+ soft-delete/restore), `BasicsEditor`, `/admin/items/new`, items list dynamic category tabs + show-inactive + delete/restore/hard-delete actions, per-category preset editor, Admin nav link, OpenAPI + TS types regenerated, CONTRACTS.md updated, e2e specs for tabs/delete/presets.
 
-**Relation notes:** no new model/table relation introduced. K1 reuses the existing order / order-item / `order_item_options` snapshot relations and reads the SQL `kitchen_queue_view` (membership corrected in `0012`); it is a read-only projection.
+**Verification:** all feature gates green at `63ae5b8`, `2026-06-13T17:29:35Z` — backend pytest/ruff/mypy/import-linter/alembic, OpenAPI + types parity, frontend tsc/eslint/vitest/build, Playwright 39 passed/4 skipped/1 pre-existing fail (admin-orders:28, unrelated).
 
-**Verification:** `./verify.sh` exit 0 at `8fed231`, `2026-06-13T18:04:21+07:00` — backend 329 passed/1 skipped, frontend 65 unit, smoke 1, Playwright 34 passed/4 skipped (both K1 kitchen specs green), OpenAPI + types drift clean.
-
-**Blockers:** None. `E2E_KITCHEN_PHONE` / `E2E_KITCHEN_PASSWORD` are needed in `.env` for the kitchen e2e (defaults match the seeded kitchen user; test files fall back to them).
-
-**Notes:** Pre-existing U5 `cart.spec.ts` is flaky under the 5-worker parallel Playwright run (passes in isolation, intermittent under load); confirmed NOT introduced by K1 (fails the same way with the kitchen specs excluded). It passes on re-run; the gate has `retries: 0`, so a red cart line on a full run is the flake, not a regression — re-run to confirm green.
+**Blockers:** None on the feature. The sole red gate is the pre-existing admin-orders data dependency described above.
