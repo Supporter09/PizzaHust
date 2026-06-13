@@ -140,6 +140,7 @@ function Ticket({ ticket }: { ticket: KitchenTicket }) {
 export function QueueClient() {
   const [tickets, setTickets] = useState<KitchenTicket[] | null>(null);
   const [error, setError] = useState(false);
+  const [stale, setStale] = useState(false);
   const hasLoaded = useRef(false);
 
   useEffect(() => {
@@ -151,10 +152,15 @@ export function QueueClient() {
         setTickets(data);
         hasLoaded.current = true;
         setError(false);
+        setStale(false);
       } catch (e) {
         if (cancelled) return;
         if (e instanceof ApiClientError && e.status === 429) return; // transient — keep last data
-        if (!hasLoaded.current) setError(true); // only a failed *initial* load surfaces an error
+        if (!hasLoaded.current) {
+          setError(true); // only a failed *initial* load surfaces an error
+        } else {
+          setStale(true); // refresh failed after a good load — keep last data, flag staleness
+        }
       }
     };
     void refresh();
@@ -193,6 +199,15 @@ export function QueueClient() {
       </div>
 
       {error && <p className="text-sm text-danger">Couldn&rsquo;t load the queue. Retrying&hellip;</p>}
+      {stale && !error && (
+        <p
+          role="status"
+          data-testid="kitchen-stale"
+          className="mb-6 rounded-md border border-warning bg-warning-subtle px-3 py-2 text-sm font-semibold text-warning"
+        >
+          Couldn&rsquo;t refresh just now — showing the last loaded queue. Retrying&hellip;
+        </p>
+      )}
       {!error && tickets !== null && tickets.length === 0 && (
         <p className="text-sm text-muted" data-testid="kitchen-empty">
           No incoming orders.
