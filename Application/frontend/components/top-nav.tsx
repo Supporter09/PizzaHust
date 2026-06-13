@@ -120,6 +120,11 @@ export function TopNav() {
               {link.label}
             </Link>
           ))}
+          {user?.role === "admin" ? (
+            <Link href="/admin" className={navClass(pathname.startsWith("/admin"))}>
+              Admin
+            </Link>
+          ) : null}
         </nav>
 
         <div className="hidden items-center gap-1 sm:flex">
@@ -185,6 +190,15 @@ export function TopNav() {
               {link.label}
             </Link>
           ))}
+          {user?.role === "admin" ? (
+            <Link
+              href="/admin"
+              className={`${pathname.startsWith("/admin") ? "font-semibold text-brand-fg" : "text-muted"} py-3`}
+              onClick={() => setMenuOpen(false)}
+            >
+              Admin
+            </Link>
+          ) : null}
           <Link
             href="/cart"
             aria-label={cartLabel}
