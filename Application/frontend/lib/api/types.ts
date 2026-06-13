@@ -41,17 +41,20 @@ export interface paths {
         patch: operations["patch_category_api_admin_categories__category_id__patch"];
         trace?: never;
     };
-    "/api/admin/categories/{category_id}/preset": {
+    "/api/admin/categories/{category_id}/option-groups": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get Preset */
-        get: operations["get_preset_api_admin_categories__category_id__preset_get"];
-        /** Put Preset */
-        put: operations["put_preset_api_admin_categories__category_id__preset_put"];
+        /**
+         * Category Option Groups
+         * @description A category's option groups (its preset), each with its options, ordered by
+         *     ``(sort_order, name)`` for both groups and options.
+         */
+        get: operations["category_option_groups_api_admin_categories__category_id__option_groups_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1112,6 +1115,33 @@ export interface components {
              */
             sort_order: number;
         };
+        /**
+         * CategoryOptionGroupOut
+         * @description A category's option group with its full option list. The category's groups
+         *     ARE its preset, so there is no per-dish ``enabled`` concept here.
+         */
+        CategoryOptionGroupOut: {
+            /** Category Id */
+            category_id: number;
+            /** Group Id */
+            group_id: number;
+            /** Name */
+            name: string;
+            /**
+             * Options
+             * @default []
+             */
+            options: components["schemas"]["OptionOut"][];
+            /** Required */
+            required: boolean;
+            /**
+             * Select Type
+             * @enum {string}
+             */
+            select_type: "single" | "multi";
+            /** Sort Order */
+            sort_order: number;
+        };
         /** CategoryOut */
         CategoryOut: {
             /** Category Id */
@@ -1459,6 +1489,8 @@ export interface components {
         };
         /** GroupIn */
         GroupIn: {
+            /** Category Id */
+            category_id: number;
             /** Name */
             name: string;
             /**
@@ -1480,6 +1512,8 @@ export interface components {
         };
         /** GroupOut */
         GroupOut: {
+            /** Category Id */
+            category_id: number;
             /** Group Id */
             group_id: number;
             /** Name */
@@ -2022,11 +2056,6 @@ export interface components {
             /** Total Vnd */
             total_vnd: number;
         };
-        /** PresetPut */
-        PresetPut: {
-            /** Group Ids */
-            group_ids: number[];
-        };
         /** ProductComboItemIn */
         ProductComboItemIn: {
             /**
@@ -2409,7 +2438,7 @@ export interface operations {
             };
         };
     };
-    get_preset_api_admin_categories__category_id__preset_get: {
+    category_option_groups_api_admin_categories__category_id__option_groups_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2426,42 +2455,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["GroupOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    put_preset_api_admin_categories__category_id__preset_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                category_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PresetPut"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GroupOut"][];
+                    "application/json": components["schemas"]["CategoryOptionGroupOut"][];
                 };
             };
             /** @description Validation Error */
@@ -3310,7 +3304,9 @@ export interface operations {
     };
     list_groups_api_admin_option_groups_get: {
         parameters: {
-            query?: never;
+            query?: {
+                category_id?: number | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3324,6 +3320,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GroupOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

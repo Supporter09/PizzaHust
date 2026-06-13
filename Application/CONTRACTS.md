@@ -142,11 +142,12 @@ All under `/api/admin/`, role=`admin` required.
 | GET/POST/PATCH/DELETE | `/api/admin/items` | A1, A2 — pizzas + side dishes; GET filters `kind=pizza\|side`, `category_id`, `active` |
 | POST | `/api/admin/items/{id}/image` | A1 — multipart image upload (field `image`); returns `{ "image_url": string }` |
 | POST/DELETE | `/api/admin/items/{id}/images[/{image_id}[/cover]]` | A9 — add image / delete image / set cover |
-| GET/POST/PATCH/DELETE | `/api/admin/option-groups` | A2/A8 — option categories (`name`, `select_type: single\|multi`, `required`, `sort_order`) |
+| GET/POST/PATCH/DELETE | `/api/admin/option-groups` | A2/A8 — option groups owned by a category (`category_id`, `name`, `select_type: single\|multi`, `required`, `sort_order`). GET takes optional `?category_id=` filter; POST requires `category_id` (`404` if unknown) |
 | POST | `/api/admin/option-groups/{gid}/options` | A2/A8 — add option (`name`, `description?`, `price_delta_vnd ≥ 0`, `sort_order`) |
 | PATCH/DELETE | `/api/admin/options/{oid}` | A2/A8 — edit/delete one option |
 | GET/PUT | `/api/admin/items/{id}/options` | A2/A8 — per-dish enablement; PUT body `{ "option_ids": [] }` replaces the enabled set |
-| GET/PUT | `/api/admin/categories/{category_id}/preset` | A3 — option-group preset for the category; GET → `200 [GroupOut]`; PUT body `{ "group_ids": [int] }` replaces preset → `200 [GroupOut]`; `404` on unknown category or group |
+| GET | `/api/admin/categories/{category_id}/preset` *(removed)* | superseded by per-category option ownership — manage a category's groups directly via `/api/admin/option-groups?category_id=` |
+| GET | `/api/admin/categories/{category_id}/option-groups` | A3 — the category's owned option groups, each with its `options` (`200 [CategoryOptionGroupOut]`); `404` unknown category. A category's groups ARE its preset: dishes created in it seed all those options |
 | GET/POST/PATCH/DELETE | `/api/admin/categories` | A3 |
 | GET/POST/PATCH/DELETE | `/api/admin/combos` | A4/A10 — response includes derived `status` |
 | POST | `/api/admin/combos/{id}/image` | A10 — multipart image upload (field `image`); returns `{ "image_url": string }` |
@@ -176,18 +177,20 @@ All under `/api/admin/`, role=`admin` required.
   optional `hard` query param (bool, default `false`): default = **soft-deactivate**
   (`is_active=false`), `204` on success, `409` if used by combos; `hard=true` =
   **permanent delete**, `409` if referenced by past orders or combos, `204` on success.
-- **A3 category preset** (`GET/PUT /api/admin/categories/{category_id}/preset`): per-category
-  ordered list of option groups applied automatically to new dishes created in that category.
-  `GET` → `200 [GroupOut]` (ordered). `PUT` body `{ "group_ids": [int] }` replaces the entire
-  preset; `404` on unknown category or any unknown group id; `200 [GroupOut]` on success.
-  Groups in the preset are **auto-enabled** on dishes created in the category.
+- **A3 category preset** (`GET /api/admin/categories/{category_id}/option-groups`): each option
+  group is **owned by a category** (`OptionGroup.category_id`), so a category's groups ARE its
+  preset — there is no separate selection. `GET` → `200 [CategoryOptionGroupOut]` (groups ordered
+  by `sort_order,name`, each with its `options`); `404` on unknown category. Manage the groups
+  themselves via the option-groups CRUD scoped with `?category_id=`. On dish creation, **all**
+  options of the dish's category's groups are auto-enabled (per-dish toggles can then opt out).
+  The old `GET/PUT .../preset` (group-id selection) routes are **removed**.
 - **Image upload** (`POST /api/admin/items/{id}/image`): the documented exception
   to JSON-only — `multipart/form-data`, field `image`. Extension allowlist
   (`png`/`jpg`/`jpeg`/`webp`) + size cap (`IMAGE_MAX_BYTES`); returns `{ "image_url" }`
   and sets the item's `image_url`. Files are served read-only at `IMAGE_BASE_URL`.
 - **A2/A8 options** (`/api/admin/option-groups`, `/api/admin/options`): admin-defined
-  option categories with options. Group `name` unique globally; option `name` unique
-  **per group** (DB-enforced) — duplicates → `409 CONFLICT`. `price_delta_vnd` must be
+  option categories with options. Group `name` unique **per category** (DB-enforced composite
+  `uq_option_groups_category_name`); option `name` unique **per group** — duplicates → `409 CONFLICT`. `price_delta_vnd` must be
   ≥ 0 (negative → `VALIDATION_FAILED`). Group `DELETE` **cascades** to its options and
   their per-dish enablement. There are **no** order-history delete guards: orders hold
   snapshots in `order_item_options` (group/option names + delta at order time; readers

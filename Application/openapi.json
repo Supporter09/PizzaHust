@@ -515,6 +515,57 @@
         "title": "CategoryIn",
         "type": "object"
       },
+      "CategoryOptionGroupOut": {
+        "description": "A category's option group with its full option list. The category's groups\nARE its preset, so there is no per-dish ``enabled`` concept here.",
+        "properties": {
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "group_id": {
+            "title": "Group Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "options": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/OptionOut"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "select_type": {
+            "enum": [
+              "single",
+              "multi"
+            ],
+            "title": "Select Type",
+            "type": "string"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "group_id",
+          "category_id",
+          "name",
+          "select_type",
+          "required",
+          "sort_order"
+        ],
+        "title": "CategoryOptionGroupOut",
+        "type": "object"
+      },
       "CategoryOut": {
         "properties": {
           "category_id": {
@@ -1697,6 +1748,10 @@
       },
       "GroupIn": {
         "properties": {
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -1722,13 +1777,18 @@
           }
         },
         "required": [
-          "name"
+          "name",
+          "category_id"
         ],
         "title": "GroupIn",
         "type": "object"
       },
       "GroupOut": {
         "properties": {
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
           "group_id": {
             "title": "Group Id",
             "type": "integer"
@@ -1756,6 +1816,7 @@
         },
         "required": [
           "group_id",
+          "category_id",
           "name",
           "select_type",
           "required",
@@ -3240,22 +3301,6 @@
         "title": "PlaceOrderOut",
         "type": "object"
       },
-      "PresetPut": {
-        "properties": {
-          "group_ids": {
-            "items": {
-              "type": "integer"
-            },
-            "title": "Group Ids",
-            "type": "array"
-          }
-        },
-        "required": [
-          "group_ids"
-        ],
-        "title": "PresetPut",
-        "type": "object"
-      },
       "ProductComboItemIn": {
         "additionalProperties": false,
         "properties": {
@@ -4115,9 +4160,10 @@
         ]
       }
     },
-    "/api/admin/categories/{category_id}/preset": {
+    "/api/admin/categories/{category_id}/option-groups": {
       "get": {
-        "operationId": "get_preset_api_admin_categories__category_id__preset_get",
+        "description": "A category's option groups (its preset), each with its options, ordered by\n``(sort_order, name)`` for both groups and options.",
+        "operationId": "category_option_groups_api_admin_categories__category_id__option_groups_get",
         "parameters": [
           {
             "in": "path",
@@ -4135,9 +4181,9 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/GroupOut"
+                    "$ref": "#/components/schemas/CategoryOptionGroupOut"
                   },
-                  "title": "Response Get Preset Api Admin Categories  Category Id  Preset Get",
+                  "title": "Response Category Option Groups Api Admin Categories  Category Id  Option Groups Get",
                   "type": "array"
                 }
               }
@@ -4155,61 +4201,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Preset",
-        "tags": [
-          "admin-categories"
-        ]
-      },
-      "put": {
-        "operationId": "put_preset_api_admin_categories__category_id__preset_put",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "category_id",
-            "required": true,
-            "schema": {
-              "title": "Category Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PresetPut"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/GroupOut"
-                  },
-                  "title": "Response Put Preset Api Admin Categories  Category Id  Preset Put",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Put Preset",
+        "summary": "Category Option Groups",
         "tags": [
           "admin-categories"
         ]
@@ -5513,6 +5505,24 @@
     "/api/admin/option-groups": {
       "get": {
         "operationId": "list_groups_api_admin_option_groups_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "category_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -5527,6 +5537,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "List Groups",
