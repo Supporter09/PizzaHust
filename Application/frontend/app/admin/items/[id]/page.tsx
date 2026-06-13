@@ -4,11 +4,12 @@ import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
 
 import Breadcrumb from "@/components/admin/Breadcrumb";
+import { ImageGallery } from "@/components/admin/image-gallery";
 import { OptionsEditor } from "@/components/admin/options-editor";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 
-type ItemOut = components["schemas"]["ItemOut"];
+type ItemOut = components["schemas"]["ItemDetailOut"];
 type CategoryOut = components["schemas"]["CategoryOut"];
 
 const vnd = (n: number) => `${n.toLocaleString("vi-VN")}₫`;
@@ -85,10 +86,6 @@ export default function AdminItemEditorPage({ params }: { params: Promise<{ id: 
 
       {item && (
         <>
-          {/* DEFERRED (full dish editor in mockup, out of scope here): Basics form
-              (name/category/base-price/prep-time/description), Visibility toggles,
-              Danger Zone / delete-dish, and multi-image uploader (A9 unbuilt).
-              This page stays an options-only editor; basics are edited in the items list. */}
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 className="text-2xl font-semibold text-fg">Edit Dish</h1>
@@ -104,6 +101,10 @@ export default function AdminItemEditorPage({ params }: { params: Promise<{ id: 
                 </Link>
               </p>
             </div>
+          </div>
+
+          <div className="mb-6 rounded-xl border border-line bg-surface p-4">
+            <ImageGallery ownerKind="items" ownerId={item.product_id} initial={item.images ?? []} />
           </div>
 
           <section className="rounded-xl border border-line bg-surface p-4">
