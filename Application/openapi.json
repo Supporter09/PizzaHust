@@ -2211,6 +2211,130 @@
         "title": "ItemQuoteLineIn",
         "type": "object"
       },
+      "KitchenItemOptionOut": {
+        "properties": {
+          "group_name": {
+            "title": "Group Name",
+            "type": "string"
+          },
+          "option_name": {
+            "title": "Option Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "group_name",
+          "option_name"
+        ],
+        "title": "KitchenItemOptionOut",
+        "type": "object"
+      },
+      "KitchenItemOut": {
+        "properties": {
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/KitchenItemOut"
+            },
+            "title": "Children",
+            "type": "array"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/KitchenItemOptionOut"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "display_name",
+          "quantity",
+          "options",
+          "note",
+          "children"
+        ],
+        "title": "KitchenItemOut",
+        "type": "object"
+      },
+      "KitchenTicketOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "delivery_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Note"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/KitchenItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "integer"
+          },
+          "priority_score": {
+            "title": "Priority Score",
+            "type": "integer"
+          },
+          "promised_at": {
+            "format": "date-time",
+            "title": "Promised At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "order_code",
+          "status",
+          "created_at",
+          "promised_at",
+          "priority_score",
+          "delivery_note",
+          "items"
+        ],
+        "title": "KitchenTicketOut",
+        "type": "object"
+      },
       "LockIn": {
         "properties": {
           "reason": {
@@ -6593,6 +6717,31 @@
         "summary": "Get Item",
         "tags": [
           "menu"
+        ]
+      }
+    },
+    "/api/kitchen/orders": {
+      "get": {
+        "operationId": "list_incoming_orders_api_kitchen_orders_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/KitchenTicketOut"
+                  },
+                  "title": "Response List Incoming Orders Api Kitchen Orders Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Incoming Orders",
+        "tags": [
+          "kitchen-orders"
         ]
       }
     },
