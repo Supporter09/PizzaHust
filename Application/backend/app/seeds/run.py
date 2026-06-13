@@ -21,6 +21,7 @@ from app.infra.db.models import (
     OrderStatus,
     OrderTracking,
     Product,
+    ProductImage,
     ProductOption,
     User,
     UserRole,
@@ -185,6 +186,23 @@ def _seed(db: Session, settings: Settings) -> None:
         )
         for name, price in pizzas
     ]
+
+    demo_pizza = pizza_products[0]
+    COVER = "/images/seed-margherita-1.png"
+    if not db.scalars(
+        select(ProductImage).where(ProductImage.product_id == demo_pizza.product_id)
+    ).first():
+        urls = [COVER, "/images/seed-margherita-2.png", "/images/seed-margherita-3.png"]
+        for i, url in enumerate(urls):
+            db.add(
+                ProductImage(
+                    product_id=demo_pizza.product_id,
+                    url=url,
+                    sort_order=i,
+                    is_cover=(i == 0),
+                )
+            )
+        demo_pizza.image_url = COVER
 
     # ── Side dishes ────────────────────────────────────────────────
     sides = [
