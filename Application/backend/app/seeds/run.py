@@ -15,6 +15,7 @@ from app.infra.auth import hash_password
 from app.infra.config import Settings, get_settings
 from app.infra.db.models import (
     Category,
+    CategoryPresetGroup,
     Combo,
     ComboItem,
     Option,
@@ -139,6 +140,19 @@ def _enable_for(db: Session, product_ids: list[int], option: Option) -> None:
     for pid in product_ids:
         if not db.get(ProductOption, (pid, option.option_id)):
             db.add(ProductOption(product_id=pid, option_id=option.option_id))
+
+
+def _upsert_preset(db: Session, category: Category, groups: list[OptionGroup]) -> None:
+    for i, group in enumerate(groups):
+        row = db.get(CategoryPresetGroup, (category.category_id, group.group_id))
+        if row is None:
+            db.add(
+                CategoryPresetGroup(
+                    category_id=category.category_id, group_id=group.group_id, sort_order=i
+                )
+            )
+        else:
+            row.sort_order = i
 
 
 def main() -> None:
@@ -293,6 +307,9 @@ def _seed(db: Session, settings: Settings) -> None:
     ]
     for i, (name, delta) in enumerate(toppings, start=1):
         _enable_for(db, pizza_ids, _upsert_option(db, g_top, name, delta=delta, sort_order=i))
+
+    # Pizza category preset: new pizzas inherit Size / Crust / Toppings.
+    _upsert_preset(db, cat_pizza, [g_size, g_crust, g_top])
 
     # ── Combos ─────────────────────────────────────────────────────
     # naive UTC to match the DateTime(timezone=False) columns (utcnow() is deprecated).
