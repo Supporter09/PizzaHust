@@ -1,7 +1,7 @@
 import { apiFetch } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 
-export type AdminCombo = components["schemas"]["ComboOut"];
+export type AdminCombo = components["schemas"]["ComboDetailOut"];
 export type AdminComboIn = components["schemas"]["ComboIn"];
 export type AdminComboPatch = components["schemas"]["ComboPatch"];
 export type AdminComboItemIn = AdminComboIn["items"][number];
@@ -18,15 +18,3 @@ export const patchCombo = (id: number, body: AdminComboPatch) =>
 
 export const deleteCombo = (id: number) =>
   apiFetch<void>(`/admin/combos/${id}`, { method: "DELETE" });
-
-export const uploadComboImage = (id: number, file: File) => {
-  const fd = new FormData();
-  fd.append("image", file);
-  return apiFetch<{ image_url: string }>(`/admin/combos/${id}/image`, {
-    method: "POST",
-    body: fd,
-  });
-};
-
-export const deleteComboImage = (id: number) =>
-  apiFetch<void>(`/admin/combos/${id}/image`, { method: "DELETE" });

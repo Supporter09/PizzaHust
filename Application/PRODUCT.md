@@ -199,9 +199,9 @@ over-priced combo is accepted (UI warns). Savings = `max(0, Î£ component base âˆ
 
 ### Multi-image Dishes (A9)
 
-A dish carries up to 8 images with one designated **cover** (the image menu cards/combos
-render). Menu/combo read paths keep using a single cover URL; the gallery is an admin/detail
-concern.
+A dish **and a combo** carry up to 8 images with one designated **cover** (the image menu
+cards/combos render). Menu/combo list and cart reads keep using the single cover URL; the
+gallery is an admin/detail concern, shown in the admin editor and the customer detail page.
 
 ### Profile, extended (U12)
 

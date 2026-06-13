@@ -1,16 +1,10 @@
 "use client";
 
-import { CoverFallback } from "@/components/cover-fallback";
-
 interface Props {
   name: string;
   onName: (v: string) => void;
   description: string;
   onDescription: (v: string) => void;
-  showImage: boolean;
-  imageUrl: string | null;
-  onImagePick: (f: File) => void;
-  onImageRemove: () => void;
 }
 
 export default function ComboBasicsSection({
@@ -18,10 +12,6 @@ export default function ComboBasicsSection({
   onName,
   description,
   onDescription,
-  showImage,
-  imageUrl,
-  onImagePick,
-  onImageRemove,
 }: Props) {
   return (
     <section className="rounded-xl border border-line bg-card p-4">
@@ -50,50 +40,6 @@ export default function ComboBasicsSection({
             className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm"
           />
         </div>
-        {showImage && (
-          <div>
-            <span className="mb-2 block text-sm font-medium text-fg">Image</span>
-            {imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={imageUrl}
-                alt=""
-                className="mb-2 aspect-[16/6] w-full max-w-md rounded-lg object-cover"
-              />
-            ) : (
-              <CoverFallback
-                label="No image"
-                className="mb-2 aspect-[16/6] w-full max-w-md rounded-lg"
-              />
-            )}
-            <div className="flex items-center gap-2">
-              <label className="flex min-h-11 cursor-pointer items-center rounded-lg border border-line px-3 py-1.5 text-sm">
-                Upload
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) onImagePick(f);
-                  }}
-                />
-              </label>
-              {imageUrl && (
-                <button
-                  type="button"
-                  onClick={onImageRemove}
-                  className="min-h-11 text-sm text-brand"
-                >
-                  Remove
-                </button>
-              )}
-            </div>
-            <p className="mt-1 text-xs text-muted">
-              Wide format works best (16:6) — shown on combo cards.
-            </p>
-          </div>
-        )}
       </div>
     </section>
   );

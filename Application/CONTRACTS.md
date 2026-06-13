@@ -141,6 +141,7 @@ All under `/api/admin/`, role=`admin` required.
 |---|---|---|
 | GET/POST/PATCH/DELETE | `/api/admin/items` | A1, A2 — pizzas + side dishes; GET filters `kind=pizza\|side`, `category_id`, `active` |
 | POST | `/api/admin/items/{id}/image` | A1 — multipart image upload (field `image`); returns `{ "image_url": string }` |
+| POST/DELETE | `/api/admin/items/{id}/images[/{image_id}[/cover]]` | A9 — add image / delete image / set cover |
 | GET/POST/PATCH/DELETE | `/api/admin/option-groups` | A2/A8 — option categories (`name`, `select_type: single\|multi`, `required`, `sort_order`) |
 | POST | `/api/admin/option-groups/{gid}/options` | A2/A8 — add option (`name`, `description?`, `price_delta_vnd ≥ 0`, `sort_order`) |
 | PATCH/DELETE | `/api/admin/options/{oid}` | A2/A8 — edit/delete one option |
@@ -149,6 +150,7 @@ All under `/api/admin/`, role=`admin` required.
 | GET/POST/PATCH/DELETE | `/api/admin/combos` | A4/A10 — response includes derived `status` |
 | POST | `/api/admin/combos/{id}/image` | A10 — multipart image upload (field `image`); returns `{ "image_url": string }` |
 | DELETE | `/api/admin/combos/{id}/image` | A10 — clear combo image, 204 |
+| POST/DELETE | `/api/admin/combos/{id}/images[/{image_id}[/cover]]` | A9 — add image / delete image / set cover |
 | POST | `/api/admin/import/pizzas` | A1 — CSV upsert (multipart field `file`) |
 | GET | `/api/admin/orders` | A5 list, query param `status` |
 | GET | `/api/admin/orders/{id}` | A5 get order detail |
@@ -434,8 +436,12 @@ detailed payloads are designed per feature as each is built and land with their 
   `description`, `price_delta_vnd`, `enabled`) replacing `/api/admin/{sizes,crusts,toppings}`.
   Item detail (`GET /api/items/{id}`) and the customizer surface option groups instead of fixed
   size/crust/topping lists. `POST /api/cart/quote` resolves option deltas generically.
-- **Multi-image dishes (A9).** `POST /api/admin/items/{id}/images` (multi), set-cover, delete;
-  item read paths gain `images[]` with a `cover` flag. Single `image_url` stays as the cover.
+- **Multi-image dishes & combos (A9).** `POST /api/admin/items/{id}/images` (add),
+  `DELETE …/images/{image_id}`, `POST …/images/{image_id}/cover`; same trio under
+  `/api/admin/combos/{id}/images`. Item/combo **detail** reads gain `images[]`
+  (`{ image_id, url, is_cover }`, cover first). The legacy singular
+  `POST …/{id}/image` now replaces the cover in place; `DELETE …/{combo_id}/image`
+  removes the cover. List/menu/cart reads still expose the single `image_url` cover.
 - **Combo choice-slots (A10).** Shipped on admin/public/cart quote (see A10 scope under admin
   combos and cart notes). **U15** adds the customer customizer UI; **U6** persists resolved combo
   lines on `POST /api/orders` (not in A10).

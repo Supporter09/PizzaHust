@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app.api.images import ImageOut, image_outs
 from app.core.errors import APIError
 from app.domain.combos import ComboStatus, combo_savings_vnd, combo_status
 from app.infra.db.combo_queries import slot_availability
@@ -143,6 +144,7 @@ class PublicComboDetailOut(BaseModel):
     items_total_vnd: int
     savings_vnd: int
     components: list[ComboComponentOut]
+    images: list[ImageOut] = []
 
 
 @router.get("/combos/{combo_id}", response_model=PublicComboDetailOut)
@@ -221,4 +223,5 @@ def get_combo_detail(
         items_total_vnd=items_total,
         savings_vnd=combo_savings_vnd(combo.combo_price_vnd, items_total),
         components=components,
+        images=image_outs(list(combo.images)),
     )

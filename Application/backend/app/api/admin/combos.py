@@ -10,47 +10,26 @@ one active product.
 
 from __future__ import annotations
 
-import os
-import uuid
 from datetime import UTC, datetime
 from typing import Annotated, Literal
 
-import structlog
 from fastapi import APIRouter, Depends, File, UploadFile
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from app.api import images as images_mod
+from app.api.images import ImageOut, image_outs
 from app.core.errors import APIError
+from app.domain import gallery
 from app.domain.combos import ComboStatus, combo_savings_vnd, combo_status
 from app.infra.auth import require_role
-from app.infra.config import get_settings
 from app.infra.db.combo_queries import slot_availability
 from app.infra.db.deps import get_db
-from app.infra.db.models import Combo, ComboItem, Product, User, UserRole
+from app.infra.db.models import Combo, ComboImage, ComboItem, Product, User, UserRole
 
 router = APIRouter(prefix="/api/admin/combos", tags=["admin-combos"])
 require_admin = require_role(UserRole.ADMIN)
-
-_ALLOWED_IMAGE_EXT = {"png", "jpg", "jpeg", "webp"}
-
-
-def _remove_image_file(image_url: str | None) -> None:
-    """Best-effort removal of a stored combo image blob so replace/clear/delete
-    don't orphan files. The URL is always server-generated (uuid hex inside
-    image_upload_dir); basename() keeps the path inside the upload dir."""
-    if not image_url:
-        return
-    fname = os.path.basename(image_url)
-    if not fname:
-        return
-    try:
-        os.remove(os.path.join(get_settings().image_upload_dir, fname))
-    except FileNotFoundError:
-        pass
-    except OSError:
-        # The DB stays authoritative; a stray blob is preferable to a failed request.
-        structlog.get_logger().warning("combo_image_blob_remove_failed", image_url=image_url)
 
 
 def _now_utc_naive() -> datetime:
@@ -135,6 +114,10 @@ class ComboOut(BaseModel):
     items_total_vnd: int | None = None
     savings_vnd: int | None = None
     items: list[ComboItemOut]
+
+
+class ComboDetailOut(ComboOut):
+    images: list[ImageOut] = []
 
 
 def _validate_range(start: datetime | None, end: datetime | None) -> None:
@@ -272,16 +255,18 @@ def create_combo(
     return _to_out(db, combo)
 
 
-@router.get("/{combo_id}", response_model=ComboOut)
+@router.get("/{combo_id}", response_model=ComboDetailOut)
 def get_combo(
     combo_id: int,
     db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
-) -> ComboOut:
+) -> ComboDetailOut:
     combo = db.get(Combo, combo_id)
     if combo is None:
         raise APIError(code="NOT_FOUND", message="Combo not found.", status_code=404)
-    return _to_out(db, combo)
+    out = ComboDetailOut.model_validate(_to_out(db, combo).model_dump())
+    out.images = image_outs(list(combo.images))
+    return out
 
 
 @router.patch("/{combo_id}", response_model=ComboOut)
@@ -340,9 +325,73 @@ def delete_combo(
     combo = db.get(Combo, combo_id)
     if combo is None:
         raise APIError(code="NOT_FOUND", message="Combo not found.", status_code=404)
-    _remove_image_file(combo.image_url)
+    # Hard delete cascades the ComboImage rows; remove every blob (cover + gallery),
+    # not just the denormalized cover, so no files orphan on disk.
+    for img in combo.images:
+        images_mod.remove_blob(img.url)
     db.execute(delete(ComboItem).where(ComboItem.combo_id == combo_id))
     db.delete(combo)
+
+
+def _locked_combo(db: Session, combo_id: int) -> Combo:
+    combo = db.scalar(select(Combo).where(Combo.combo_id == combo_id).with_for_update())
+    if combo is None:
+        raise APIError(code="NOT_FOUND", message="Combo not found.", status_code=404)
+    return combo
+
+
+@router.post("/{combo_id}/images", response_model=ImageOut, status_code=201)
+def add_combo_image(
+    combo_id: int,
+    image: UploadFile = File(...),
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
+) -> ImageOut:
+    combo = _locked_combo(db, combo_id)
+    before = images_mod.to_gallery(list(combo.images))
+    url = images_mod.save_blob(image)
+    try:
+        after, _ = gallery.add(before, url)
+    except gallery.GalleryError as e:
+        images_mod.remove_blob(url)
+        raise APIError(code="VALIDATION_FAILED", message=str(e), status_code=400) from None
+    inserted = images_mod.reconcile(
+        db, image_model=ComboImage, owner=combo, before=before, after=after
+    )
+    db.flush()
+    row = inserted[0]
+    return ImageOut(image_id=row.image_id, url=row.url, is_cover=row.is_cover)
+
+
+@router.delete("/{combo_id}/images/{image_id}", status_code=204)
+def delete_combo_gallery_image(
+    combo_id: int,
+    image_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
+) -> None:
+    combo = _locked_combo(db, combo_id)
+    before = images_mod.to_gallery(list(combo.images))
+    if not any(i.image_id == image_id for i in before):
+        raise APIError(code="NOT_FOUND", message="Image not found.", status_code=404)
+    after, _ = gallery.remove(before, image_id)
+    images_mod.reconcile(db, image_model=ComboImage, owner=combo, before=before, after=after)
+
+
+@router.post("/{combo_id}/images/{image_id}/cover", status_code=204)
+def set_combo_cover(
+    combo_id: int,
+    image_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
+) -> None:
+    combo = _locked_combo(db, combo_id)
+    before = images_mod.to_gallery(list(combo.images))
+    try:
+        after, _ = gallery.set_cover(before, image_id)
+    except gallery.GalleryError:
+        raise APIError(code="NOT_FOUND", message="Image not found.", status_code=404) from None
+    images_mod.reconcile(db, image_model=ComboImage, owner=combo, before=before, after=after)
 
 
 @router.post("/{combo_id}/image")
@@ -351,28 +400,14 @@ def upload_combo_image(
     image: UploadFile = File(...),
     db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
-) -> dict[str, str]:
-    combo = db.get(Combo, combo_id)
-    if combo is None:
-        raise APIError(code="NOT_FOUND", message="Combo not found.", status_code=404)
-    settings = get_settings()
-    ext = (image.filename or "").rsplit(".", 1)[-1].lower()
-    if ext not in _ALLOWED_IMAGE_EXT:
-        raise APIError(
-            code="VALIDATION_FAILED",
-            message="Unsupported image type. Allowed: png, jpg, jpeg, webp.",
-            status_code=400,
-        )
-    data = image.file.read(settings.image_max_bytes + 1)
-    if len(data) > settings.image_max_bytes:
-        raise APIError(code="VALIDATION_FAILED", message="Image too large.", status_code=400)
-    os.makedirs(settings.image_upload_dir, exist_ok=True)
-    fname = f"{uuid.uuid4().hex}.{ext}"
-    with open(os.path.join(settings.image_upload_dir, fname), "wb") as f:
-        f.write(data)
-    _remove_image_file(combo.image_url)  # after the new blob is safely written
-    combo.image_url = f"{settings.image_base_url}/{fname}"
-    return {"image_url": combo.image_url}
+) -> dict[str, str | None]:
+    """Legacy single-image upload: replaces the cover in place (never appends)."""
+    combo = _locked_combo(db, combo_id)
+    before = images_mod.to_gallery(list(combo.images))
+    url = images_mod.save_blob(image)
+    after, cover = gallery.replace_cover(before, url)
+    images_mod.reconcile(db, image_model=ComboImage, owner=combo, before=before, after=after)
+    return {"image_url": cover}
 
 
 @router.delete("/{combo_id}/image", status_code=204)
@@ -381,8 +416,11 @@ def delete_combo_image(
     db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> None:
-    combo = db.get(Combo, combo_id)
-    if combo is None:
-        raise APIError(code="NOT_FOUND", message="Combo not found.", status_code=404)
-    _remove_image_file(combo.image_url)
-    combo.image_url = None
+    """Legacy clear: removes the cover image (promotes the next if any)."""
+    combo = _locked_combo(db, combo_id)
+    before = images_mod.to_gallery(list(combo.images))
+    cover_id = next((i.image_id for i in before if i.is_cover), None)
+    if cover_id is None:
+        return
+    after, _ = gallery.remove(before, cover_id)
+    images_mod.reconcile(db, image_model=ComboImage, owner=combo, before=before, after=after)

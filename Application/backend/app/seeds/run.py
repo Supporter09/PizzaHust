@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import os
+import struct
+import zlib
 from datetime import UTC, datetime, timedelta
 
 import structlog
@@ -21,6 +24,7 @@ from app.infra.db.models import (
     OrderStatus,
     OrderTracking,
     Product,
+    ProductImage,
     ProductOption,
     User,
     UserRole,
@@ -46,6 +50,34 @@ def _seed_order_code(user_id: int, days_ago: int) -> str:
         chars.append(_CROCKFORD[n % 32])
         n //= 32
     return "PIZZ-" + "".join(reversed(chars))
+
+
+# Demo gallery placeholders for the showcase pizza — distinct solid colors so the
+# multi-image gallery is visibly populated after a clean seed. Filenames are stable
+# so re-seeding is a no-op; URLs are built from settings.image_base_url at seed time.
+_SEED_GALLERY: tuple[tuple[str, tuple[int, int, int]], ...] = (
+    ("seed-margherita-1.png", (212, 160, 23)),  # gold (cover)
+    ("seed-margherita-2.png", (197, 48, 48)),  # red
+    ("seed-margherita-3.png", (47, 133, 90)),  # green
+)
+
+
+def _solid_png(rgb: tuple[int, int, int], size: int = 400) -> bytes:
+    """Minimal solid-color truecolor PNG, no external image dependency."""
+
+    def _chunk(tag: bytes, data: bytes) -> bytes:
+        body = tag + data
+        crc = zlib.crc32(body) & 0xFFFFFFFF
+        return struct.pack(">I", len(data)) + body + struct.pack(">I", crc)
+
+    row = b"\x00" + bytes(rgb) * size  # filter-type 0 + RGB pixels, one scanline
+    idat = zlib.compress(row * size, 9)
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + _chunk(b"IHDR", struct.pack(">IIBBBBB", size, size, 8, 2, 0, 0, 0))
+        + _chunk(b"IDAT", idat)
+        + _chunk(b"IEND", b"")
+    )
 
 
 def _upsert_user(db: Session, phone: str, **kwargs) -> User:
@@ -185,6 +217,37 @@ def _seed(db: Session, settings: Settings) -> None:
         )
         for name, price in pizzas
     ]
+
+    demo_pizza = pizza_products[0]
+    base = settings.image_base_url.rstrip("/")
+    # Best-effort: write placeholder blobs so the seeded gallery renders after a clean
+    # bootstrap. The upload dir is a writable volume in the container but may be absent
+    # or read-only when the seed runs on the host (unit tests), where the DB rows alone
+    # are what matters — a missing dir must never fail the seed.
+    try:
+        os.makedirs(settings.image_upload_dir, exist_ok=True)
+        for fname, rgb in _SEED_GALLERY:
+            path = os.path.join(settings.image_upload_dir, fname)
+            if not os.path.exists(path):
+                with open(path, "wb") as f:
+                    f.write(_solid_png(rgb))
+    except OSError:
+        structlog.get_logger().warning(
+            "seed_gallery_blobs_skipped", upload_dir=settings.image_upload_dir
+        )
+    if not db.scalars(
+        select(ProductImage).where(ProductImage.product_id == demo_pizza.product_id)
+    ).first():
+        for i, (fname, _) in enumerate(_SEED_GALLERY):
+            db.add(
+                ProductImage(
+                    product_id=demo_pizza.product_id,
+                    url=f"{base}/{fname}",
+                    sort_order=i,
+                    is_cover=(i == 0),
+                )
+            )
+        demo_pizza.image_url = f"{base}/{_SEED_GALLERY[0][0]}"
 
     # ── Side dishes ────────────────────────────────────────────────
     sides = [

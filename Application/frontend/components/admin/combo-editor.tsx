@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import Breadcrumb from "@/components/admin/Breadcrumb";
 import ComboBasicsSection from "@/components/admin/combo-basics-section";
+import { ImageGallery } from "@/components/admin/image-gallery";
 import ComboComponentsPanel, {
   comboItemToRow,
   sameComponent,
@@ -16,10 +17,8 @@ import { ApiClientError, apiFetch } from "@/lib/api/client";
 import {
   createCombo,
   deleteCombo,
-  deleteComboImage,
   getCombo,
   patchCombo,
-  uploadComboImage,
   type AdminCombo,
   type AdminComboItemIn,
 } from "@/lib/api/admin-combos";
@@ -44,7 +43,7 @@ export default function ComboEditor({ comboId }: { comboId: number | null }) {
   const [comboPrice, setComboPrice] = useState("");
   const [validityStart, setValidityStart] = useState("");
   const [validityEnd, setValidityEnd] = useState("");
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
   const [rows, setRows] = useState<EditorRow[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [error, setError] = useState("");
@@ -66,7 +65,6 @@ export default function ComboEditor({ comboId }: { comboId: number | null }) {
       setComboPrice(String(combo.combo_price_vnd));
       setValidityStart(toDateInput(combo.validity_start));
       setValidityEnd(toDateInput(combo.validity_end));
-      setImageUrl(combo.image_url ?? null);
       setRows(combo.items.map((it) => comboItemToRow(it, priceByProduct)));
     } catch (e) {
       setError(msg(e));
@@ -161,34 +159,6 @@ export default function ComboEditor({ comboId }: { comboId: number | null }) {
     }
   };
 
-  const onImagePick = async (file: File) => {
-    if (comboId === null) return;
-    setBusy(true);
-    setError("");
-    try {
-      const { image_url } = await uploadComboImage(comboId, file);
-      setImageUrl(image_url);
-    } catch (e) {
-      setError(msg(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const onImageRemove = async () => {
-    if (comboId === null) return;
-    setBusy(true);
-    setError("");
-    try {
-      await deleteComboImage(comboId);
-      setImageUrl(null);
-    } catch (e) {
-      setError(msg(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const title = isCreate ? "New Combo" : (loaded?.name ?? "Edit Combo");
 
   return (
@@ -235,11 +205,17 @@ export default function ComboEditor({ comboId }: { comboId: number | null }) {
             onName={setName}
             description={description}
             onDescription={setDescription}
-            showImage={!isCreate}
-            imageUrl={imageUrl}
-            onImagePick={(f) => void onImagePick(f)}
-            onImageRemove={() => void onImageRemove()}
           />
+
+          {!isCreate && loaded ? (
+            <div className="rounded-xl border border-line bg-surface p-4">
+              <ImageGallery
+                ownerKind="combos"
+                ownerId={loaded.combo_id}
+                initial={loaded.images ?? []}
+              />
+            </div>
+          ) : null}
 
           <ComboComponentsPanel
             rows={rows}

@@ -159,6 +159,26 @@ class Product(Base):
     category: Mapped[Category] = relationship(back_populates="products")
     combo_items: Mapped[list[ComboItem]] = relationship(back_populates="product")
     order_items: Mapped[list[OrderItem]] = relationship(back_populates="product")
+    images: Mapped[list[ProductImage]] = relationship(
+        back_populates="product", cascade="all, delete-orphan"
+    )
+
+
+class ProductImage(Base):
+    __tablename__ = "product_images"
+    __table_args__ = (Index("ix_product_images_product_id_sort", "product_id", "sort_order"),)
+
+    image_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.product_id", ondelete="CASCADE"), nullable=False
+    )
+    url: Mapped[str] = mapped_column(String(255), nullable=False)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    is_cover: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="0"
+    )
+
+    product: Mapped[Product] = relationship(back_populates="images")
 
 
 class OptionGroup(Base):
@@ -252,6 +272,26 @@ class Combo(Base):
 
     combo_items: Mapped[list[ComboItem]] = relationship(back_populates="combo")
     order_items: Mapped[list[OrderItem]] = relationship(back_populates="combo")
+    images: Mapped[list[ComboImage]] = relationship(
+        back_populates="combo", cascade="all, delete-orphan"
+    )
+
+
+class ComboImage(Base):
+    __tablename__ = "combo_images"
+    __table_args__ = (Index("ix_combo_images_combo_id_sort", "combo_id", "sort_order"),)
+
+    image_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    combo_id: Mapped[int] = mapped_column(
+        ForeignKey("combos.combo_id", ondelete="CASCADE"), nullable=False
+    )
+    url: Mapped[str] = mapped_column(String(255), nullable=False)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    is_cover: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="0"
+    )
+
+    combo: Mapped[Combo] = relationship(back_populates="images")
 
 
 class ComboItem(Base):
