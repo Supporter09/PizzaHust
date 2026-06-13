@@ -15,12 +15,19 @@ import uuid
 from datetime import UTC, datetime
 from typing import Annotated, Literal
 
-import structlog
 from fastapi import APIRouter, Depends, File, UploadFile
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from app.api.images import (  # noqa: F401
+    ImageOut,
+    image_outs,
+    reconcile,
+    remove_blob,
+    save_blob,
+    to_gallery,
+)
 from app.core.errors import APIError
 from app.domain.combos import ComboStatus, combo_savings_vnd, combo_status
 from app.infra.auth import require_role
@@ -33,24 +40,6 @@ router = APIRouter(prefix="/api/admin/combos", tags=["admin-combos"])
 require_admin = require_role(UserRole.ADMIN)
 
 _ALLOWED_IMAGE_EXT = {"png", "jpg", "jpeg", "webp"}
-
-
-def _remove_image_file(image_url: str | None) -> None:
-    """Best-effort removal of a stored combo image blob so replace/clear/delete
-    don't orphan files. The URL is always server-generated (uuid hex inside
-    image_upload_dir); basename() keeps the path inside the upload dir."""
-    if not image_url:
-        return
-    fname = os.path.basename(image_url)
-    if not fname:
-        return
-    try:
-        os.remove(os.path.join(get_settings().image_upload_dir, fname))
-    except FileNotFoundError:
-        pass
-    except OSError:
-        # The DB stays authoritative; a stray blob is preferable to a failed request.
-        structlog.get_logger().warning("combo_image_blob_remove_failed", image_url=image_url)
 
 
 def _now_utc_naive() -> datetime:
@@ -340,7 +329,7 @@ def delete_combo(
     combo = db.get(Combo, combo_id)
     if combo is None:
         raise APIError(code="NOT_FOUND", message="Combo not found.", status_code=404)
-    _remove_image_file(combo.image_url)
+    remove_blob(combo.image_url)
     db.execute(delete(ComboItem).where(ComboItem.combo_id == combo_id))
     db.delete(combo)
 
@@ -370,7 +359,7 @@ def upload_combo_image(
     fname = f"{uuid.uuid4().hex}.{ext}"
     with open(os.path.join(settings.image_upload_dir, fname), "wb") as f:
         f.write(data)
-    _remove_image_file(combo.image_url)  # after the new blob is safely written
+    remove_blob(combo.image_url)  # after the new blob is safely written
     combo.image_url = f"{settings.image_base_url}/{fname}"
     return {"image_url": combo.image_url}
 
@@ -384,5 +373,5 @@ def delete_combo_image(
     combo = db.get(Combo, combo_id)
     if combo is None:
         raise APIError(code="NOT_FOUND", message="Combo not found.", status_code=404)
-    _remove_image_file(combo.image_url)
+    remove_blob(combo.image_url)
     combo.image_url = None
