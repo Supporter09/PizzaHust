@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from fastapi.testclient import TestClient
+from sqlalchemy import delete, select
 
 from app.infra.db.models import Order, OrderItem, ProductOption
 from app.infra.db.session import create_session_factory
@@ -14,6 +15,7 @@ from tests.admin_test_utils import (
     new_option,
     new_option_group,
 )
+from tests.auth_test_utils import build_test_app
 
 
 def _create_pizza(client, category_id, name="Margherita", price=120_000):
@@ -201,3 +203,129 @@ def test_create_without_preset_enables_nothing():
     assert groups == []  # no groups in the category -> nothing to enable
     with create_session_factory()() as db:
         assert db.scalars(select(ProductOption).where(ProductOption.product_id == pid)).all() == []
+
+
+def test_patch_category_change_reseeds_options_from_new_category():
+    """Moving a dish to a different category must replace its ProductOption rows
+    with the new category's preset. Both the admin GET /options view and the
+    customer GET /api/items/{id} path must agree after the change."""
+    app = build_test_app("items-recat")
+    client = admin_client("items-recat")
+
+    # --- Pizza category: Size group with S + M, Crust group with Thin ---
+    pizza_cat = new_category("Pizza-recat")
+    g_size = new_option_group("Size", category_id=pizza_cat, select_type="single", required=True)
+    size_s = new_option(g_size, "S")
+    size_m = new_option(g_size, "M")
+    g_crust = new_option_group("Crust", category_id=pizza_cat, select_type="single", required=True)
+    crust_thin = new_option(g_crust, "Thin")
+
+    # --- Drinks category: Volume group with Small ---
+    drinks_cat = new_category("Drinks-recat")
+    g_vol = new_option_group("Volume", category_id=drinks_cat, select_type="single", required=True)
+    vol_small = new_option(g_vol, "Small")
+
+    # Create dish in Pizza via the create endpoint so _apply_category_preset runs.
+    pid = client.post(
+        "/api/admin/items",
+        json={
+            "category_id": pizza_cat,
+            "name": "Margherita Recat",
+            "base_price_vnd": 120_000,
+            "kind": "pizza",
+        },
+    ).json()["product_id"]
+
+    # Confirm Pizza preset is seeded correctly before the move.
+    admin_groups_before = client.get(f"/api/admin/items/{pid}/options").json()
+    enabled_before = {
+        o["option_id"] for g in admin_groups_before for o in g["options"] if o["enabled"]
+    }
+    assert enabled_before == {size_s, size_m, crust_thin}
+
+    # PATCH: move dish to Drinks.
+    r = client.patch(f"/api/admin/items/{pid}", json={"category_id": drinks_cat})
+    assert r.status_code == 200, r.text
+    assert r.json()["category_id"] == drinks_cat
+
+    # Admin view: only Drinks' options remain; none of Pizza's options survive.
+    admin_groups_after = client.get(f"/api/admin/items/{pid}/options").json()
+    group_names_after = [g["name"] for g in admin_groups_after]
+    assert "Size" not in group_names_after
+    assert "Crust" not in group_names_after
+    assert "Volume" in group_names_after
+    enabled_after = {
+        o["option_id"] for g in admin_groups_after for o in g["options"] if o["enabled"]
+    }
+    assert enabled_after == {vol_small}
+
+    # Customer path must agree: no Pizza options, only Drinks' Volume option.
+    pub = TestClient(app).get(f"/api/items/{pid}")
+    assert pub.status_code == 200, pub.text
+    customer_option_ids = {
+        o["option_id"] for g in pub.json()["option_groups"] for o in g["options"]
+    }
+    assert size_s not in customer_option_ids
+    assert size_m not in customer_option_ids
+    assert crust_thin not in customer_option_ids
+    assert vol_small in customer_option_ids
+
+    # Raw DB: no Pizza option rows remain.
+    with create_session_factory()() as db:
+        all_opts = db.scalars(select(ProductOption).where(ProductOption.product_id == pid)).all()
+        all_opt_ids = {po.option_id for po in all_opts}
+        assert size_s not in all_opt_ids
+        assert size_m not in all_opt_ids
+        assert crust_thin not in all_opt_ids
+        assert vol_small in all_opt_ids
+
+
+def test_patch_same_category_leaves_options_intact():
+    """A PATCH that does NOT change category_id (either omits it or sends the
+    current value) must NOT touch the dish's ProductOption rows."""
+    client = admin_client("items-recat-noop")
+
+    pizza_cat = new_category("Pizza-noop")
+    g_size = new_option_group("Size", category_id=pizza_cat, select_type="single", required=True)
+    size_s = new_option(g_size, "S")
+    size_m = new_option(g_size, "M")
+
+    pid = client.post(
+        "/api/admin/items",
+        json={
+            "category_id": pizza_cat,
+            "name": "Margherita Noop",
+            "base_price_vnd": 120_000,
+            "kind": "pizza",
+        },
+    ).json()["product_id"]
+
+    # Manually enable only S (deviate from preset) to prove no reseed happens.
+    with create_session_factory()() as db:
+        db.execute(delete(ProductOption).where(ProductOption.product_id == pid))
+        db.add(ProductOption(product_id=pid, option_id=size_s))
+        db.commit()
+
+    # PATCH omitting category_id — options must stay as-is.
+    r = client.patch(f"/api/admin/items/{pid}", json={"base_price_vnd": 99_000})
+    assert r.status_code == 200
+
+    with create_session_factory()() as db:
+        opt_ids = {
+            po.option_id
+            for po in db.scalars(select(ProductOption).where(ProductOption.product_id == pid)).all()
+        }
+    assert size_s in opt_ids
+    assert size_m not in opt_ids  # M was never enabled; no reseed should add it back
+
+    # PATCH sending the SAME category_id — options must still stay as-is.
+    r = client.patch(f"/api/admin/items/{pid}", json={"category_id": pizza_cat})
+    assert r.status_code == 200
+
+    with create_session_factory()() as db:
+        opt_ids = {
+            po.option_id
+            for po in db.scalars(select(ProductOption).where(ProductOption.product_id == pid)).all()
+        }
+    assert size_s in opt_ids
+    assert size_m not in opt_ids  # still unchanged

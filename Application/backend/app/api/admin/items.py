@@ -171,10 +171,15 @@ def patch_item(
         )
     if body.category_id is not None:
         _require_active_category(db, body.category_id)
+    old_category_id = p.category_id
     for field in ("category_id", "name", "base_price_vnd", "is_active"):
         val = getattr(body, field)
         if val is not None:
             setattr(p, field, val)
+    if body.category_id is not None and body.category_id != old_category_id:
+        db.execute(delete(ProductOption).where(ProductOption.product_id == product_id))
+        db.flush()
+        _apply_category_preset(db, p)
     return ItemOut.model_validate(p)
 
 
