@@ -4,7 +4,7 @@ import Link from "next/link";
 import { use, useCallback, useEffect, useRef, useState } from "react";
 
 import { useCart } from "@/components/cart-provider";
-import { CoverFallback } from "@/components/cover-fallback";
+import { ImageViewer } from "@/components/menu/image-viewer";
 import { OptionGroupSelector } from "@/components/menu/option-group-selector";
 import { QuantityStepper } from "@/components/menu/quantity-stepper";
 import { ApiClientError } from "@/lib/api/client";
@@ -146,18 +146,8 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
 
       {status === "ready" && item ? (
         <div className="grid gap-8 lg:grid-cols-2">
-          <div className="self-start overflow-hidden rounded-2xl border border-line bg-card">
-            {item.image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={item.image_url}
-                alt={item.name}
-                loading="lazy"
-                className="h-72 w-full object-cover sm:h-96"
-              />
-            ) : (
-              <CoverFallback label={item.name} className="h-72 w-full sm:h-96" />
-            )}
+          <div className="self-start">
+            <ImageViewer images={item.images ?? []} name={item.name} />
           </div>
 
           <div className="space-y-6">
