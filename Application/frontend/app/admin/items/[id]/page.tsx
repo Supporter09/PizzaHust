@@ -47,7 +47,7 @@ export default function AdminItemEditorPage({ params }: { params: Promise<{ id: 
   }, [load]);
 
   return (
-    <div>
+    <div className="pb-24">
       <Breadcrumb
         items={[
           { label: "Admin", href: "/admin" },
