@@ -19,9 +19,7 @@ def test_gallery_relationship_and_cascade_wiring():
         product = db.get(Product, pid)
         product.image_url = "/images/existing.png"
         db.add(
-            ProductImage(
-                product_id=pid, url="/images/existing.png", sort_order=0, is_cover=True
-            )
+            ProductImage(product_id=pid, url="/images/existing.png", sort_order=0, is_cover=True)
         )
         db.commit()
 
