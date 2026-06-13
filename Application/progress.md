@@ -547,3 +547,27 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 - Timezone policy: DB stores UTC `CURRENT_TIMESTAMP` while date windows use local "today" — orders placed 00:00–07:00 +07 land on the previous UTC date.
 - Reports aggregate in Python over the full range with no range cap.
 - Reports `top_items.order_count` counts units (quantity), not distinct orders.
+
+---
+
+## 2026-06-13 — K1 View Incoming Orders (branch `feat/k1-incoming-orders`)
+
+**Done**
+- Migration `0012`: `kitchen_queue_view` membership fix — surfaces `ReadyForDispatch` (not `DispatchPending`) alongside Received/Preparing.
+- Read-only `GET /api/kitchen/orders` (role-guarded kitchen) returning lean prep-ticket DTOs: per-line item/options/note with combo children nested under their parent line; delivery note surfaced.
+- Test harness: SQLite-compatible `kitchen_queue_view` + order/kitchen factories; 8 endpoint tests (state filter, oldest-first, option/note rendering, combo grouping, delivery note). Contract regenerated (`openapi.json` + `types.ts`); typed `lib/api/kitchen.ts`.
+- Pure queue helpers `lib/kitchen-queue.ts` (age, urgency, status label) + vitest.
+- Frontend: `/kitchen` chrome suppression (`app-chrome.tsx`) + post-login redirect (`auth-card.tsx`); role-guarded `/kitchen` shell layout; queue page with 3s polling (`queue-client.tsx`). Seed `ReadyForDispatch` demo order with courier note. MySQL smoke (place → kitchen queue) + Playwright `kitchen.spec.ts` (non-kitchen redirect + kitchen login sees tickets).
+
+**Accepted deviations** (recorded during the live matching-design-mockups pass)
+- No action buttons — K1 is read-only; Accept/Preparing/Mark-Ready are K2/K3/K4 (per spec).
+- Badge status colors mapped to semantic theme tokens (info/warning/success for Received/Preparing/ReadyForDispatch) rather than the mockup's exact blue/red/cyan hues — dark-mode-safe, plan-sanctioned.
+- Subtitle describes the read-only view rather than naming actions the screen lacks.
+- Live mockup pass confirmed light + dark + mobile render faithfully; remaining visual diffs (all-Received cards urgency-ringed, card count, item content) are data-driven (aged/accumulated seed data), not code issues.
+
+**Verified**
+- `./verify.sh` exit 0 at `8fed231`, `2026-06-13T18:04:21+07:00` (backend 329 passed/1 skipped; frontend 65 unit; smoke 1; Playwright 34 passed/4 skipped incl. both K1 kitchen specs; OpenAPI + types drift clean).
+- Pre-existing U5 `cart.spec.ts` parallel-load flake observed (passes in isolation ~2s, intermittent under 5-worker run); confirmed NOT caused by K1 (fails the same way with kitchen specs excluded) — green on re-run.
+
+**Next**
+- `K2` Update Preparation Status (`depends_on` K1): add Accept→Preparing + Mark Ready action buttons to the kitchen cards.

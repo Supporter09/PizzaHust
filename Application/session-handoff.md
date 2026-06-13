@@ -1,23 +1,23 @@
 # session-handoff.md
 
-**Current state:** `A5/A6/A7` admin ops expansion on branch `feat/admin-A5-A7-A8-A9`, now merged with main (U7 + U16 done — public track endpoint + `/track` page with polling).
+**Current state:** `K1` View Incoming Orders done and verified on branch `feat/k1-incoming-orders` (`verify.sh` green at `8fed231`). The kitchen spine has its first screen: a read-only, role-guarded incoming-orders queue at `/kitchen`.
 
-**Next feature:** `U11` View Order History (`depends_on` U6, U9) or kitchen spine `K1` — check `feature_list.json` deps and `session-handoff` priority with team.
+**Next feature:** `K2` Update Preparation Status (`depends_on: ["K1"]`, owner Hung) — adds the kitchen action buttons (Accept → Preparing, Mark Ready) to the queue cards. The attach point is already marked by a placeholder comment in `frontend/app/kitchen/queue-client.tsx`; the order-state transitions live in `backend/app/domain/order_state.py` (do not recompute in the frontend).
 
 **Resume command:**
 
 ```bash
-git checkout feat/admin-A5-A7-A8-A9 && git pull
+git checkout feat/k1-incoming-orders && git pull
 cd Application && ./init.sh && docker compose up -d backend frontend
-# Merge PR #25 to main when ready; next branch e.g. u11-order-history
+# Open PR for feat/k1-incoming-orders → main when ready; next branch e.g. k2-prep-status
 ```
 
-**State:** Monitor Orders now defaults to the current day and opens a detail dialog that shows phase-by-phase tracking notes plus order-item option snapshots. Customer detail now exposes order history, tier/points signals, and richer prospect tracking. Reports now match the dashboard mockup with the 4 KPI cards, daily charts, and top-selling items table.
+**State:** K1 shipped migration `0012` (`kitchen_queue_view` now surfaces `ReadyForDispatch`, not `DispatchPending`), read-only `GET /api/kitchen/orders` returning lean prep-ticket DTOs (per-line item/options/note, combo children nested under their parent line, delivery note surfaced), pure queue helpers (`lib/kitchen-queue.ts`), `/kitchen` chrome suppression + role-guarded shell + 3s-polling queue page, and a seeded `ReadyForDispatch` demo order. MySQL smoke + Playwright `kitchen.spec.ts` cover the non-kitchen redirect and the kitchen-login-sees-tickets path.
 
-**Relation notes:** the only new model/table relation introduced for this batch is the `OrderItem` -> `order_item_options` snapshot path, sourced from the generic option catalog (`OptionGroup`, `Option`, `ProductOption`). Customer and report work reused existing relations; no separate customer/report schema was added.
+**Relation notes:** no new model/table relation introduced. K1 reuses the existing order / order-item / `order_item_options` snapshot relations and reads the SQL `kitchen_queue_view` (membership corrected in `0012`); it is a read-only projection.
 
-**Verification:** backend lint/type/tests/alembic passed, OpenAPI drift passed, frontend typecheck/lint/tests/build passed.
+**Verification:** `./verify.sh` exit 0 at `8fed231`, `2026-06-13T18:04:21+07:00` — backend 329 passed/1 skipped, frontend 65 unit, smoke 1, Playwright 34 passed/4 skipped (both K1 kitchen specs green), OpenAPI + types drift clean.
 
-**Blockers:** None. `TRACK_RATE_LIMIT_PER_MINUTE` in `.env` (default 5).
+**Blockers:** None. `E2E_KITCHEN_PHONE` / `E2E_KITCHEN_PASSWORD` are needed in `.env` for the kitchen e2e (defaults match the seeded kitchen user; test files fall back to them).
 
-**Notes:** Track e2e uses `Order Received` (timeline label). Rebuild frontend after track UI changes before e2e.
+**Notes:** Pre-existing U5 `cart.spec.ts` is flaky under the 5-worker parallel Playwright run (passes in isolation, intermittent under load); confirmed NOT introduced by K1 (fails the same way with the kitchen specs excluded). It passes on re-run; the gate has `retries: 0`, so a red cart line on a full run is the flake, not a regression — re-run to confirm green.
