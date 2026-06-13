@@ -8,13 +8,15 @@ import { TopNav } from "@/components/top-nav";
 /**
  * Customer chrome (top nav + centered main + footer) for public/customer routes.
  * The `/admin/*` subtree renders its own full-bleed shell (app/admin/layout.tsx),
- * so we suppress the public chrome there instead of nesting two layouts.
+ * and `/kitchen/*` renders its own shell too, so we suppress the public chrome
+ * for both instead of nesting two layouts.
  */
 export function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin") ?? false;
+  const isKitchen = pathname?.startsWith("/kitchen") ?? false;
 
-  if (isAdmin) {
+  if (isAdmin || isKitchen) {
     return <>{children}</>;
   }
 

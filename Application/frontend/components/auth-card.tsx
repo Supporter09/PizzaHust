@@ -16,7 +16,7 @@ function redirectAfterAuth(role: SessionUser["role"], returnTo: string | null): 
     return "/admin";
   }
   if (role === "kitchen") {
-    return "/";
+    return "/kitchen";
   }
   return sanitizeReturnTo(returnTo, "/account");
 }
