@@ -3240,6 +3240,22 @@
         "title": "PlaceOrderOut",
         "type": "object"
       },
+      "PresetPut": {
+        "properties": {
+          "group_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Group Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "group_ids"
+        ],
+        "title": "PresetPut",
+        "type": "object"
+      },
       "ProductComboItemIn": {
         "additionalProperties": false,
         "properties": {
@@ -4094,6 +4110,106 @@
           }
         },
         "summary": "Patch Category",
+        "tags": [
+          "admin-categories"
+        ]
+      }
+    },
+    "/api/admin/categories/{category_id}/preset": {
+      "get": {
+        "operationId": "get_preset_api_admin_categories__category_id__preset_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "category_id",
+            "required": true,
+            "schema": {
+              "title": "Category Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupOut"
+                  },
+                  "title": "Response Get Preset Api Admin Categories  Category Id  Preset Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Preset",
+        "tags": [
+          "admin-categories"
+        ]
+      },
+      "put": {
+        "operationId": "put_preset_api_admin_categories__category_id__preset_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "category_id",
+            "required": true,
+            "schema": {
+              "title": "Category Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresetPut"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupOut"
+                  },
+                  "title": "Response Put Preset Api Admin Categories  Category Id  Preset Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Preset",
         "tags": [
           "admin-categories"
         ]
@@ -4966,6 +5082,16 @@
             "schema": {
               "title": "Product Id",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hard",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Hard",
+              "type": "boolean"
             }
           }
         ],

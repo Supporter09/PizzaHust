@@ -41,6 +41,24 @@ export interface paths {
         patch: operations["patch_category_api_admin_categories__category_id__patch"];
         trace?: never;
     };
+    "/api/admin/categories/{category_id}/preset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Preset */
+        get: operations["get_preset_api_admin_categories__category_id__preset_get"];
+        /** Put Preset */
+        put: operations["put_preset_api_admin_categories__category_id__preset_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/combos": {
         parameters: {
             query?: never;
@@ -2004,6 +2022,11 @@ export interface components {
             /** Total Vnd */
             total_vnd: number;
         };
+        /** PresetPut */
+        PresetPut: {
+            /** Group Ids */
+            group_ids: number[];
+        };
         /** ProductComboItemIn */
         ProductComboItemIn: {
             /**
@@ -2373,6 +2396,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CategoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_preset_api_admin_categories__category_id__preset_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_preset_api_admin_categories__category_id__preset_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PresetPut"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupOut"][];
                 };
             };
             /** @description Validation Error */
@@ -2957,7 +3046,9 @@ export interface operations {
     };
     delete_item_api_admin_items__product_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                hard?: boolean;
+            };
             header?: never;
             path: {
                 product_id: number;

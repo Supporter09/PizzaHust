@@ -146,6 +146,7 @@ All under `/api/admin/`, role=`admin` required.
 | POST | `/api/admin/option-groups/{gid}/options` | A2/A8 — add option (`name`, `description?`, `price_delta_vnd ≥ 0`, `sort_order`) |
 | PATCH/DELETE | `/api/admin/options/{oid}` | A2/A8 — edit/delete one option |
 | GET/PUT | `/api/admin/items/{id}/options` | A2/A8 — per-dish enablement; PUT body `{ "option_ids": [] }` replaces the enabled set |
+| GET/PUT | `/api/admin/categories/{category_id}/preset` | A3 — option-group preset for the category; GET → `200 [GroupOut]`; PUT body `{ "group_ids": [int] }` replaces preset → `200 [GroupOut]`; `404` on unknown category or group |
 | GET/POST/PATCH/DELETE | `/api/admin/categories` | A3 |
 | GET/POST/PATCH/DELETE | `/api/admin/combos` | A4/A10 — response includes derived `status` |
 | POST | `/api/admin/combos/{id}/image` | A10 — multipart image upload (field `image`); returns `{ "image_url": string }` |
@@ -171,9 +172,15 @@ All under `/api/admin/`, role=`admin` required.
 - **A1/A2 items** (`/api/admin/items`): one unified surface for pizzas **and**
   side dishes; bodies are JSON with `kind` (`pizza`/`side`, maps to `is_pizza`).
   `category_id` on create/PATCH must reference an **existing, active** category
-  (else `VALIDATION_FAILED`). `DELETE` is a **soft-deactivate** (`is_active=false`);
-  if a pizza is still referenced by a combo it returns `409 CONFLICT` with
-  `error.details.combos` listing the blocking combo names.
+  (else `VALIDATION_FAILED`). `DELETE /api/admin/items/{product_id}` accepts an
+  optional `hard` query param (bool, default `false`): default = **soft-deactivate**
+  (`is_active=false`), `204` on success, `409` if used by combos; `hard=true` =
+  **permanent delete**, `409` if referenced by past orders or combos, `204` on success.
+- **A3 category preset** (`GET/PUT /api/admin/categories/{category_id}/preset`): per-category
+  ordered list of option groups applied automatically to new dishes created in that category.
+  `GET` → `200 [GroupOut]` (ordered). `PUT` body `{ "group_ids": [int] }` replaces the entire
+  preset; `404` on unknown category or any unknown group id; `200 [GroupOut]` on success.
+  Groups in the preset are **auto-enabled** on dishes created in the category.
 - **Image upload** (`POST /api/admin/items/{id}/image`): the documented exception
   to JSON-only — `multipart/form-data`, field `image`. Extension allowlist
   (`png`/`jpg`/`jpeg`/`webp`) + size cap (`IMAGE_MAX_BYTES`); returns `{ "image_url" }`
