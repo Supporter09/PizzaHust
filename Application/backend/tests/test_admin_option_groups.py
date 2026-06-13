@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 from tests.admin_test_utils import (
     admin_client,
     enable_option,
@@ -12,18 +10,23 @@ from tests.admin_test_utils import (
 )
 
 
-@pytest.mark.skip(
-    reason="Task 2 scopes POST /option-groups to a category (category_id now required)"
-)
 def test_group_crud_roundtrip():
     c = admin_client("og-crud")
+    cid = new_category("Pizza")
     r = c.post(
         "/api/admin/option-groups",
-        json={"name": "Size", "select_type": "single", "required": True, "sort_order": 1},
+        json={
+            "name": "Size",
+            "category_id": cid,
+            "select_type": "single",
+            "required": True,
+            "sort_order": 1,
+        },
     )
     assert r.status_code == 201, r.text
     gid = r.json()["group_id"]
     assert r.json()["select_type"] == "single"
+    assert r.json()["category_id"] == cid
 
     r = c.patch(f"/api/admin/option-groups/{gid}", json={"name": "Pizza Size", "required": False})
     assert r.status_code == 200
@@ -37,15 +40,74 @@ def test_group_crud_roundtrip():
     assert c.get("/api/admin/option-groups").json() == []
 
 
-@pytest.mark.skip(
-    reason="Task 2 scopes POST /option-groups to a category (category_id now required)"
-)
 def test_duplicate_group_name_409():
     c = admin_client("og-dupe")
-    assert c.post("/api/admin/option-groups", json={"name": "Size"}).status_code == 201
-    r = c.post("/api/admin/option-groups", json={"name": "Size"})
+    cid = new_category("Pizza")
+    assert (
+        c.post("/api/admin/option-groups", json={"name": "Size", "category_id": cid}).status_code
+        == 201
+    )
+    r = c.post("/api/admin/option-groups", json={"name": "Size", "category_id": cid})
     assert r.status_code == 409
     assert r.json()["error"]["code"] == "CONFLICT"
+
+
+def test_same_group_name_in_different_categories_ok():
+    c = admin_client("og-percat")
+    cid1 = new_category("Pizza")
+    cid2 = new_category("Pasta")
+    assert (
+        c.post("/api/admin/option-groups", json={"name": "Size", "category_id": cid1}).status_code
+        == 201
+    )
+    assert (
+        c.post("/api/admin/option-groups", json={"name": "Size", "category_id": cid2}).status_code
+        == 201
+    )
+
+
+def test_create_group_unknown_category_404():
+    c = admin_client("og-badcat")
+    r = c.post("/api/admin/option-groups", json={"name": "Size", "category_id": 99999})
+    assert r.status_code == 404
+    assert r.json()["error"]["code"] == "NOT_FOUND"
+
+
+def test_list_groups_filtered_by_category():
+    c = admin_client("og-listfilter")
+    cid1 = new_category("Pizza")
+    cid2 = new_category("Pasta")
+    new_option_group("Size", category_id=cid1)
+    new_option_group("Crust", category_id=cid1)
+    new_option_group("Portion", category_id=cid2)
+
+    r = c.get(f"/api/admin/option-groups?category_id={cid1}")
+    assert r.status_code == 200
+    assert sorted(g["name"] for g in r.json()) == ["Crust", "Size"]
+
+    r = c.get(f"/api/admin/option-groups?category_id={cid2}")
+    assert [g["name"] for g in r.json()] == ["Portion"]
+
+    r = c.get("/api/admin/option-groups")
+    assert sorted(g["name"] for g in r.json()) == ["Crust", "Portion", "Size"]
+
+
+def test_item_options_only_lists_own_category_groups():
+    c = admin_client("og-itemcat")
+    cid = new_category("Pizza")
+    other_cid = new_category("Pasta")
+    pid = new_product(cid, "Margherita")
+    own = new_option_group("Size", category_id=cid)
+    new_option(own, "M", price_delta_vnd=30_000)
+    foreign = new_option_group("Portion", category_id=other_cid)
+    new_option(foreign, "Large", price_delta_vnd=10_000)
+
+    r = c.get(f"/api/admin/items/{pid}/options")
+    assert r.status_code == 200, r.text
+    group_ids = {g["group_id"] for g in r.json()}
+    assert own in group_ids
+    assert foreign not in group_ids
+    assert [g["name"] for g in r.json()] == ["Size"]
 
 
 def test_option_crud_and_dupe_within_group():
@@ -118,7 +180,7 @@ def test_item_options_view_and_replace():
     c = admin_client("og-item")
     cid = new_category("Pizza")
     pid = new_product(cid, "Margherita")
-    gid = new_option_group("Size", select_type="single", required=True)
+    gid = new_option_group("Size", category_id=cid, select_type="single", required=True)
     m = new_option(gid, "M", price_delta_vnd=30_000)
     l_ = new_option(gid, "L", price_delta_vnd=60_000)
     enable_option(pid, m)
@@ -148,6 +210,19 @@ def test_item_options_put_unknown_option_404():
     pid = new_product(cid, "Margherita")
     r = c.put(f"/api/admin/items/{pid}/options", json={"option_ids": [12345]})
     assert r.status_code == 404
+
+
+def test_item_options_put_foreign_category_option_409():
+    c = admin_client("og-item-foreign")
+    cid_a = new_category("Pizza")
+    cid_b = new_category("Pasta")
+    pid = new_product(cid_a, "Margherita")
+    foreign_group = new_option_group("Portion", category_id=cid_b)
+    foreign_opt = new_option(foreign_group, "Large", price_delta_vnd=10_000)
+
+    r = c.put(f"/api/admin/items/{pid}/options", json={"option_ids": [foreign_opt]})
+    assert r.status_code == 409
+    assert r.json()["error"]["code"] == "CONFLICT"
 
 
 def test_negative_price_delta_rejected_on_create():

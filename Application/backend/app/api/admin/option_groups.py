@@ -18,7 +18,15 @@ from sqlalchemy.orm import Session
 from app.core.errors import APIError
 from app.infra.auth import require_role
 from app.infra.db.deps import get_db
-from app.infra.db.models import Option, OptionGroup, Product, ProductOption, User, UserRole
+from app.infra.db.models import (
+    Category,
+    Option,
+    OptionGroup,
+    Product,
+    ProductOption,
+    User,
+    UserRole,
+)
 
 router = APIRouter(prefix="/api/admin", tags=["admin-option-groups"])
 require_admin = require_role(UserRole.ADMIN)
@@ -34,6 +42,7 @@ def _not_found(message: str) -> APIError:
 
 class GroupOut(BaseModel):
     group_id: int
+    category_id: int
     name: str
     select_type: Literal["single", "multi"]
     required: bool
@@ -44,6 +53,7 @@ class GroupOut(BaseModel):
 
 class GroupIn(BaseModel):
     name: str
+    category_id: int
     select_type: Literal["single", "multi"] = "multi"
     required: bool = False
     sort_order: int = 0
@@ -112,9 +122,14 @@ def _require_product(db: Session, product_id: int) -> Product:
 
 @router.get("/option-groups", response_model=list[GroupOut])
 def list_groups(
-    db: Session = Depends(get_db, scope="function"), _a: User = Depends(require_admin)
+    category_id: int | None = None,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
 ) -> list[GroupOut]:
-    rows = db.scalars(select(OptionGroup).order_by(OptionGroup.sort_order, OptionGroup.name)).all()
+    stmt = select(OptionGroup)
+    if category_id is not None:
+        stmt = stmt.where(OptionGroup.category_id == category_id)
+    rows = db.scalars(stmt.order_by(OptionGroup.sort_order, OptionGroup.name)).all()
     return [GroupOut.model_validate(g) for g in rows]
 
 
@@ -124,9 +139,16 @@ def create_group(
     db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> GroupOut:
-    if db.scalar(select(OptionGroup).where(OptionGroup.name == body.name)):
+    if db.get(Category, body.category_id) is None:
+        raise _not_found("Category not found.")
+    if db.scalar(
+        select(OptionGroup).where(
+            OptionGroup.name == body.name, OptionGroup.category_id == body.category_id
+        )
+    ):
         raise _conflict("An option group with this name already exists.")
     g = OptionGroup(
+        category_id=body.category_id,
         name=body.name,
         select_type=body.select_type,
         required=body.required,
@@ -154,7 +176,9 @@ def patch_group(
     if body.name is not None:
         if db.scalar(
             select(OptionGroup).where(
-                OptionGroup.name == body.name, OptionGroup.group_id != group_id
+                OptionGroup.name == body.name,
+                OptionGroup.category_id == g.category_id,
+                OptionGroup.group_id != group_id,
             )
         ):
             raise _conflict("An option group with this name already exists.")
@@ -266,14 +290,16 @@ def item_options(
     db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> list[ItemOptionGroupOut]:
-    _require_product(db, product_id)
+    product = _require_product(db, product_id)
     enabled_ids = set(
         db.scalars(
             select(ProductOption.option_id).where(ProductOption.product_id == product_id)
         ).all()
     )
     groups = db.scalars(
-        select(OptionGroup).order_by(OptionGroup.sort_order, OptionGroup.name)
+        select(OptionGroup)
+        .where(OptionGroup.category_id == product.category_id)
+        .order_by(OptionGroup.sort_order, OptionGroup.name)
     ).all()
     out: list[ItemOptionGroupOut] = []
     for g in groups:
@@ -308,13 +334,26 @@ def replace_item_options(
     db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> list[ItemOptionGroupOut]:
-    _require_product(db, product_id)
+    product = _require_product(db, product_id)
     wanted = list(dict.fromkeys(body.option_ids))
     if wanted:
         known = set(db.scalars(select(Option.option_id).where(Option.option_id.in_(wanted))).all())
         missing = [oid for oid in wanted if oid not in known]
         if missing:
             raise _not_found(f"Unknown option ids: {missing}.")
+        in_category = set(
+            db.scalars(
+                select(Option.option_id)
+                .join(OptionGroup, OptionGroup.group_id == Option.group_id)
+                .where(
+                    Option.option_id.in_(wanted),
+                    OptionGroup.category_id == product.category_id,
+                )
+            ).all()
+        )
+        foreign = [oid for oid in wanted if oid not in in_category]
+        if foreign:
+            raise _conflict(f"Options not available for this dish's category: {foreign}.")
     db.execute(delete(ProductOption).where(ProductOption.product_id == product_id))
     for oid in wanted:
         db.add(ProductOption(product_id=product_id, option_id=oid))

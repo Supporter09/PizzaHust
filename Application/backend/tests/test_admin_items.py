@@ -193,10 +193,14 @@ def test_create_seeds_options_from_category_preset():
     assert enabled == {s, m}
 
 
+@pytest.mark.skip(
+    reason="Task 3 seeding rework: a category's own groups ARE its preset, so dish creation "
+    "always seeds from the category's groups — 'no preset / nothing enabled' no longer exists"
+)
 def test_create_without_preset_enables_nothing():
     client = admin_client("items-no-preset")
     cat = new_category("Pizza")
-    g_size = new_option_group("Size", select_type="single", required=True)
+    g_size = new_option_group("Size", category_id=cat, select_type="single", required=True)
     new_option(g_size, "S")
     pid = _create_pizza(client, cat).json()["product_id"]
     groups = client.get(f"/api/admin/items/{pid}/options").json()
