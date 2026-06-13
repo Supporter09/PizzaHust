@@ -121,6 +121,34 @@
         "title": "AuthUserDTO",
         "type": "object"
       },
+      "Body_add_combo_image_api_admin_combos__combo_id__images_post": {
+        "properties": {
+          "image": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Image",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image"
+        ],
+        "title": "Body_add_combo_image_api_admin_combos__combo_id__images_post",
+        "type": "object"
+      },
+      "Body_add_item_image_api_admin_items__product_id__images_post": {
+        "properties": {
+          "image": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Image",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image"
+        ],
+        "title": "Body_add_item_image_api_admin_items__product_id__images_post",
+        "type": "object"
+      },
       "Body_import_pizzas_api_admin_import_pizzas_post": {
         "properties": {
           "file": {
@@ -686,6 +714,132 @@
           "quantity"
         ],
         "title": "ComboComponentOut",
+        "type": "object"
+      },
+      "ComboDetailOut": {
+        "properties": {
+          "combo_id": {
+            "title": "Combo Id",
+            "type": "integer"
+          },
+          "combo_price_vnd": {
+            "title": "Combo Price Vnd",
+            "type": "integer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "images": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ImageOut"
+            },
+            "title": "Images",
+            "type": "array"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ComboItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "items_total_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Items Total Vnd"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "savings_vnd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Savings Vnd"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ComboStatus"
+          },
+          "target_group": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Group"
+          },
+          "validity_end": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validity End"
+          },
+          "validity_start": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validity Start"
+          }
+        },
+        "required": [
+          "combo_id",
+          "name",
+          "description",
+          "combo_price_vnd",
+          "target_group",
+          "validity_start",
+          "validity_end",
+          "status",
+          "items"
+        ],
+        "title": "ComboDetailOut",
         "type": "object"
       },
       "ComboEligibleProductOut": {
@@ -1677,6 +1831,29 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "ImageOut": {
+        "properties": {
+          "image_id": {
+            "title": "Image Id",
+            "type": "integer"
+          },
+          "is_cover": {
+            "title": "Is Cover",
+            "type": "boolean"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image_id",
+          "url",
+          "is_cover"
+        ],
+        "title": "ImageOut",
+        "type": "object"
+      },
       "ImportSummary": {
         "properties": {
           "created": {
@@ -1706,6 +1883,63 @@
           "errors"
         ],
         "title": "ImportSummary",
+        "type": "object"
+      },
+      "ItemDetailOut": {
+        "properties": {
+          "base_price_vnd": {
+            "title": "Base Price Vnd",
+            "type": "integer"
+          },
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "images": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ImageOut"
+            },
+            "title": "Images",
+            "type": "array"
+          },
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "is_pizza": {
+            "title": "Is Pizza",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_id",
+          "category_id",
+          "name",
+          "base_price_vnd",
+          "is_pizza"
+        ],
+        "title": "ItemDetailOut",
         "type": "object"
       },
       "ItemIn": {
@@ -2143,6 +2377,14 @@
               }
             ],
             "title": "Image Url"
+          },
+          "images": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ImageOut"
+            },
+            "title": "Images",
+            "type": "array"
           },
           "is_pizza": {
             "title": "Is Pizza",
@@ -2938,6 +3180,14 @@
               }
             ],
             "title": "Image Url"
+          },
+          "images": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ImageOut"
+            },
+            "title": "Images",
+            "type": "array"
           },
           "items_total_vnd": {
             "title": "Items Total Vnd",
@@ -3841,7 +4091,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ComboOut"
+                  "$ref": "#/components/schemas/ComboDetailOut"
                 }
               }
             },
@@ -3916,6 +4166,7 @@
     },
     "/api/admin/combos/{combo_id}/image": {
       "delete": {
+        "description": "Legacy clear: removes the cover image (promotes the next if any).",
         "operationId": "delete_combo_image_api_admin_combos__combo_id__image_delete",
         "parameters": [
           {
@@ -3949,6 +4200,7 @@
         ]
       },
       "post": {
+        "description": "Legacy single-image upload: replaces the cover in place (never appends).",
         "operationId": "upload_combo_image_api_admin_combos__combo_id__image_post",
         "parameters": [
           {
@@ -3977,7 +4229,14 @@
               "application/json": {
                 "schema": {
                   "additionalProperties": {
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "title": "Response Upload Combo Image Api Admin Combos  Combo Id  Image Post",
                   "type": "object"
@@ -3998,6 +4257,146 @@
           }
         },
         "summary": "Upload Combo Image",
+        "tags": [
+          "admin-combos"
+        ]
+      }
+    },
+    "/api/admin/combos/{combo_id}/images": {
+      "post": {
+        "operationId": "add_combo_image_api_admin_combos__combo_id__images_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "combo_id",
+            "required": true,
+            "schema": {
+              "title": "Combo Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_add_combo_image_api_admin_combos__combo_id__images_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Combo Image",
+        "tags": [
+          "admin-combos"
+        ]
+      }
+    },
+    "/api/admin/combos/{combo_id}/images/{image_id}": {
+      "delete": {
+        "operationId": "delete_combo_gallery_image_api_admin_combos__combo_id__images__image_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "combo_id",
+            "required": true,
+            "schema": {
+              "title": "Combo Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Combo Gallery Image",
+        "tags": [
+          "admin-combos"
+        ]
+      }
+    },
+    "/api/admin/combos/{combo_id}/images/{image_id}/cover": {
+      "post": {
+        "operationId": "set_combo_cover_api_admin_combos__combo_id__images__image_id__cover_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "combo_id",
+            "required": true,
+            "schema": {
+              "title": "Combo Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Combo Cover",
         "tags": [
           "admin-combos"
         ]
@@ -4484,7 +4883,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ItemOut"
+                  "$ref": "#/components/schemas/ItemDetailOut"
                 }
               }
             },
@@ -4559,6 +4958,7 @@
     },
     "/api/admin/items/{product_id}/image": {
       "post": {
+        "description": "Legacy single-image upload: replaces the cover in place (never appends).",
         "operationId": "upload_item_image_api_admin_items__product_id__image_post",
         "parameters": [
           {
@@ -4587,7 +4987,14 @@
               "application/json": {
                 "schema": {
                   "additionalProperties": {
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "title": "Response Upload Item Image Api Admin Items  Product Id  Image Post",
                   "type": "object"
@@ -4608,6 +5015,146 @@
           }
         },
         "summary": "Upload Item Image",
+        "tags": [
+          "admin-items"
+        ]
+      }
+    },
+    "/api/admin/items/{product_id}/images": {
+      "post": {
+        "operationId": "add_item_image_api_admin_items__product_id__images_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "title": "Product Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_add_item_image_api_admin_items__product_id__images_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Item Image",
+        "tags": [
+          "admin-items"
+        ]
+      }
+    },
+    "/api/admin/items/{product_id}/images/{image_id}": {
+      "delete": {
+        "operationId": "delete_item_image_api_admin_items__product_id__images__image_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "title": "Product Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Item Image",
+        "tags": [
+          "admin-items"
+        ]
+      }
+    },
+    "/api/admin/items/{product_id}/images/{image_id}/cover": {
+      "post": {
+        "operationId": "set_item_cover_api_admin_items__product_id__images__image_id__cover_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "title": "Product Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Item Cover",
         "tags": [
           "admin-items"
         ]

@@ -87,10 +87,67 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Upload Combo Image */
+        /**
+         * Upload Combo Image
+         * @description Legacy single-image upload: replaces the cover in place (never appends).
+         */
         post: operations["upload_combo_image_api_admin_combos__combo_id__image_post"];
-        /** Delete Combo Image */
+        /**
+         * Delete Combo Image
+         * @description Legacy clear: removes the cover image (promotes the next if any).
+         */
         delete: operations["delete_combo_image_api_admin_combos__combo_id__image_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/combos/{combo_id}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Combo Image */
+        post: operations["add_combo_image_api_admin_combos__combo_id__images_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/combos/{combo_id}/images/{image_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Combo Gallery Image */
+        delete: operations["delete_combo_gallery_image_api_admin_combos__combo_id__images__image_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/combos/{combo_id}/images/{image_id}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set Combo Cover */
+        post: operations["set_combo_cover_api_admin_combos__combo_id__images__image_id__cover_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -227,8 +284,62 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Upload Item Image */
+        /**
+         * Upload Item Image
+         * @description Legacy single-image upload: replaces the cover in place (never appends).
+         */
         post: operations["upload_item_image_api_admin_items__product_id__image_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/items/{product_id}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Item Image */
+        post: operations["add_item_image_api_admin_items__product_id__images_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/items/{product_id}/images/{image_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Item Image */
+        delete: operations["delete_item_image_api_admin_items__product_id__images__image_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/items/{product_id}/images/{image_id}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set Item Cover */
+        post: operations["set_item_cover_api_admin_items__product_id__images__image_id__cover_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -838,6 +949,16 @@ export interface components {
             /** User Id */
             user_id: number;
         };
+        /** Body_add_combo_image_api_admin_combos__combo_id__images_post */
+        Body_add_combo_image_api_admin_combos__combo_id__images_post: {
+            /** Image */
+            image: string;
+        };
+        /** Body_add_item_image_api_admin_items__product_id__images_post */
+        Body_add_item_image_api_admin_items__product_id__images_post: {
+            /** Image */
+            image: string;
+        };
         /** Body_import_pizzas_api_admin_import_pizzas_post */
         Body_import_pizzas_api_admin_import_pizzas_post: {
             /** File */
@@ -1012,6 +1133,37 @@ export interface components {
             product_id?: number | null;
             /** Quantity */
             quantity: number;
+        };
+        /** ComboDetailOut */
+        ComboDetailOut: {
+            /** Combo Id */
+            combo_id: number;
+            /** Combo Price Vnd */
+            combo_price_vnd: number;
+            /** Description */
+            description: string | null;
+            /** Image Url */
+            image_url?: string | null;
+            /**
+             * Images
+             * @default []
+             */
+            images: components["schemas"]["ImageOut"][];
+            /** Items */
+            items: components["schemas"]["ComboItemOut"][];
+            /** Items Total Vnd */
+            items_total_vnd?: number | null;
+            /** Name */
+            name: string;
+            /** Savings Vnd */
+            savings_vnd?: number | null;
+            status: components["schemas"]["ComboStatus"];
+            /** Target Group */
+            target_group: number | null;
+            /** Validity End */
+            validity_end: string | null;
+            /** Validity Start */
+            validity_start: string | null;
         };
         /** ComboEligibleProductOut */
         ComboEligibleProductOut: {
@@ -1323,6 +1475,15 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** ImageOut */
+        ImageOut: {
+            /** Image Id */
+            image_id: number;
+            /** Is Cover */
+            is_cover: boolean;
+            /** Url */
+            url: string;
+        };
         /** ImportSummary */
         ImportSummary: {
             /** Created */
@@ -1333,6 +1494,31 @@ export interface components {
             skipped: number;
             /** Updated */
             updated: number;
+        };
+        /** ItemDetailOut */
+        ItemDetailOut: {
+            /** Base Price Vnd */
+            base_price_vnd: number;
+            /** Category Id */
+            category_id: number;
+            /** Image Url */
+            image_url?: string | null;
+            /**
+             * Images
+             * @default []
+             */
+            images: components["schemas"]["ImageOut"][];
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+            /** Is Pizza */
+            is_pizza: boolean;
+            /** Name */
+            name: string;
+            /** Product Id */
+            product_id: number;
         };
         /** ItemIn */
         ItemIn: {
@@ -1493,6 +1679,11 @@ export interface components {
             category_id: number;
             /** Image Url */
             image_url?: string | null;
+            /**
+             * Images
+             * @default []
+             */
+            images: components["schemas"]["ImageOut"][];
             /** Is Pizza */
             is_pizza: boolean;
             /** Name */
@@ -1778,6 +1969,11 @@ export interface components {
             description?: string | null;
             /** Image Url */
             image_url?: string | null;
+            /**
+             * Images
+             * @default []
+             */
+            images: components["schemas"]["ImageOut"][];
             /** Items Total Vnd */
             items_total_vnd: number;
             /** Name */
@@ -2198,7 +2394,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ComboOut"];
+                    "application/json": components["schemas"]["ComboDetailOut"];
                 };
             };
             /** @description Validation Error */
@@ -2298,7 +2494,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        [key: string]: string;
+                        [key: string]: string | null;
                     };
                 };
             };
@@ -2319,6 +2515,101 @@ export interface operations {
             header?: never;
             path: {
                 combo_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_combo_image_api_admin_combos__combo_id__images_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                combo_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_add_combo_image_api_admin_combos__combo_id__images_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_combo_gallery_image_api_admin_combos__combo_id__images__image_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                combo_id: number;
+                image_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_combo_cover_api_admin_combos__combo_id__images__image_id__cover_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                combo_id: number;
+                image_id: number;
             };
             cookie?: never;
         };
@@ -2588,7 +2879,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemOut"];
+                    "application/json": components["schemas"]["ItemDetailOut"];
                 };
             };
             /** @description Validation Error */
@@ -2688,9 +2979,104 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        [key: string]: string;
+                        [key: string]: string | null;
                     };
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_item_image_api_admin_items__product_id__images_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_add_item_image_api_admin_items__product_id__images_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_item_image_api_admin_items__product_id__images__image_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: number;
+                image_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_item_cover_api_admin_items__product_id__images__image_id__cover_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: number;
+                image_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
