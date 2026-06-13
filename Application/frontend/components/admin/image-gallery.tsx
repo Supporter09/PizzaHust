@@ -146,7 +146,10 @@ export function ImageGallery({
         type="file"
         accept="image/png,image/jpeg,image/webp"
         className="hidden"
-        onChange={(e) => onPick(e.target.files?.[0])}
+        onChange={(e) => {
+          onPick(e.target.files?.[0]);
+          e.currentTarget.value = ""; // reset so re-picking the same file fires onChange
+        }}
       />
     </section>
   );
