@@ -10,7 +10,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, File, UploadFile
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.api import images as images_mod
@@ -19,7 +19,17 @@ from app.core.errors import APIError
 from app.domain import gallery
 from app.infra.auth import require_role
 from app.infra.db.deps import get_db
-from app.infra.db.models import Category, Combo, ComboItem, Product, ProductImage, User, UserRole
+from app.infra.db.models import (
+    Category,
+    Combo,
+    ComboItem,
+    OrderItem,
+    Product,
+    ProductImage,
+    ProductOption,
+    User,
+    UserRole,
+)
 
 router = APIRouter(prefix="/api/admin/items", tags=["admin-items"])
 require_admin = require_role(UserRole.ADMIN)
@@ -155,6 +165,7 @@ def patch_item(
 @router.delete("/{product_id}", status_code=204)
 def delete_item(
     product_id: int,
+    hard: bool = False,
     db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> None:
@@ -173,7 +184,25 @@ def delete_item(
             status_code=409,
             details={"combos": [c.name for c in combos]},
         )
-    p.is_active = False
+    if not hard:
+        p.is_active = False
+        return
+    # Hard delete: only safe when no order history references the product
+    # (OrderItem.product_id is RESTRICT). Clean up product_options explicitly so
+    # the result is identical under SQLite (tests) and MySQL FK cascades.
+    if (
+        db.scalar(
+            select(OrderItem.order_item_id).where(OrderItem.product_id == product_id).limit(1)
+        )
+        is not None
+    ):
+        raise APIError(
+            code="CONFLICT",
+            message="Item appears in past orders and cannot be permanently deleted.",
+            status_code=409,
+        )
+    db.execute(delete(ProductOption).where(ProductOption.product_id == product_id))
+    db.delete(p)  # ORM cascade removes product_images
 
 
 def _locked_product(db: Session, product_id: int) -> Product:

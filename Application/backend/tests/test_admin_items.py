@@ -1,6 +1,19 @@
 from __future__ import annotations
 
-from tests.admin_test_utils import admin_client, new_category, new_combo_with_items
+from datetime import UTC, datetime
+
+from sqlalchemy import select
+
+from app.infra.db.models import Order, OrderItem, ProductOption
+from app.infra.db.session import create_session_factory
+from tests.admin_test_utils import (
+    admin_client,
+    enable_option,
+    new_category,
+    new_combo_with_items,
+    new_option,
+    new_option_group,
+)
 
 
 def _create_pizza(client, category_id, name="Margherita", price=120_000):
@@ -109,3 +122,53 @@ def test_delete_pizza_referenced_by_combo_conflict():
     body = r.json()
     assert body["error"]["code"] == "CONFLICT"
     assert body["error"]["details"]["combos"]  # non-empty list of combo names
+
+
+def test_hard_delete_removes_reference_free_item():
+    client = admin_client("items-hard-delete")
+    cat = new_category("Pizza")
+    pid = _create_pizza(client, cat).json()["product_id"]
+    # enable one option so we can prove product_options is cleaned up
+    gid = new_option_group("Size", select_type="single", required=True)
+    oid = new_option(gid, "M")
+    enable_option(pid, oid)
+
+    r = client.delete(f"/api/admin/items/{pid}?hard=true")
+    assert r.status_code == 204, r.text
+    assert client.get(f"/api/admin/items/{pid}").status_code == 404
+    with create_session_factory()() as db:
+        assert db.scalars(select(ProductOption).where(ProductOption.product_id == pid)).all() == []
+
+
+def test_hard_delete_blocked_by_order_history():
+    client = admin_client("items-hard-order")
+    cat = new_category("Pizza")
+    pid = _create_pizza(client, cat).json()["product_id"]
+    with create_session_factory()() as db:
+        order = Order(
+            order_code="PIZZ-AA1AA1",
+            recipient_name="R",
+            recipient_phone="0900000000",
+            delivery_address="addr",
+            total_amount_vnd=1,
+            promised_at=datetime(2026, 1, 1, tzinfo=UTC),
+        )
+        db.add(order)
+        db.flush()
+        db.add(OrderItem(order_id=order.order_id, product_id=pid, quantity=1, unit_price_vnd=1))
+        db.commit()
+
+    r = client.delete(f"/api/admin/items/{pid}?hard=true")
+    assert r.status_code == 409
+    assert r.json()["error"]["code"] == "CONFLICT"
+    assert client.get(f"/api/admin/items/{pid}").status_code == 200  # still present
+
+
+def test_hard_delete_blocked_by_combo():
+    client = admin_client("items-hard-combo")
+    cat = new_category("Pizza")
+    pid = _create_pizza(client, cat).json()["product_id"]
+    new_combo_with_items("Combo Y", [pid])
+    r = client.delete(f"/api/admin/items/{pid}?hard=true")
+    assert r.status_code == 409
+    assert r.json()["error"]["details"]["combos"]
