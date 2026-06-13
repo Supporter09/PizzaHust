@@ -818,6 +818,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/kitchen/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Incoming Orders */
+        get: operations["list_incoming_orders_api_kitchen_orders_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/loyalty/me": {
         parameters: {
             query?: never;
@@ -1616,6 +1633,51 @@ export interface components {
             option_ids?: number[];
             /** Quantity */
             quantity: number;
+        };
+        /** KitchenItemOptionOut */
+        KitchenItemOptionOut: {
+            /** Group Name */
+            group_name: string;
+            /** Option Name */
+            option_name: string;
+        };
+        /** KitchenItemOut */
+        KitchenItemOut: {
+            /** Children */
+            children: components["schemas"]["KitchenItemOut"][];
+            /** Display Name */
+            display_name: string;
+            /** Note */
+            note: string | null;
+            /** Options */
+            options: components["schemas"]["KitchenItemOptionOut"][];
+            /** Quantity */
+            quantity: number;
+        };
+        /** KitchenTicketOut */
+        KitchenTicketOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Delivery Note */
+            delivery_note: string | null;
+            /** Items */
+            items: components["schemas"]["KitchenItemOut"][];
+            /** Order Code */
+            order_code: string;
+            /** Order Id */
+            order_id: number;
+            /** Priority Score */
+            priority_score: number;
+            /**
+             * Promised At
+             * Format: date-time
+             */
+            promised_at: string;
+            /** Status */
+            status: string;
         };
         /** LockIn */
         LockIn: {
@@ -4080,6 +4142,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_incoming_orders_api_kitchen_orders_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KitchenTicketOut"][];
                 };
             };
         };
