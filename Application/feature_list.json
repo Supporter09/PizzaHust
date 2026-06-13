@@ -371,9 +371,9 @@
       "depends_on": [
         "A1"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hieu",
-      "evidence": ""
+      "evidence": "verify.sh green at 3e5c698, 2026-06-13T13:06:07+07:00"
     },
     {
       "id": "A10",
