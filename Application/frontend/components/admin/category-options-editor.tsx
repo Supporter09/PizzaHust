@@ -9,21 +9,18 @@ import {
   createOption,
   deleteGroup,
   deleteOption,
-  listItemOptions,
+  listCategoryOptionGroups,
   patchGroup,
   patchOption,
-  replaceItemOptions,
-  type AdminItemOptionGroup,
+  type AdminCategoryOptionGroup,
 } from "@/lib/api/admin-options";
+
 const msg = (e: unknown) => (e instanceof ApiClientError ? e.message : String(e));
 
-const enabledIds = (groups: AdminItemOptionGroup[]) =>
-  groups.flatMap((g) => g.options.filter((o) => o.enabled).map((o) => o.option_id));
+type Props = { categoryId: number };
 
-type Props = { productId: number; categoryId: number };
-
-export function OptionsEditor({ productId, categoryId }: Props) {
-  const [groups, setGroups] = useState<AdminItemOptionGroup[]>([]);
+export function CategoryOptionsEditor({ categoryId }: Props) {
+  const [groups, setGroups] = useState<AdminCategoryOptionGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -34,13 +31,13 @@ export function OptionsEditor({ productId, categoryId }: Props) {
   const refresh = useCallback(async () => {
     setError("");
     try {
-      setGroups(await listItemOptions(productId));
+      setGroups(await listCategoryOptionGroups(categoryId));
     } catch (e) {
       setError(msg(e));
     } finally {
       setLoading(false);
     }
-  }, [productId]);
+  }, [categoryId]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -61,14 +58,6 @@ export function OptionsEditor({ productId, categoryId }: Props) {
       setBusy(false);
     }
   }
-
-  const toggleOption = (optionId: number, enabled: boolean) =>
-    run(() => {
-      const ids = new Set(enabledIds(groups));
-      if (enabled) ids.add(optionId);
-      else ids.delete(optionId);
-      return replaceItemOptions(productId, [...ids]);
-    });
 
   return (
     <section className="space-y-4">
@@ -164,7 +153,6 @@ export function OptionsEditor({ productId, categoryId }: Props) {
                 option={o}
                 busy={busy}
                 onCommit={(patch) => void run(() => patchOption(o.option_id, patch))}
-                onToggle={(enabled) => void toggleOption(o.option_id, enabled)}
                 onDelete={() => void run(() => deleteOption(o.option_id))}
               />
             ))}
@@ -178,12 +166,11 @@ export function OptionsEditor({ productId, categoryId }: Props) {
               const draft = drafts[g.group_id];
               if (!draft?.name.trim()) return;
               void run(async () => {
-                const created = await createOption(g.group_id, {
+                await createOption(g.group_id, {
                   name: draft.name.trim(),
                   price_delta_vnd: Number(draft.delta || 0),
                   sort_order: g.options.length + 1,
                 });
-                await replaceItemOptions(productId, [...enabledIds(groups), created.option_id]);
                 setDrafts((p) => ({ ...p, [g.group_id]: { name: "", delta: "" } }));
               });
             }}
@@ -224,8 +211,7 @@ export function OptionsEditor({ productId, categoryId }: Props) {
           </form>
 
           <p className="mt-3 text-xs text-muted">
-            Shared across all dishes — name and price changes apply everywhere. The toggle only
-            affects this dish.
+            Shared across all dishes in this category — name and price changes apply everywhere.
           </p>
         </div>
       ))}
