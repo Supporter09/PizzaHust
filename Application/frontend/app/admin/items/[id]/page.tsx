@@ -109,7 +109,7 @@ export default function AdminItemEditorPage({ params }: { params: Promise<{ id: 
 
           <section className="rounded-xl border border-line bg-surface p-4">
             <h2 className="mb-4 text-lg font-semibold text-fg">Options</h2>
-            <OptionsEditor productId={item.product_id} itemName={item.name} />
+            <OptionsEditor productId={item.product_id} />
           </section>
         </>
       )}

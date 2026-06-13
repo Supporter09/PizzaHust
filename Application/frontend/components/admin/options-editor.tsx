@@ -15,16 +15,14 @@ import {
   replaceItemOptions,
   type AdminItemOptionGroup,
 } from "@/lib/api/admin-options";
-import { composeLineText } from "@/lib/compose-line-text";
-
 const msg = (e: unknown) => (e instanceof ApiClientError ? e.message : String(e));
 
 const enabledIds = (groups: AdminItemOptionGroup[]) =>
   groups.flatMap((g) => g.options.filter((o) => o.enabled).map((o) => o.option_id));
 
-type Props = { productId: number; itemName: string };
+type Props = { productId: number };
 
-export function OptionsEditor({ productId, itemName }: Props) {
+export function OptionsEditor({ productId }: Props) {
   const [groups, setGroups] = useState<AdminItemOptionGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -72,20 +70,8 @@ export function OptionsEditor({ productId, itemName }: Props) {
       return replaceItemOptions(productId, [...ids]);
     });
 
-  const previewSelections = groups.flatMap((g) => {
-    const first = g.options.find((o) => o.enabled);
-    return first ? [{ groupName: g.name, optionName: first.name }] : [];
-  });
-
   return (
     <section className="space-y-4">
-      <div className="rounded-xl border border-line bg-surface px-4 py-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted">
-          How it appears in cart &amp; kitchen
-        </p>
-        <p className="mt-1 text-sm text-fg">{composeLineText(itemName, previewSelections)}</p>
-      </div>
-
       {error && (
         <div className="rounded-md border border-danger bg-danger-subtle px-4 py-3 text-sm text-fg">
           {error}
