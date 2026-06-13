@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-import pytest
 from sqlalchemy import select
 
 from app.infra.db.models import Order, OrderItem, ProductOption
@@ -175,17 +174,15 @@ def test_hard_delete_blocked_by_combo():
     assert r.json()["error"]["details"]["combos"]
 
 
-@pytest.mark.skip(
-    reason="Task 3 reworks preset seeding to read from the category's own option groups; "
-    "PUT /categories/{id}/preset is removed in Task 1"
-)
 def test_create_seeds_options_from_category_preset():
+    """A category's own groups ARE its preset: a dish created in a category that
+    owns a group seeds every option in that group as enabled."""
     client = admin_client("items-preset-seed")
     cat = new_category("Pizza")
-    g_size = new_option_group("Size", select_type="single", required=True)
+    # Group + 2 options live on `cat` (via the real admin endpoints).
+    g_size = new_option_group("Size", category_id=cat, select_type="single", required=True)
     s = new_option(g_size, "S")
     m = new_option(g_size, "M")
-    client.put(f"/api/admin/categories/{cat}/preset", json={"group_ids": [g_size]})
 
     pid = _create_pizza(client, cat).json()["product_id"]
     groups = client.get(f"/api/admin/items/{pid}/options").json()
@@ -193,16 +190,14 @@ def test_create_seeds_options_from_category_preset():
     assert enabled == {s, m}
 
 
-@pytest.mark.skip(
-    reason="Task 3 seeding rework: a category's own groups ARE its preset, so dish creation "
-    "always seeds from the category's groups — 'no preset / nothing enabled' no longer exists"
-)
 def test_create_without_preset_enables_nothing():
+    """A dish created in a category that owns NO option groups has nothing
+    enabled (its options view is empty)."""
     client = admin_client("items-no-preset")
-    cat = new_category("Pizza")
-    g_size = new_option_group("Size", category_id=cat, select_type="single", required=True)
-    new_option(g_size, "S")
+    cat = new_category("Pizza")  # category owns no option groups
     pid = _create_pizza(client, cat).json()["product_id"]
+
     groups = client.get(f"/api/admin/items/{pid}/options").json()
-    assert any(g["options"] for g in groups)  # options exist; we're asserting none are enabled
-    assert all(not o["enabled"] for g in groups for o in g["options"])
+    assert groups == []  # no groups in the category -> nothing to enable
+    with create_session_factory()() as db:
+        assert db.scalars(select(ProductOption).where(ProductOption.product_id == pid)).all() == []

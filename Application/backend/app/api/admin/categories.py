@@ -12,10 +12,11 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.admin.option_groups import GroupOut, OptionOut
 from app.core.errors import APIError
 from app.infra.auth import require_role
 from app.infra.db.deps import get_db
-from app.infra.db.models import Category, Product, User, UserRole
+from app.infra.db.models import Category, OptionGroup, Product, User, UserRole
 
 router = APIRouter(prefix="/api/admin/categories", tags=["admin-categories"])
 require_admin = require_role(UserRole.ADMIN)
@@ -43,6 +44,13 @@ class CategoryPatch(BaseModel):
     description: str | None = None
     sort_order: int | None = None
     is_active: bool | None = None
+
+
+class CategoryOptionGroupOut(GroupOut):
+    """A category's option group with its full option list. The category's groups
+    ARE its preset, so there is no per-dish ``enabled`` concept here."""
+
+    options: list[OptionOut] = []
 
 
 def _name_taken(db: Session, name: str, exclude_id: int | None = None) -> bool:
@@ -91,6 +99,33 @@ def get_category(
     if cat is None:
         raise APIError(code="NOT_FOUND", message="Category not found.", status_code=404)
     return CategoryOut.model_validate(cat)
+
+
+@router.get("/{category_id}/option-groups", response_model=list[CategoryOptionGroupOut])
+def category_option_groups(
+    category_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
+) -> list[CategoryOptionGroupOut]:
+    """A category's option groups (its preset), each with its options, ordered by
+    ``(sort_order, name)`` for both groups and options."""
+    if db.get(Category, category_id) is None:
+        raise APIError(code="NOT_FOUND", message="Category not found.", status_code=404)
+    groups = db.scalars(
+        select(OptionGroup)
+        .where(OptionGroup.category_id == category_id)
+        .order_by(OptionGroup.sort_order, OptionGroup.name)
+    ).all()
+    return [
+        CategoryOptionGroupOut(
+            **GroupOut.model_validate(g).model_dump(),
+            options=[
+                OptionOut.model_validate(o)
+                for o in sorted(g.options, key=lambda o: (o.sort_order, o.name))
+            ],
+        )
+        for g in groups
+    ]
 
 
 @router.patch("/{category_id}", response_model=CategoryOut)
