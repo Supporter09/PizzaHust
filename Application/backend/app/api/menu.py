@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.images import ImageOut, image_outs
 from app.core.errors import APIError
 from app.infra.db.deps import get_db
 from app.infra.db.models import Category, Option, OptionGroup, Product, ProductOption
@@ -64,6 +65,7 @@ class MenuItemDetailOut(BaseModel):
     is_pizza: bool
     image_url: str | None = None
     option_groups: list[MenuOptionGroupOut] = []
+    images: list[ImageOut] = []
 
     model_config = {"from_attributes": True}
 
@@ -130,4 +132,5 @@ def get_item(product_id: int, db: Session = Depends(get_db, scope="function")) -
         is_pizza=product.is_pizza,
         image_url=product.image_url,
         option_groups=list(groups.values()),
+        images=image_outs(list(product.images)),
     )

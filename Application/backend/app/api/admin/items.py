@@ -6,8 +6,6 @@ derived. Delete is a soft-deactivate so historical order_items never orphan.
 
 from __future__ import annotations
 
-import os
-import uuid
 from typing import Literal
 
 from fastapi import APIRouter, Depends, File, UploadFile
@@ -15,17 +13,16 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api import images as images_mod
+from app.api.images import ImageOut
 from app.core.errors import APIError
+from app.domain import gallery
 from app.infra.auth import require_role
-from app.infra.config import get_settings
 from app.infra.db.deps import get_db
-from app.infra.db.models import Category, Combo, ComboItem, Product, User, UserRole
+from app.infra.db.models import Category, Combo, ComboItem, Product, ProductImage, User, UserRole
 
 router = APIRouter(prefix="/api/admin/items", tags=["admin-items"])
 require_admin = require_role(UserRole.ADMIN)
-
-# A1 product images: extension allowlist only (no re-encoding/Pillow in MVP).
-_ALLOWED_IMAGE_EXT = {"png", "jpg", "jpeg", "webp"}
 
 
 class ItemOut(BaseModel):
@@ -38,6 +35,10 @@ class ItemOut(BaseModel):
     is_active: bool = True
 
     model_config = {"from_attributes": True}
+
+
+class ItemDetailOut(ItemOut):
+    images: list[ImageOut] = []
 
 
 class ItemIn(BaseModel):
@@ -113,16 +114,19 @@ def create_item(
     return ItemOut.model_validate(p)
 
 
-@router.get("/{product_id}", response_model=ItemOut)
+@router.get("/{product_id}", response_model=ItemDetailOut)
 def get_item(
     product_id: int,
     db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
-) -> ItemOut:
+) -> ItemDetailOut:
     p = db.get(Product, product_id)
     if p is None:
         raise APIError(code="NOT_FOUND", message="Item not found.", status_code=404)
-    return ItemOut.model_validate(p)
+    return ItemDetailOut(
+        **ItemOut.model_validate(p).model_dump(),
+        images=images_mod.image_outs(list(p.images)),
+    )
 
 
 @router.patch("/{product_id}", response_model=ItemOut)
@@ -172,31 +176,78 @@ def delete_item(
     p.is_active = False
 
 
+def _locked_product(db: Session, product_id: int) -> Product:
+    p = db.scalar(select(Product).where(Product.product_id == product_id).with_for_update())
+    if p is None:
+        raise APIError(code="NOT_FOUND", message="Item not found.", status_code=404)
+    return p
+
+
+@router.post("/{product_id}/images", response_model=ImageOut, status_code=201)
+def add_item_image(
+    product_id: int,
+    image: UploadFile = File(...),
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
+) -> ImageOut:
+    product = _locked_product(db, product_id)
+    before = images_mod.to_gallery(list(product.images))
+    url = images_mod.save_blob(image)
+    try:
+        after, _ = gallery.add(before, url)
+    except gallery.GalleryError as e:
+        images_mod.remove_blob(url)
+        raise APIError(code="VALIDATION_FAILED", message=str(e), status_code=400) from None
+    inserted = images_mod.reconcile(
+        db, image_model=ProductImage, owner=product, before=before, after=after
+    )
+    db.flush()
+    row = inserted[0]
+    return ImageOut(image_id=row.image_id, url=row.url, is_cover=row.is_cover)
+
+
+@router.delete("/{product_id}/images/{image_id}", status_code=204)
+def delete_item_image(
+    product_id: int,
+    image_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
+) -> None:
+    product = _locked_product(db, product_id)
+    before = images_mod.to_gallery(list(product.images))
+    if not any(i.image_id == image_id for i in before):
+        raise APIError(code="NOT_FOUND", message="Image not found.", status_code=404)
+    after, _ = gallery.remove(before, image_id)
+    images_mod.reconcile(db, image_model=ProductImage, owner=product, before=before, after=after)
+
+
+@router.post("/{product_id}/images/{image_id}/cover", status_code=204)
+def set_item_cover(
+    product_id: int,
+    image_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    _a: User = Depends(require_admin),
+) -> None:
+    product = _locked_product(db, product_id)
+    before = images_mod.to_gallery(list(product.images))
+    try:
+        after, _ = gallery.set_cover(before, image_id)
+    except gallery.GalleryError:
+        raise APIError(code="NOT_FOUND", message="Image not found.", status_code=404) from None
+    images_mod.reconcile(db, image_model=ProductImage, owner=product, before=before, after=after)
+
+
 @router.post("/{product_id}/image")
 def upload_item_image(
     product_id: int,
     image: UploadFile = File(...),
     db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
-) -> dict[str, str]:
-    p = db.get(Product, product_id)
-    if p is None:
-        raise APIError(code="NOT_FOUND", message="Item not found.", status_code=404)
-    settings = get_settings()
-    ext = (image.filename or "").rsplit(".", 1)[-1].lower()
-    if ext not in _ALLOWED_IMAGE_EXT:
-        raise APIError(
-            code="VALIDATION_FAILED",
-            message="Unsupported image type. Allowed: png, jpg, jpeg, webp.",
-            status_code=400,
-        )
-    # Read at most max+1 bytes, then check — bounds memory regardless of upload size.
-    data = image.file.read(settings.image_max_bytes + 1)
-    if len(data) > settings.image_max_bytes:
-        raise APIError(code="VALIDATION_FAILED", message="Image too large.", status_code=400)
-    os.makedirs(settings.image_upload_dir, exist_ok=True)
-    fname = f"{uuid.uuid4().hex}.{ext}"
-    with open(os.path.join(settings.image_upload_dir, fname), "wb") as f:
-        f.write(data)
-    p.image_url = f"{settings.image_base_url}/{fname}"
-    return {"image_url": p.image_url}
+) -> dict[str, str | None]:
+    """Legacy single-image upload: replaces the cover in place (never appends)."""
+    product = _locked_product(db, product_id)
+    before = images_mod.to_gallery(list(product.images))
+    url = images_mod.save_blob(image)
+    after, cover = gallery.replace_cover(before, url)
+    images_mod.reconcile(db, image_model=ProductImage, owner=product, before=before, after=after)
+    return {"image_url": cover}
