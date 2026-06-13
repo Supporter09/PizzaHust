@@ -173,3 +173,29 @@ def test_backfill_tie_resolves_to_lowest_category_id():
 
         backfill_group_categories(conn)
         assert _group_category(conn, 600) == 1
+
+
+def test_backfill_drops_orphan_group_when_no_categories_exist():
+    """Fresh-replay case: migrate-then-seed runs the migration on an empty DB, so
+    migration 0005's unconditional Size/Crust/Toppings groups have no usage AND no
+    categories exist for the MIN() fallback. Such groups must be DELETED (not left
+    NULL, which would fail the NOT NULL alter); app.seeds.run recreates them
+    scoped to the Pizza category afterward."""
+    backfill_group_categories = _load_backfill()
+    engine = sa.create_engine("sqlite+pysqlite:///:memory:")
+    with engine.begin() as conn:
+        _build_pre_migration_schema(conn)
+        # No categories, no products — exactly the post-0005 fresh-DB state.
+        _insert(conn, "option_groups", group_id=700, name="Size")
+        _insert(conn, "options", option_id=7000, group_id=700, name="M")
+
+        backfill_group_categories(conn)
+
+        survivors = conn.execute(
+            sa.text("SELECT COUNT(*) FROM option_groups WHERE group_id = 700")
+        ).scalar_one()
+        assert survivors == 0
+        nulls = conn.execute(
+            sa.text("SELECT COUNT(*) FROM option_groups WHERE category_id IS NULL")
+        ).scalar_one()
+        assert nulls == 0

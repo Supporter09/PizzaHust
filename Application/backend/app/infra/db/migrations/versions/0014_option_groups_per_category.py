@@ -35,6 +35,8 @@ def backfill_group_categories(conn: sa.Connection) -> None:
 
     A group's category is the most common ``category_id`` among the products that
     enable any of its options. Groups with no usage get the lowest category id.
+    Any group still without a category (only possible on a fresh DB with no
+    categories — see the final DELETE) is dropped.
     """
     fallback = conn.execute(sa.text("SELECT MIN(category_id) FROM categories")).scalar()
 
@@ -68,6 +70,15 @@ def backfill_group_categories(conn: sa.Connection) -> None:
             sa.text("UPDATE option_groups SET category_id = :c WHERE category_id IS NULL"),
             {"c": fallback},
         )
+
+    # On a FRESH replay (migrate-then-seed, as init.sh / CI / a new prod deploy do)
+    # the DB has no categories or products yet, so the Size/Crust/Toppings groups
+    # that migration 0005 unconditionally inserts have no usage AND the MIN()
+    # fallback above is NULL — they would block the NOT NULL alter. Drop these
+    # orphans (options/product_options cascade); app.seeds.run recreates the three
+    # groups scoped to the Pizza category right after migrate. On a populated DB
+    # this matches zero rows (every group is assigned or MIN-fallback'd).
+    conn.execute(sa.text("DELETE FROM option_groups WHERE category_id IS NULL"))
 
 
 def upgrade() -> None:
