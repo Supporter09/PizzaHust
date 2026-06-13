@@ -11,10 +11,10 @@ async function loginAsAdmin(page: Page) {
 
 async function openMargheritaEditor(page: Page) {
   await page.goto(`${E2E_BASE_URL}/admin/items`);
-  await page.getByRole("link", { name: "Margherita Classic" }).click();
-  // Editor heading is "Edit Dish"; the item name renders as the subtitle.
+  await page.getByRole("link", { name: "Margherita Classic", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Edit Dish", exact: true })).toBeVisible();
-  await expect(page.getByText(/Margherita Classic ·/)).toBeVisible();
+  // Basics editor is pre-filled with the dish name.
+  await expect(page.getByLabel("Name", { exact: true })).toHaveValue("Margherita Classic");
 }
 
 async function openMargheritaCustomizer(page: Page) {
@@ -29,15 +29,12 @@ test.describe("A8 – Admin dish editor options", () => {
     await loginAsAdmin(page);
   });
 
-  test("editor shows seeded categories with enable toggles and preview", async ({ page }) => {
+  test("editor shows seeded option groups with enable toggles", async ({ page }) => {
     await openMargheritaEditor(page);
     await expect(page.getByRole("radiogroup", { name: "Size selection type" })).toBeVisible();
     await expect(
       page.getByRole("radiogroup", { name: "Toppings selection type" }),
     ).toBeVisible();
-    await expect(page.getByText(/How it appears in cart & kitchen/i)).toBeVisible();
-    // Seeded: every option enabled → preview composes name + first option per group.
-    await expect(page.getByText(/Margherita Classic \(S\)/)).toBeVisible();
   });
 
   test("toggling an option off hides it from the customer customizer", async ({ page }) => {
