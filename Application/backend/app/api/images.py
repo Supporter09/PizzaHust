@@ -70,15 +70,20 @@ def save_blob(image: UploadFile) -> str:
 
 
 def remove_blob(url: str | None) -> None:
-    """Best-effort removal of a stored blob. URL is server-generated (uuid hex in
-    image_upload_dir); basename keeps the path inside the upload dir."""
+    """Best-effort removal of a managed blob. Only URLs under image_base_url are
+    touched; a non-managed/legacy URL is ignored so a colliding basename can't
+    delete an unrelated file. The filename is the server-generated basename."""
     if not url:
         return
-    fname = os.path.basename(url)
-    if not fname:
+    settings = get_settings()
+    prefix = f"{settings.image_base_url.rstrip('/')}/"
+    if not url.startswith(prefix):
+        return
+    fname = url[len(prefix) :].split("?", 1)[0].split("#", 1)[0]
+    if not fname or "/" in fname or "\\" in fname:
         return
     try:
-        os.remove(os.path.join(get_settings().image_upload_dir, fname))
+        os.remove(os.path.join(settings.image_upload_dir, fname))
     except FileNotFoundError:
         pass
     except OSError:

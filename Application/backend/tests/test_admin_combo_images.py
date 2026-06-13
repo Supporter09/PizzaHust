@@ -81,3 +81,31 @@ def test_ninth_upload_rejected(tmp_path, monkeypatch):
     for _ in range(8):
         assert _add(client, cid).status_code == 201
     assert _add(client, cid).status_code == 400
+
+
+def test_delete_combo_removes_all_gallery_blobs(tmp_path, monkeypatch):
+    # Hard-deleting a combo must remove every image blob, not just the cover,
+    # otherwise the non-cover gallery files orphan on disk.
+    monkeypatch.setenv("IMAGE_UPLOAD_DIR", str(tmp_path))
+    client = admin_client("a9-combo-del-blobs")
+    cid = _combo(client)
+    uploaded = [_add(client, cid).json(), _add(client, cid).json()]
+    blobs = [tmp_path / u["url"].rsplit("/", 1)[-1] for u in uploaded]
+    assert all(b.exists() for b in blobs)
+    assert client.delete(f"/api/admin/combos/{cid}").status_code == 204
+    assert not any(b.exists() for b in blobs)
+
+
+def test_remove_blob_ignores_unmanaged_url(tmp_path, monkeypatch):
+    # A foreign URL whose basename collides with a managed blob must not delete it.
+    from app.api.images import remove_blob
+    from app.infra.config import get_settings
+
+    monkeypatch.setenv("IMAGE_UPLOAD_DIR", str(tmp_path))
+    get_settings.cache_clear()
+    victim = tmp_path / "shared.png"
+    victim.write_bytes(b"keep me")
+    remove_blob("https://cdn.example.com/shared.png")
+    assert victim.exists()
+    remove_blob("/images/shared.png")  # managed URL is still removed
+    assert not victim.exists()

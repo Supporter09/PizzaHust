@@ -325,7 +325,10 @@ def delete_combo(
     combo = db.get(Combo, combo_id)
     if combo is None:
         raise APIError(code="NOT_FOUND", message="Combo not found.", status_code=404)
-    images_mod.remove_blob(combo.image_url)
+    # Hard delete cascades the ComboImage rows; remove every blob (cover + gallery),
+    # not just the denormalized cover, so no files orphan on disk.
+    for img in combo.images:
+        images_mod.remove_blob(img.url)
     db.execute(delete(ComboItem).where(ComboItem.combo_id == combo_id))
     db.delete(combo)
 
