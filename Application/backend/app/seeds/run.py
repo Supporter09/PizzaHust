@@ -363,6 +363,7 @@ def _seed(db: Session, settings: Settings) -> None:
         ("0901234567", 1, OrderStatus.DELIVERED, [(pizza_products[0], 1), (side_products[0], 1)]),
         ("0912345678", 2, OrderStatus.PREPARING, [(pizza_products[1], 2)]),
         ("0923456789", 0, OrderStatus.RECEIVED, [(pizza_products[4], 1), (side_products[1], 1)]),
+        ("0934567890", 0, OrderStatus.READY_FOR_DISPATCH, [(pizza_products[2], 1)]),
     ]
     for phone, days_ago, status, lines in demo_orders:
         user = db.scalar(select(User).where(User.phone_number == phone))
@@ -384,6 +385,8 @@ def _seed(db: Session, settings: Settings) -> None:
             promised_at=created_at + timedelta(minutes=45),
             created_at=created_at,
         )
+        if status is OrderStatus.READY_FOR_DISPATCH and order.delivery_note is None:
+            order.delivery_note = "Ring doorbell twice — leave at door"
         db.add(order)
         db.flush()
         for product, qty in lines:
