@@ -430,6 +430,16 @@
       "status": "done",
       "owner": "Hung",
       "evidence": "verify.sh all feature gates green at 63ae5b8 (2026-06-13T17:29:35Z); e2e 39 passed/4 skipped/1 pre-existing fail (admin-orders.spec.ts:28 — unrelated; needs a today-order, order-placing smoke is @pytest.mark.skip; zero orders-domain diff on this branch)"
+    },
+    {
+      "id": "A12",
+      "name": "Per-Category Option Ownership",
+      "depends_on": [
+        "A11"
+      ],
+      "status": "done",
+      "owner": "Hung",
+      "evidence": "Each Category now OWNS its option groups+options (dropped CategoryPresetGroup; OptionGroup.category_id NOT NULL FK, name unique per-category); a category's groups ARE its preset, new dishes seed ProductOptions from them, and changing a dish's category reseeds from the new preset. All per-category gates green at 6464fd0 (2026-06-13T19:57Z): backend 351 passed/1 skipped (ruff, mypy domain, lint-imports, alembic-drift clean); fresh `alembic upgrade head` on a wiped schema reaches 0014 with 0 errors (migration's prod backfill empirically verified 4-in/4-out, zero deletions, on a populated-from-0013 MySQL copy); frontend tsc/eslint clean, 76 vitest, next build ok; OpenAPI<->types parity clean; smoke 1 passed/1 skipped; per-category e2e green (Side-Dishes-has-no-pizza-groups, dish-editor option-toggle + add-category-appears, new-pizza inherits category preset). e2e 41 passed/4 skipped/1 fail. Contained-ripple proof: cart/menu/pricing/kitchen/orders backend tests (80) green UNMODIFIED — those domains byte-identical to main@85dc937. The sole e2e fail is admin-orders.spec.ts:28 — PRE-EXISTING and UNRELATED (today-order/timezone data dependency in the 00:00-07:00+07 window; fails identically on main; orders domain byte-identical to merge-base). cart.spec.ts:4 (combo parallel-load flake) failed the first run and passed the rerun — confirmed flaky, not a regression; verify.sh exits 1 because this env lacks ~/.local/bin/open-chrome-debug so its flake-retry path is unavailable."
     }
   ]
 }
