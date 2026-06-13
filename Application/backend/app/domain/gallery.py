@@ -62,7 +62,16 @@ def replace_cover(images: list[GalleryImage], url: str) -> tuple[list[GalleryIma
     if not images:
         return add(images, url)
     cover = next((i for i in images if i.is_cover), None)
-    if cover is None:  # defensive: no cover set -> treat lowest sort_order as cover
-        cover = sorted(images, key=lambda i: i.sort_order)[0]
-    result = [replace(i, url=url) if i.image_id == cover.image_id else i for i in images]
+    if cover is None:  # defensive: no cover set -> promote lowest sort_order
+        cover = min(images, key=lambda i: i.sort_order)
+    # Rewrite every image so the chosen cover carries the new url and is the sole
+    # is_cover; re-asserting the flag also heals any stray multi-cover state.
+    result = [
+        replace(
+            i,
+            url=url if i.image_id == cover.image_id else i.url,
+            is_cover=i.image_id == cover.image_id,
+        )
+        for i in images
+    ]
     return result, url

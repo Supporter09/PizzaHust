@@ -96,6 +96,18 @@ def test_replace_cover_on_empty_inserts_cover():
     assert cover == "first.png"
 
 
+def test_replace_cover_without_existing_cover_promotes_lowest():
+    # Defensive path: a gallery with images but no is_cover flag must come out with
+    # exactly one cover (lowest sort_order) carrying the new url — never zero covers.
+    before = [_img(1, "a.png", 1, False), _img(2, "b.png", 0, False)]
+    after, cover = replace_cover(before, "new.png")
+    assert sum(i.is_cover for i in after) == 1
+    promoted = next(i for i in after if i.is_cover)
+    assert promoted.image_id == 2
+    assert promoted.url == "new.png"
+    assert cover == "new.png"
+
+
 def test_cover_url_helper():
     assert cover_url([_img(1, "a.png", 0, False), _img(2, "b.png", 1, True)]) == "b.png"
     assert cover_url([]) is None
