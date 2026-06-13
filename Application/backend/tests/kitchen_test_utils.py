@@ -4,7 +4,7 @@ direct-DB order factories (single product, combo parent+children)."""
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
@@ -77,7 +77,7 @@ def make_order(
 ) -> int:
     with create_session_factory()() as db:
         product = _new_product(db, product_name)
-        now = _seconds_floor(datetime.utcnow())
+        now = _seconds_floor(datetime.now(UTC).replace(tzinfo=None))
         order = Order(
             order_code=code or f"PIZZ-{uuid.uuid4().hex[:6].upper()}",
             recipient_name="R",
@@ -123,7 +123,7 @@ def make_combo_order(
         combo = Combo(name=combo_name, combo_price_vnd=200_000)
         db.add(combo)
         db.flush()
-        now = _seconds_floor(datetime.utcnow())
+        now = _seconds_floor(datetime.now(UTC).replace(tzinfo=None))
         order = Order(
             order_code=f"PIZZ-{uuid.uuid4().hex[:6].upper()}",
             recipient_name="R",
