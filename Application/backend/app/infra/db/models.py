@@ -233,6 +233,21 @@ class ProductOption(Base):
     )
 
 
+class CategoryPresetGroup(Base):
+    """Per-category preset: option groups auto-enabled on dishes created in this
+    category (template applied once at creation; see api/admin/items.create_item)."""
+
+    __tablename__ = "category_preset_groups"
+
+    category_id: Mapped[int] = mapped_column(
+        ForeignKey("categories.category_id", ondelete="CASCADE"), primary_key=True
+    )
+    group_id: Mapped[int] = mapped_column(
+        ForeignKey("option_groups.group_id", ondelete="CASCADE"), primary_key=True
+    )
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+
+
 class OrderItemOption(Base):
     """Snapshot of one selected option at order time. No FK to options — admin
     deletes never touch history. Rows are inserted in (group.sort_order,
