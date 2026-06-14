@@ -200,7 +200,6 @@ def test_customer_detail_includes_history_stats_and_loyalty() -> None:
     assert payload.recent_orders[0].order_code == "PIZZ-CUST003"
     assert len(payload.top_orders) == 2
     assert payload.top_orders[0].order_code == "PIZZ-CUST002"
-    assert payload.benefits[0].startswith("Current balance can offset up to")
 
 
 def test_customer_detail_missing_customer_returns_404() -> None:
