@@ -17,8 +17,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
-from app.domain.order_state import OrderTransitionError, transition
 from app.api.kitchen.queue_logic import cancel_stale_kitchen_orders
+from app.domain.order_state import OrderTransitionError, transition
 from app.infra.auth import require_role
 from app.infra.config import Settings, get_settings_dependency
 from app.infra.db.deps import get_db
@@ -95,7 +95,11 @@ def add_note(
     order: Order | None = db.get(Order, order_id, with_for_update=True)
     if order is None:
         raise HTTPException(status_code=404, detail="NOT_FOUND")
-    if order.current_status in {OrderStatus.DELIVERED, OrderStatus.CANCELLED, OrderStatus.DELIVERY_FAILED}:
+    if order.current_status in {
+        OrderStatus.DELIVERED,
+        OrderStatus.CANCELLED,
+        OrderStatus.DELIVERY_FAILED,
+    }:
         raise HTTPException(status_code=409, detail="CONFLICT")
     db.add(
         OrderTracking(
