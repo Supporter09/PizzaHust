@@ -258,3 +258,18 @@ async def upload_avatar(
     db.commit()
     db.refresh(user)
     return AuthUserDTO.model_validate(user)
+
+
+@router.delete("/me/avatar", response_model=AuthUserDTO)
+async def delete_avatar(
+    _: Annotated[None, Depends(enforce_csrf)],
+    user: Annotated[User, Depends(get_current_user)],
+    db: DBSession,
+) -> AuthUserDTO:
+    if user.avatar_url is not None:
+        schedule_blob_removal(db, [user.avatar_url])
+        user.avatar_url = None
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    return AuthUserDTO.model_validate(user)

@@ -122,6 +122,39 @@ def test_avatar_upload_replace_and_bad_type(tmp_path, monkeypatch) -> None:
     asyncio.run(scenario())
 
 
+def test_avatar_delete_is_idempotent(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("IMAGE_UPLOAD_DIR", str(tmp_path))
+    app_instance = build_test_app("auth-avatar-del")
+
+    async def scenario() -> None:
+        transport = httpx.ASGITransport(app=app_instance)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            await client.post(
+                "/api/auth/register",
+                json={"full_name": "Del Ete", "phone_number": "0906666666", "password": "strongpass123"},
+            )
+            await client.post(
+                "/api/auth/login",
+                json={"phone_number": "0906666666", "password": "strongpass123"},
+            )
+            csrf = (await client.get("/api/auth/me")).json()["csrf_token"]
+
+            await client.post(
+                "/api/auth/me/avatar",
+                files={"image": ("a.png", b"\x89PNGfake", "image/png")},
+                headers={"X-CSRF-Token": csrf},
+            )
+            d1 = await client.request("DELETE", "/api/auth/me/avatar", headers={"X-CSRF-Token": csrf})
+            assert d1.status_code == 200
+            assert d1.json()["avatar_url"] is None
+
+            d2 = await client.request("DELETE", "/api/auth/me/avatar", headers={"X-CSRF-Token": csrf})
+            assert d2.status_code == 200
+            assert d2.json()["avatar_url"] is None
+
+    asyncio.run(scenario())
+
+
 def test_seed_creates_admin_and_kitchen_users() -> None:
     build_test_app("seed-accounts")
     run_seeds()
