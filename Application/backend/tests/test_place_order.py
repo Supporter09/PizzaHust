@@ -22,7 +22,7 @@ RECIPIENT = {"recipient_name": "Nguyen Van An", "recipient_phone": "0912345678"}
 def _fixture(slug: str):
     app = build_test_app(slug)
     cid = new_category("Pizza")
-    pid = new_product(cid, "Margherita", base_price_vnd=125_000, is_pizza=True)
+    pid = new_product(cid, "Margherita", base_price_vnd=125_000)
     g = new_option_group("Size", select_type="single", required=True, sort_order=1)
     m = new_option(g, "M", price_delta_vnd=30_000, sort_order=2)
     enable_option(pid, m)
@@ -130,7 +130,7 @@ def _combo_fixture(slug: str):
     marg = new_product(cat_p, "Margherita", base_price_vnd=120_000)
     pep = new_product(cat_p, "Pepperoni", base_price_vnd=130_000)
     cat_s = new_category("Sides")
-    bread = new_product(cat_s, "Garlic Bread", base_price_vnd=45_000, is_pizza=False)
+    bread = new_product(cat_s, "Garlic Bread", base_price_vnd=45_000)
     g_top = new_option_group("Toppings", select_type="multi", required=False)
     cheese = new_option(g_top, "Extra Cheese", price_delta_vnd=15_000)
     enable_option(marg, cheese)

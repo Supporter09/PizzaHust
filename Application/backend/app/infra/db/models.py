@@ -153,9 +153,6 @@ class Product(Base):
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.category_id"), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     base_price_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
-    is_pizza: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False, server_default="0"
-    )
     image_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_active: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default="1"

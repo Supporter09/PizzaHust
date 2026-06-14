@@ -1,12 +1,10 @@
-"""A1/A2 – Manage pizzas & side dishes (admin only).
+"""A1/A2 – Manage menu items (admin only).
 
-Unified product surface: ``kind`` selects pizza vs side dish; ``is_pizza`` is
-derived. Delete is a soft-deactivate so historical order_items never orphan.
+An item's nature is its category; there is no per-item type. Delete is a
+soft-deactivate so historical order_items never orphan.
 """
 
 from __future__ import annotations
-
-from typing import Literal
 
 from fastapi import APIRouter, Depends, File, UploadFile
 from pydantic import BaseModel
@@ -42,7 +40,6 @@ class ItemOut(BaseModel):
     category_id: int
     name: str
     base_price_vnd: int
-    is_pizza: bool
     image_url: str | None = None
     is_active: bool = True
 
@@ -57,7 +54,6 @@ class ItemIn(BaseModel):
     category_id: int
     name: str
     base_price_vnd: int
-    kind: Literal["pizza", "side"]
 
 
 class ItemPatch(BaseModel):
@@ -101,15 +97,12 @@ def _apply_category_preset(db: Session, product: Product) -> None:
 
 @router.get("", response_model=list[ItemOut])
 def list_items(
-    kind: Literal["pizza", "side"] | None = None,
     category_id: int | None = None,
     active: bool | None = None,
     db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> list[ItemOut]:
     stmt = select(Product)
-    if kind is not None:
-        stmt = stmt.where(Product.is_pizza.is_(kind == "pizza"))
     if category_id is not None:
         stmt = stmt.where(Product.category_id == category_id)
     if active is not None:
@@ -132,7 +125,6 @@ def create_item(
         category_id=body.category_id,
         name=body.name,
         base_price_vnd=body.base_price_vnd,
-        is_pizza=body.kind == "pizza",
     )
     db.add(p)
     db.flush()

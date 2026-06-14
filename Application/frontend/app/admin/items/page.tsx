@@ -9,6 +9,7 @@ import type { components } from "@/lib/api/types";
 import Breadcrumb from "@/components/admin/Breadcrumb";
 import SearchBar from "@/components/admin/SearchBar";
 import { ItemRowActions } from "@/components/admin/item-row-actions";
+import { imageSrc } from "@/lib/api/asset-url";
 
 type ItemOut = components["schemas"]["ItemOut"];
 type CategoryOut = components["schemas"]["CategoryOut"];

@@ -6,6 +6,7 @@ import { useCallback, useState } from "react";
 import { useCart } from "@/components/cart-provider";
 import { CoverFallback } from "@/components/cover-fallback";
 import { QuantityStepper } from "@/components/menu/quantity-stepper";
+import { imageSrc } from "@/lib/api/asset-url";
 import { formatVnd } from "@/lib/format";
 import type { CartLineOut } from "@/lib/cart-types";
 
@@ -130,7 +131,7 @@ function CartLineCard({
       <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-line">
         {line.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={line.image_url} alt="" className="h-full w-full object-cover" />
+          <img src={imageSrc(line.image_url)} alt="" className="h-full w-full object-cover" />
         ) : (
           <CoverFallback label={line.name} className="h-full w-full" />
         )}

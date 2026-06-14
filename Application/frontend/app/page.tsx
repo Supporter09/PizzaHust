@@ -45,7 +45,7 @@ const VALUE_PROPS = [
 ];
 
 export default function HomePage() {
-  const [pizzas, setPizzas] = useState<MenuItem[]>([]);
+  const [featured, setFeatured] = useState<MenuItem[]>([]);
   const [combos, setCombos] = useState<PublicCombo[]>([]);
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function HomePage() {
     // don't render (length-0 guards below), so errors are deliberately ignored.
     fetchItems()
       .then((items) => {
-        if (alive) setPizzas(items.filter((i) => i.is_pizza).slice(0, 4));
+        if (alive) setFeatured(items.slice(0, 4));
       })
       .catch(() => undefined);
     fetchCombos()
@@ -144,26 +144,26 @@ export default function HomePage() {
         ))}
       </section>
 
-      {/* Featured pizzas */}
-      {pizzas.length > 0 ? (
+      {/* Featured items */}
+      {featured.length > 0 ? (
         <section className="space-y-6">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-fg">Featured Pizzas</h2>
-              <p className="text-sm text-muted">Our most popular handcrafted pies.</p>
+              <h2 className="text-2xl font-bold text-fg">Featured Items</h2>
+              <p className="text-sm text-muted">Popular picks from our menu.</p>
             </div>
             <Link href="/menu" className="shrink-0 text-sm font-semibold text-brand-fg hover:underline">
               View all items →
             </Link>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {pizzas.map((item) => (
+            {featured.map((item) => (
               <PizzaCard
                 key={item.product_id}
                 productId={item.product_id}
                 name={item.name}
                 basePriceVnd={item.base_price_vnd}
-                isPizza={item.is_pizza}
+                hasPriceOptions={item.has_price_options}
                 imageUrl={item.image_url ?? null}
               />
             ))}

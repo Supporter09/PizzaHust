@@ -34,7 +34,8 @@ class MenuItemOut(BaseModel):
     category_id: int
     name: str
     base_price_vnd: int
-    is_pizza: bool
+    # True when an enabled option can change the price, so base_price is a "from" floor.
+    has_price_options: bool
     image_url: str | None = None
 
     model_config = {"from_attributes": True}
@@ -62,7 +63,6 @@ class MenuItemDetailOut(BaseModel):
     category_id: int
     name: str
     base_price_vnd: int
-    is_pizza: bool
     image_url: str | None = None
     option_groups: list[MenuOptionGroupOut] = []
     images: list[ImageOut] = []
@@ -88,7 +88,26 @@ def list_items(
     if category is not None:
         stmt = stmt.where(Product.category_id == category)
     stmt = stmt.order_by(Product.name)
-    return [MenuItemOut.model_validate(p) for p in db.scalars(stmt).all()]
+    products = list(db.scalars(stmt).all())
+    # Products whose enabled options can move the price — base price is then a floor.
+    priced_pids = set(
+        db.scalars(
+            select(ProductOption.product_id)
+            .join(Option, Option.option_id == ProductOption.option_id)
+            .where(Option.price_delta_vnd != 0)
+        ).all()
+    )
+    return [
+        MenuItemOut(
+            product_id=p.product_id,
+            category_id=p.category_id,
+            name=p.name,
+            base_price_vnd=p.base_price_vnd,
+            has_price_options=p.product_id in priced_pids,
+            image_url=p.image_url,
+        )
+        for p in products
+    ]
 
 
 @router.get("/items/{product_id}", response_model=MenuItemDetailOut)
@@ -129,7 +148,6 @@ def get_item(product_id: int, db: Session = Depends(get_db, scope="function")) -
         category_id=product.category_id,
         name=product.name,
         base_price_vnd=product.base_price_vnd,
-        is_pizza=product.is_pizza,
         image_url=product.image_url,
         option_groups=list(groups.values()),
         images=image_outs(list(product.images)),

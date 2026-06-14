@@ -12,7 +12,7 @@ def test_gallery_relationship_and_cascade_wiring():
     cat = new_category()
     pid = client.post(
         "/api/admin/items",
-        json={"category_id": cat, "name": "Backfill", "base_price_vnd": 1, "kind": "pizza"},
+        json={"category_id": cat, "name": "Backfill", "base_price_vnd": 1},
     ).json()["product_id"]
 
     with create_session_factory()() as db:

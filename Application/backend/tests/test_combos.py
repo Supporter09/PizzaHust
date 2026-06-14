@@ -37,8 +37,8 @@ def _add_combo(name, price, items, *, start=None, end=None):
 def test_lists_active_combo_with_savings():
     app = build_test_app("combos-active")
     cid = new_category("Pizza")
-    p1 = new_product(cid, "Margherita", base_price_vnd=125_000, is_pizza=True)
-    p2 = new_product(cid, "Garlic Bread", base_price_vnd=45_000, is_pizza=False)
+    p1 = new_product(cid, "Margherita", base_price_vnd=125_000)
+    p2 = new_product(cid, "Garlic Bread", base_price_vnd=45_000)
     # items_total = 125000*2 + 45000*1 = 295000; combo price 255000 -> savings 40000
     _add_combo("Lunch Duo", 255_000, [(p1, 2), (p2, 1)])
 
@@ -73,8 +73,8 @@ def test_lists_active_combo_with_savings():
 def test_excludes_scheduled_and_expired():
     app = build_test_app("combos-window")
     cid = new_category("Pizza")
-    p1 = new_product(cid, "A", base_price_vnd=100_000, is_pizza=True)
-    p2 = new_product(cid, "B", base_price_vnd=50_000, is_pizza=False)
+    p1 = new_product(cid, "A", base_price_vnd=100_000)
+    p2 = new_product(cid, "B", base_price_vnd=50_000)
     now = _now()
     _add_combo(
         "Future",
@@ -105,8 +105,8 @@ def test_excludes_scheduled_and_expired():
 def test_overpriced_combo_savings_zero():
     app = build_test_app("combos-overpriced")
     cid = new_category("Pizza")
-    p1 = new_product(cid, "A", base_price_vnd=100_000, is_pizza=True)
-    p2 = new_product(cid, "B", base_price_vnd=50_000, is_pizza=False)
+    p1 = new_product(cid, "A", base_price_vnd=100_000)
+    p2 = new_product(cid, "B", base_price_vnd=50_000)
     _add_combo("Pricey", 200_000, [(p1, 1), (p2, 1)])  # parts 150000 < 200000
     body = TestClient(app).get("/api/combos").json()
     assert body[0]["savings_vnd"] == 0
@@ -123,8 +123,8 @@ def test_list_shows_slot_with_from_price_and_reference_total():
     cat_p = new_category("Pizza")
     p1 = new_product(cat_p, "Pz1", base_price_vnd=100_000)
     cat_d = new_category("Drinks")
-    new_product(cat_d, "Cola", base_price_vnd=15_000, is_pizza=False)
-    new_product(cat_d, "Juice", base_price_vnd=25_000, is_pizza=False)
+    new_product(cat_d, "Cola", base_price_vnd=15_000)
+    new_product(cat_d, "Juice", base_price_vnd=25_000)
     combo_id = new_combo_with_items("SlotCombo", [p1], price_vnd=120_000)
     _add_slot(combo_id, cat_d, qty=2)
 
@@ -143,7 +143,7 @@ def test_combo_skipped_when_slot_category_emptied():
     p1 = new_product(cat_p, "Pz1")
     p2 = new_product(cat_p, "Pz2")
     cat_d = new_category("Drinks")
-    new_product(cat_d, "Cola", base_price_vnd=15_000, is_pizza=False, is_active=False)
+    new_product(cat_d, "Cola", base_price_vnd=15_000, is_active=False)
     combo_id = new_combo_with_items("DeadSlot", [p1, p2])
     _add_slot(combo_id, cat_d, qty=1)
     body = TestClient(app).get("/api/combos").json()
@@ -156,7 +156,7 @@ def test_combo_skipped_when_slot_category_deactivated():
     p1 = new_product(cat_p, "Pz1")
     p2 = new_product(cat_p, "Pz2")
     cat_d = new_category("Drinks", is_active=False)
-    new_product(cat_d, "Cola", base_price_vnd=15_000, is_pizza=False)
+    new_product(cat_d, "Cola", base_price_vnd=15_000)
     combo_id = new_combo_with_items("InactiveCatSlot", [p1, p2])
     _add_slot(combo_id, cat_d, qty=1)
     body = TestClient(app).get("/api/combos").json()
@@ -178,8 +178,8 @@ def test_public_no_auth():
 def test_component_image_url_surfaced():
     app = build_test_app("combos-image")
     cid = new_category("Pizza")
-    p1 = new_product(cid, "WithImg", base_price_vnd=100_000, is_pizza=True)
-    p2 = new_product(cid, "NoImg", base_price_vnd=50_000, is_pizza=False)
+    p1 = new_product(cid, "WithImg", base_price_vnd=100_000)
+    p2 = new_product(cid, "NoImg", base_price_vnd=50_000)
     with create_session_factory()() as db:
         from sqlalchemy import select
 
@@ -198,8 +198,8 @@ def test_component_image_url_surfaced():
 def test_excludes_combo_with_inactive_component():
     app = build_test_app("combos-inactive-part")
     cid = new_category("Pizza")
-    p1 = new_product(cid, "Active", base_price_vnd=100_000, is_pizza=True)
-    p2 = new_product(cid, "GoneSoon", base_price_vnd=50_000, is_pizza=False)
+    p1 = new_product(cid, "Active", base_price_vnd=100_000)
+    p2 = new_product(cid, "GoneSoon", base_price_vnd=50_000)
     _add_combo("HasInactive", 120_000, [(p1, 1), (p2, 1)])
     with create_session_factory()() as db:
         from sqlalchemy import select

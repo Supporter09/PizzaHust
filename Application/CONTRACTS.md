@@ -235,15 +235,16 @@ All under `/api/admin/`, role=`admin` required.
 - Fields: `date`, `order_count`, `revenue_vnd`, `top_items[{name, count}]`.
 - CSV export via `?format=csv`.
 
-### Kitchen (K1–K3)
+### Kitchen (K1–K4)
 
 All under `/api/kitchen/`, role=`kitchen` required.
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/api/kitchen/queue` | Ordered queue (reads `kitchen_queue_view`) |
+| GET | `/api/kitchen/orders` | K1 incoming-orders queue (reads `kitchen_queue_view`) |
 | POST | `/api/kitchen/orders/{id}/accept` | K2 flow: Received → Preparing |
 | POST | `/api/kitchen/orders/{id}/mark-ready` | K3: T1 handoff; success → ReadyForDispatch, provider fail → DispatchPending |
+| POST | `/api/kitchen/orders/{id}/pickup` | K4 manual fallback: ReadyForDispatch → Delivering (kitchen actor), 204 |
 
 ### POST /api/kitchen/orders/{order_id}/accept  (kitchen)
 Accept an incoming order: `Received → Preparing`. 204 on success.
@@ -255,6 +256,12 @@ Mark a Preparing order ready and request a courier (delivery port).
 - 200 `{ "status": "DispatchPending" }` if the provider errors — order is handed
   to admin retry (A5), not rolled back.
 - 409 if not in `Preparing`. 404 if unknown. 403/401 if not kitchen.
+
+### POST /api/kitchen/orders/{order_id}/pickup  (kitchen)
+Manually confirm courier pickup when the T2 scan is unavailable:
+`ReadyForDispatch → Delivering`, attributed to the kitchen actor. Pure local
+state advance — no delivery-port call. 204 on success.
+- 409 if not in `ReadyForDispatch`. 404 if unknown. 403/401 if not kitchen.
 
 ### Delivery webhook (T2)
 

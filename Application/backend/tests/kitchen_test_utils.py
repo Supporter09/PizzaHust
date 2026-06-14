@@ -49,11 +49,20 @@ def anon_client(db_slug: str) -> TestClient:
     return TestClient(build_test_app(db_slug))
 
 
+def logged_in_client(db_slug: str, role: UserRole) -> TestClient:
+    """A TestClient logged in as a user with `role`. The user need not exist in
+    the DB — role guards (require_role) reject before any DB access, so this is
+    enough to exercise the 403 path."""
+    app = build_test_app(db_slug)
+    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(user_id=1, role=role)
+    return TestClient(app)
+
+
 def _new_product(db, name: str, price: int = 100_000) -> Product:
     cat = Category(name=f"cat-{uuid.uuid4().hex[:6]}", is_active=True)
     db.add(cat)
     db.flush()
-    product = Product(category_id=cat.category_id, name=name, base_price_vnd=price, is_pizza=True)
+    product = Product(category_id=cat.category_id, name=name, base_price_vnd=price)
     db.add(product)
     db.flush()
     return product

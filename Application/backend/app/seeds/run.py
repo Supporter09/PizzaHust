@@ -256,9 +256,7 @@ def _seed(db: Session, settings: Settings) -> None:
         ("Seafood Delight", 175_000),
     ]
     pizza_products = [
-        _upsert_product(
-            db, name, category_id=cat_pizza.category_id, base_price_vnd=price, is_pizza=True
-        )
+        _upsert_product(db, name, category_id=cat_pizza.category_id, base_price_vnd=price)
         for name, price in pizzas
     ]
 
@@ -301,17 +299,13 @@ def _seed(db: Session, settings: Settings) -> None:
         ("Coleslaw", 35_000),
     ]
     side_products = [
-        _upsert_product(
-            db, name, category_id=cat_side.category_id, base_price_vnd=price, is_pizza=False
-        )
+        _upsert_product(db, name, category_id=cat_side.category_id, base_price_vnd=price)
         for name, price in sides
     ]
 
     drinks = [("Cola", 15_000), ("Orange Juice", 25_000), ("Mineral Water", 10_000)]
     for name, price in drinks:
-        _upsert_product(
-            db, name, category_id=cat_drinks.category_id, base_price_vnd=price, is_pizza=False
-        )
+        _upsert_product(db, name, category_id=cat_drinks.category_id, base_price_vnd=price)
 
     # ── Option groups (A8) ─────────────────────────────────────────
     pizza_ids = [p.product_id for p in pizza_products]
@@ -413,7 +407,10 @@ def _seed(db: Session, settings: Settings) -> None:
 
     # ── Demo orders ────────────────────────────────────────────────
     # Deterministic order codes keyed by (user_id, days_ago) so re-seeding is a
-    # no-op (no duplicate orders) — unlike a random/ULID code that re-randomizes.
+    # no-op for structure (no duplicate orders) — unlike a random/ULID code that
+    # re-randomizes. On re-seed, any existing demo order whose status was advanced
+    # by the kitchen e2e (K1–K4) is RESET back to its canonical declared value so
+    # each verify.sh run starts from a known state.
     demo_orders = [
         ("0901234567", 1, OrderStatus.DELIVERED, [(pizza_products[0], 1), (side_products[0], 1)]),
         ("0912345678", 2, OrderStatus.PREPARING, [(pizza_products[1], 2)]),
@@ -425,7 +422,12 @@ def _seed(db: Session, settings: Settings) -> None:
         if user is None:
             continue
         order_code = _seed_order_code(user.user_id, days_ago)
-        if db.scalar(select(Order).where(Order.order_code == order_code)):
+        existing = db.scalar(select(Order).where(Order.order_code == order_code))
+        if existing is not None:
+            # Reset the demo fixture to its canonical status so the kitchen e2e
+            # (K1–K4) is repeatable across verify.sh runs — these specs advance
+            # the seeded orders (Received→Preparing→ReadyForDispatch→Delivering).
+            existing.current_status = status
             continue
         items_total = sum(product.base_price_vnd * qty for product, qty in lines)
         created_at = now - timedelta(days=days_ago)

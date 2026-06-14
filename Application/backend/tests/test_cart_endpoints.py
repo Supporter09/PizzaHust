@@ -15,7 +15,7 @@ from tests.auth_test_utils import build_test_app
 def _fixture(slug: str):
     app = build_test_app(slug)
     cid = new_category("Pizza")
-    pid = new_product(cid, "Margherita", base_price_vnd=125_000, is_pizza=True)
+    pid = new_product(cid, "Margherita", base_price_vnd=125_000)
     g = new_option_group("Size", select_type="single", required=True, sort_order=1)
     m = new_option(g, "M", price_delta_vnd=30_000, sort_order=2)
     enable_option(pid, m)

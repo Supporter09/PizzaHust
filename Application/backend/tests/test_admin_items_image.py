@@ -9,7 +9,7 @@ PNG_BYTES = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
 def _make_pizza(client, category_id: int) -> int:
     return client.post(
         "/api/admin/items",
-        json={"category_id": category_id, "name": "P", "base_price_vnd": 1, "kind": "pizza"},
+        json={"category_id": category_id, "name": "P", "base_price_vnd": 1},
     ).json()["product_id"]
 
 

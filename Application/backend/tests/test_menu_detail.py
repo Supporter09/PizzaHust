@@ -15,7 +15,7 @@ from tests.auth_test_utils import build_test_app
 def test_detail_returns_enabled_option_groups():
     app = build_test_app("menu-detail-groups")
     cid = new_category("Pizza")
-    pid = new_product(cid, "Margherita", base_price_vnd=125_000, is_pizza=True)
+    pid = new_product(cid, "Margherita", base_price_vnd=125_000)
     g_size = new_option_group("Size", select_type="single", required=True, sort_order=1)
     s = new_option(g_size, "S", price_delta_vnd=0, sort_order=1)
     m = new_option(g_size, "M", price_delta_vnd=30_000, sort_order=2)
@@ -39,7 +39,7 @@ def test_detail_returns_enabled_option_groups():
 def test_detail_dish_without_options_returns_empty_list():
     app = build_test_app("menu-detail-plain")
     cid = new_category("Sides")
-    pid = new_product(cid, "Garlic Bread", base_price_vnd=45_000, is_pizza=False)
+    pid = new_product(cid, "Garlic Bread", base_price_vnd=45_000)
     r = TestClient(app).get(f"/api/items/{pid}")
     assert r.status_code == 200
     assert r.json()["option_groups"] == []

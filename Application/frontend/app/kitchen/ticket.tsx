@@ -6,6 +6,7 @@ import { ApiClientError } from "@/lib/api/client";
 import {
   acceptKitchenOrder,
   addKitchenOrderNote,
+  confirmKitchenPickup,
   markKitchenOrderReady,
   type KitchenItem,
   type KitchenTicket,
@@ -48,7 +49,7 @@ function ClockIcon() {
   );
 }
 
-function TruckIcon() {
+function TruckIcon({ className = "mt-0.5 h-3.5 w-3.5 shrink-0 text-muted" }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -57,7 +58,7 @@ function TruckIcon() {
       strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted"
+      className={className}
       aria-hidden="true"
     >
       <path d="M1 4h13v11H1z" />
@@ -152,6 +153,25 @@ export function Ticket({
   const [notePending, setNotePending] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [noteError, setNoteError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
+
+  const pickup = async () => {
+    setPending(true);
+    setActionError(null);
+    try {
+      await confirmKitchenPickup(ticket.order_id);
+      onChanged(); // success → card leaves the queue (now Delivering)
+    } catch (e) {
+      setConfirming(false);
+      if (e instanceof ApiClientError && e.status === 409) {
+        onChanged(); // someone/T2 advanced it — the refetched queue is the truth
+      } else {
+        setActionError("Couldn't confirm pickup — try again."); // 5xx/network: leave the card
+      }
+    } finally {
+      setPending(false);
+    }
+  };
 
   const accept = async () => {
     setPending(true);
@@ -300,7 +320,7 @@ export function Ticket({
           onClick={accept}
           disabled={pending}
           aria-busy={pending}
-          className="min-h-11 w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-brand-fg disabled:opacity-60"
+          className="min-h-11 w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-on-brand disabled:opacity-60"
         >
           {pending ? "Accepting…" : "Accept Order"}
         </button>
@@ -317,6 +337,46 @@ export function Ticket({
           <CheckIcon />
           {pending ? "Marking…" : "Mark Ready for Dispatch"}
         </button>
+      )}
+      {ticket.status === "ReadyForDispatch" && (
+        <div className="flex flex-col gap-2">
+          {confirming ? (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                data-testid="kitchen-pickup-yes"
+                onClick={pickup}
+                disabled={pending}
+                aria-busy={pending}
+                className="min-h-11 flex-1 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-on-brand disabled:opacity-60"
+              >
+                {pending ? "Confirming…" : "Yes, picked up"}
+              </button>
+              <button
+                type="button"
+                data-testid="kitchen-pickup-cancel"
+                onClick={() => setConfirming(false)}
+                disabled={pending}
+                className="min-h-11 flex-1 rounded-lg border border-line bg-card px-4 py-2.5 text-sm font-semibold text-fg hover:bg-surface disabled:opacity-60"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              data-testid="kitchen-confirm-pickup"
+              onClick={() => setConfirming(true)}
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-line bg-card px-4 py-2.5 text-sm font-semibold text-fg hover:bg-surface"
+            >
+              <TruckIcon className="h-4 w-4 shrink-0" />
+              Confirm Pickup
+            </button>
+          )}
+          <p className="text-center text-xs text-muted">
+            Usually auto-confirmed when the courier scans the order
+          </p>
+        </div>
       )}
       {actionError && (
         <p

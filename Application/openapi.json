@@ -1996,10 +1996,6 @@
             "title": "Is Active",
             "type": "boolean"
           },
-          "is_pizza": {
-            "title": "Is Pizza",
-            "type": "boolean"
-          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -2013,8 +2009,7 @@
           "product_id",
           "category_id",
           "name",
-          "base_price_vnd",
-          "is_pizza"
+          "base_price_vnd"
         ],
         "title": "ItemDetailOut",
         "type": "object"
@@ -2029,14 +2024,6 @@
             "title": "Category Id",
             "type": "integer"
           },
-          "kind": {
-            "enum": [
-              "pizza",
-              "side"
-            ],
-            "title": "Kind",
-            "type": "string"
-          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -2045,8 +2032,7 @@
         "required": [
           "category_id",
           "name",
-          "base_price_vnd",
-          "kind"
+          "base_price_vnd"
         ],
         "title": "ItemIn",
         "type": "object"
@@ -2182,10 +2168,6 @@
             "title": "Is Active",
             "type": "boolean"
           },
-          "is_pizza": {
-            "title": "Is Pizza",
-            "type": "boolean"
-          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -2199,8 +2181,7 @@
           "product_id",
           "category_id",
           "name",
-          "base_price_vnd",
-          "is_pizza"
+          "base_price_vnd"
         ],
         "title": "ItemOut",
         "type": "object"
@@ -2604,10 +2585,6 @@
             "title": "Images",
             "type": "array"
           },
-          "is_pizza": {
-            "title": "Is Pizza",
-            "type": "boolean"
-          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -2629,8 +2606,7 @@
           "product_id",
           "category_id",
           "name",
-          "base_price_vnd",
-          "is_pizza"
+          "base_price_vnd"
         ],
         "title": "MenuItemDetailOut",
         "type": "object"
@@ -2645,6 +2621,10 @@
             "title": "Category Id",
             "type": "integer"
           },
+          "has_price_options": {
+            "title": "Has Price Options",
+            "type": "boolean"
+          },
           "image_url": {
             "anyOf": [
               {
@@ -2655,10 +2635,6 @@
               }
             ],
             "title": "Image Url"
-          },
-          "is_pizza": {
-            "title": "Is Pizza",
-            "type": "boolean"
           },
           "name": {
             "title": "Name",
@@ -2674,7 +2650,7 @@
           "category_id",
           "name",
           "base_price_vnd",
-          "is_pizza"
+          "has_price_options"
         ],
         "title": "MenuItemOut",
         "type": "object"
@@ -5105,26 +5081,6 @@
         "parameters": [
           {
             "in": "query",
-            "name": "kind",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "enum": [
-                    "pizza",
-                    "side"
-                  ],
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Kind"
-            }
-          },
-          {
-            "in": "query",
             "name": "category_id",
             "required": false,
             "schema": {
@@ -7268,6 +7224,42 @@
           }
         },
         "summary": "Mark Ready",
+        "tags": [
+          "kitchen-orders"
+        ]
+      }
+    },
+    "/api/kitchen/orders/{order_id}/pickup": {
+      "post": {
+        "description": "K4 \u2014 manual Confirm Pickup fallback: ReadyForDispatch \u2192 Delivering,\nattributed to the kitchen actor. No delivery-port call (the courier scan T2\nis the path that's unavailable). Mirrors the accept verb's shape.",
+        "operationId": "confirm_pickup_api_kitchen_orders__order_id__pickup_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "title": "Order Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm Pickup",
         "tags": [
           "kitchen-orders"
         ]

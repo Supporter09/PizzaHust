@@ -9,8 +9,9 @@ vi.mock("@/lib/api/client", () => ({
   ApiClientError: class extends Error {},
 }));
 
+const push = vi.fn();
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push }),
 }));
 
 vi.mock("@/components/admin/Breadcrumb", () => ({
@@ -28,41 +29,46 @@ async function renderPage() {
   });
 }
 
-describe("NewItemPage — preset discoverability link", () => {
+describe("NewItemPage", () => {
   beforeEach(() => {
     apiFetch.mockReset();
+    push.mockReset();
     apiFetch.mockResolvedValue(activeCategories);
   });
 
-  it("renders plain helper text when no category is selected", async () => {
+  it("loads categories and renders the form fields", async () => {
     await renderPage();
-    // Wait for categories to load so the component is fully settled
     await waitFor(() => screen.getByRole("option", { name: "Pizza" }));
-    // The helper text should be present
-    expect(screen.getByText(/pizzas get size\/crust\/topping options/i)).toBeInTheDocument();
-    // No preset link should exist yet (still on default "Select…")
-    expect(screen.queryByRole("link", { name: /preset/i })).not.toBeInTheDocument();
+
+    expect(screen.getByLabelText("Name")).toBeInTheDocument();
+    expect(screen.getByLabelText("Category")).toBeInTheDocument();
+    expect(screen.getByLabelText("Price (VND)")).toBeInTheDocument();
+    // The Pizza/Side type toggle is gone — an item's nature is its category.
+    expect(screen.queryByRole("radiogroup", { name: /dish type/i })).not.toBeInTheDocument();
   });
 
-  it("shows a link to the category preset page after selecting a category", async () => {
+  it("creates an item without a type field", async () => {
+    apiFetch
+      .mockReset()
+      .mockResolvedValueOnce(activeCategories) // GET /admin/categories
+      .mockResolvedValueOnce({ product_id: 42 }); // POST /admin/items
+
     await renderPage();
     await waitFor(() => screen.getByRole("option", { name: "Pizza" }));
 
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Margherita" } });
     fireEvent.change(screen.getByLabelText("Category"), { target: { value: "5" } });
+    fireEvent.change(screen.getByLabelText("Price (VND)"), { target: { value: "120000" } });
 
-    const link = screen.getByRole("link", { name: /pizza preset/i });
-    expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute("href", "/admin/categories/5/preset");
-  });
+    await act(async () => {
+      fireEvent.submit(screen.getByRole("button", { name: /create item/i }).closest("form")!);
+    });
 
-  it("updates the preset link when a different category is selected", async () => {
-    await renderPage();
-    await waitFor(() => screen.getByRole("option", { name: "Sides" }));
-
-    fireEvent.change(screen.getByLabelText("Category"), { target: { value: "7" } });
-
-    const link = screen.getByRole("link", { name: /sides preset/i });
-    expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute("href", "/admin/categories/7/preset");
+    const createCall = apiFetch.mock.calls.find(([url]) => url === "/admin/items");
+    expect(createCall).toBeTruthy();
+    const body = JSON.parse((createCall![1] as { body: string }).body);
+    expect(body).toEqual({ name: "Margherita", category_id: 5, base_price_vnd: 120000 });
+    expect(body).not.toHaveProperty("kind");
+    expect(push).toHaveBeenCalledWith("/admin/items/42");
   });
 });
