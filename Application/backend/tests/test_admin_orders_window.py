@@ -26,7 +26,6 @@ def _seed_order(*, order_code: str, created_at: datetime) -> int:
             category_id=category.category_id,
             name=f"Pizza {suffix}",
             base_price_vnd=120_000,
-            is_pizza=True,
         )
         db.add(product)
         db.flush()

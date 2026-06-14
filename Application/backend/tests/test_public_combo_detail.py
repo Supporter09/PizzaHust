@@ -19,7 +19,7 @@ def _slot_combo(slug):
     pz2 = new_product(cat_p, "Pepperoni", base_price_vnd=130_000)
     new_product(cat_p, "Ghost", base_price_vnd=90_000, is_active=False)
     cat_s = new_category("Sides")
-    bread = new_product(cat_s, "Garlic Bread", base_price_vnd=45_000, is_pizza=False)
+    bread = new_product(cat_s, "Garlic Bread", base_price_vnd=45_000)
     combo_id = new_combo_with_items("Feast", [bread], price_vnd=250_000)
     with create_session_factory()() as db:
         db.add(ComboItem(combo_id=combo_id, category_id=cat_p, quantity=2))

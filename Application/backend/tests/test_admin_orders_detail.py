@@ -41,7 +41,6 @@ def _seed_order_with_detail(
             category_id=category.category_id,
             name=f"Pizza {suffix}",
             base_price_vnd=120_000,
-            is_pizza=True,
         )
         db.add(product)
         db.flush()

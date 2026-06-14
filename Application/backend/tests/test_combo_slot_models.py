@@ -34,7 +34,7 @@ def test_slot_row_and_image_url_roundtrip():
 def test_both_ids_rejected_by_check():
     build_test_app("slot-models-both")
     cat = new_category("Drinks")
-    pid = new_product(cat, "Cola", base_price_vnd=15_000, is_pizza=False)
+    pid = new_product(cat, "Cola", base_price_vnd=15_000)
     with create_session_factory()() as db:
         c = _combo(db)
         db.add(ComboItem(combo_id=c.combo_id, product_id=pid, category_id=cat, quantity=1))

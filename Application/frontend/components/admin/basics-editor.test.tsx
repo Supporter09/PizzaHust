@@ -14,7 +14,6 @@ const item = {
   category_id: 1,
   name: "Margherita Classic",
   base_price_vnd: 125000,
-  is_pizza: true,
   is_active: true,
   images: [],
 };

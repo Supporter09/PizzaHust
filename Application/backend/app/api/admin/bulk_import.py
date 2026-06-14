@@ -23,9 +23,6 @@ from app.infra.db.models import Category, Product, User, UserRole
 router = APIRouter(prefix="/api/admin/import", tags=["admin-import"])
 require_admin = require_role(UserRole.ADMIN)
 
-_TRUE_VALUES = {"1", "true", "yes", "y"}
-_FALSE_VALUES = {"0", "false", "no", "n"}
-
 
 class ImportSummary(BaseModel):
     created: int
@@ -72,7 +69,6 @@ def import_pizzas(
         name = (row.get("name") or "").strip()
         category_name = (row.get("category_name") or "").strip()
         price = _parse_int(row.get("base_price_vnd"))
-        raw_is_pizza = (row.get("is_pizza") or "true").strip().lower()
 
         if not name:
             errors.append(f"Row {i}: missing name — skipped")
@@ -87,14 +83,6 @@ def import_pizzas(
             errors.append(f"Row {i}: invalid base_price_vnd for '{name}' — skipped")
             skipped += 1
             continue
-        if raw_is_pizza in _TRUE_VALUES:
-            is_pizza = True
-        elif raw_is_pizza in _FALSE_VALUES:
-            is_pizza = False
-        else:
-            errors.append(f"Row {i}: invalid is_pizza value for '{name}' — skipped")
-            skipped += 1
-            continue
 
         existing = db.scalar(select(Product).where(Product.name == name))
         if existing is None:
@@ -103,14 +91,12 @@ def import_pizzas(
                     name=name,
                     category_id=cat.category_id,
                     base_price_vnd=price,
-                    is_pizza=is_pizza,
                 )
             )
             created += 1
         else:
             existing.category_id = cat.category_id
             existing.base_price_vnd = price
-            existing.is_pizza = is_pizza
             updated += 1
 
     db.flush()

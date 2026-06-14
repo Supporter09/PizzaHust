@@ -2,7 +2,13 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from tests.admin_test_utils import new_category, new_product
+from tests.admin_test_utils import (
+    enable_option,
+    new_category,
+    new_option,
+    new_option_group,
+    new_product,
+)
 from tests.auth_test_utils import build_test_app
 
 
@@ -22,7 +28,7 @@ def test_items_filter_by_category():
     pizza = new_category("Pizza")
     drinks = new_category("Drinks")
     new_product(pizza, "Margherita")
-    new_product(drinks, "Cola", is_pizza=False)
+    new_product(drinks, "Cola")
     client = TestClient(app)
     names = [i["name"] for i in client.get(f"/api/items?category={drinks}").json()]
     assert names == ["Cola"]
@@ -47,7 +53,7 @@ def test_items_bad_category_is_400():
 def test_item_shape_and_vnd_integer():
     app = build_test_app("menu-shape")
     cid = new_category("Pizza")
-    new_product(cid, "Margherita", base_price_vnd=120_000, is_pizza=True)
+    new_product(cid, "Margherita", base_price_vnd=120_000)
     client = TestClient(app)
     item = client.get("/api/items").json()[0]
     assert set(item) == {
@@ -55,12 +61,32 @@ def test_item_shape_and_vnd_integer():
         "category_id",
         "name",
         "base_price_vnd",
-        "is_pizza",
+        "has_price_options",
         "image_url",
     }
     assert item["base_price_vnd"] == 120_000 and isinstance(item["base_price_vnd"], int)
     assert item["image_url"] is None
-    assert item["is_pizza"] is True
+    # No enabled options → base price is the only price, so no "from" floor.
+    assert item["has_price_options"] is False
+
+
+def test_has_price_options_true_when_enabled_option_moves_price():
+    """has_price_options is derived: True only when an enabled option carries a
+    non-zero price delta (so base_price renders as a 'from' floor)."""
+    app = build_test_app("menu-haspriceopts")
+    cid = new_category("Pizza")
+    pid = new_product(cid, "Margherita", base_price_vnd=120_000)
+    free_pid = new_product(cid, "Plain", base_price_vnd=90_000)
+    group = new_option_group("Size", category_id=cid)
+    paid = new_option(group, "Large", price_delta_vnd=30_000)
+    free = new_option(group, "Regular", price_delta_vnd=0)
+    enable_option(pid, paid)
+    enable_option(free_pid, free)
+    client = TestClient(app)
+    by_name = {i["name"]: i for i in client.get("/api/items").json()}
+    assert by_name["Margherita"]["has_price_options"] is True
+    # An enabled but zero-delta option must NOT flip the flag.
+    assert by_name["Plain"]["has_price_options"] is False
 
 
 def test_categories_active_ordered_by_sort():

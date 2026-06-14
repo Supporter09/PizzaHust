@@ -150,8 +150,8 @@ def test_delete_returns_204():
 def test_create_combo_with_slot_returns_kind_and_from_price():
     client = admin_client("combo-slot-create")
     cat = new_category("Drinks2")
-    new_product(cat, "Cola", base_price_vnd=15_000, is_pizza=False)
-    new_product(cat, "Juice", base_price_vnd=25_000, is_pizza=False)
+    new_product(cat, "Cola", base_price_vnd=15_000)
+    new_product(cat, "Juice", base_price_vnd=25_000)
     p1, p2 = _two_pizzas()
     r = _post(client, items=[_fixed(p1), _fixed(p2), _slot(cat, qty=2)])
     assert r.status_code == 201, r.text
@@ -225,7 +225,7 @@ def test_patch_replaces_with_slot():
     p1, p2 = _two_pizzas()
     combo_id = _post(client, items=[_fixed(p1), _fixed(p2)]).json()["combo_id"]
     cat = new_category("Sides2")
-    new_product(cat, "Fries", base_price_vnd=35_000, is_pizza=False)
+    new_product(cat, "Fries", base_price_vnd=35_000)
     r = client.patch(f"/api/admin/combos/{combo_id}", json={"items": [_fixed(p1), _slot(cat, 2)]})
     assert r.status_code == 200, r.text
     kinds = sorted(i["kind"] for i in r.json()["items"])

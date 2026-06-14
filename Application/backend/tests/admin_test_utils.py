@@ -77,7 +77,6 @@ def new_product(
     name: str,
     *,
     base_price_vnd: int = 100_000,
-    is_pizza: bool = True,
     is_active: bool = True,
 ) -> int:
     with create_session_factory()() as db:
@@ -85,7 +84,6 @@ def new_product(
             category_id=category_id,
             name=name,
             base_price_vnd=base_price_vnd,
-            is_pizza=is_pizza,
             is_active=is_active,
         )
         db.add(p)
@@ -112,9 +110,7 @@ def _new_order_item(db) -> OrderItem:
     cat = Category(name=f"cat-{suffix}", is_active=True)
     db.add(cat)
     db.flush()
-    prod = Product(
-        category_id=cat.category_id, name=f"prod-{suffix}", base_price_vnd=1, is_pizza=True
-    )
+    prod = Product(category_id=cat.category_id, name=f"prod-{suffix}", base_price_vnd=1)
     db.add(prod)
     db.flush()
     order = Order(

@@ -9,11 +9,11 @@ PNG = ("a.png", b"\x89PNG\r\n\x1a\n" + b"\x00" * 64, "image/png")
 def _two_pizzas(client, cat: int) -> tuple[int, int]:
     a = client.post(
         "/api/admin/items",
-        json={"category_id": cat, "name": "CA", "base_price_vnd": 100, "kind": "pizza"},
+        json={"category_id": cat, "name": "CA", "base_price_vnd": 100},
     ).json()["product_id"]
     b = client.post(
         "/api/admin/items",
-        json={"category_id": cat, "name": "CB", "base_price_vnd": 100, "kind": "pizza"},
+        json={"category_id": cat, "name": "CB", "base_price_vnd": 100},
     ).json()["product_id"]
     return a, b
 

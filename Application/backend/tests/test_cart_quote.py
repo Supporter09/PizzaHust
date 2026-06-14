@@ -15,7 +15,7 @@ from tests.auth_test_utils import build_test_app
 def _pizza_fixture(slug: str):
     app = build_test_app(slug)
     cid = new_category("Pizza")
-    pid = new_product(cid, "Margherita", base_price_vnd=125_000, is_pizza=True)
+    pid = new_product(cid, "Margherita", base_price_vnd=125_000)
     g_size = new_option_group("Size", select_type="single", required=True, sort_order=1)
     s = new_option(g_size, "S", price_delta_vnd=0, sort_order=1)
     m = new_option(g_size, "M", price_delta_vnd=30_000, sort_order=2)
@@ -68,7 +68,7 @@ def test_quote_duplicate_option_ids_do_not_double_charge():
 def test_quote_dish_without_options_uses_base_price():
     app = build_test_app("cart-plain")
     cid = new_category("Sides")
-    pid = new_product(cid, "Garlic Bread", base_price_vnd=45_000, is_pizza=False)
+    pid = new_product(cid, "Garlic Bread", base_price_vnd=45_000)
     r = _quote(app, [{"kind": "item", "item_id": pid, "quantity": 3}])
     assert r.status_code == 200, r.text
     assert r.json()["subtotal_vnd"] == 135_000
@@ -77,7 +77,7 @@ def test_quote_dish_without_options_uses_base_price():
 def test_quote_non_pizza_with_enabled_options():
     app = build_test_app("cart-side-opts")
     cid = new_category("Sides")
-    pid = new_product(cid, "Wings", base_price_vnd=80_000, is_pizza=False)
+    pid = new_product(cid, "Wings", base_price_vnd=80_000)
     g = new_option_group("Sauce", select_type="single", required=False)
     bbq = new_option(g, "BBQ", price_delta_vnd=5_000)
     enable_option(pid, bbq)
@@ -151,7 +151,7 @@ def test_quote_unknown_product_400():
 def test_quote_inactive_product_400():
     app = build_test_app("cart-inactive")
     cid = new_category("Pizza")
-    pid = new_product(cid, "Hidden", is_pizza=True, is_active=False)
+    pid = new_product(cid, "Hidden", is_active=False)
     r = _quote(app, [{"kind": "item", "item_id": pid, "quantity": 1}])
     assert r.status_code == 400
     assert r.json()["error"]["code"] == "VALIDATION_FAILED"

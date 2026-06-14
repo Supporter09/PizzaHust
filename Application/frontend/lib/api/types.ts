@@ -1674,8 +1674,6 @@ export interface components {
              * @default true
              */
             is_active: boolean;
-            /** Is Pizza */
-            is_pizza: boolean;
             /** Name */
             name: string;
             /** Product Id */
@@ -1687,11 +1685,6 @@ export interface components {
             base_price_vnd: number;
             /** Category Id */
             category_id: number;
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "pizza" | "side";
             /** Name */
             name: string;
         };
@@ -1746,8 +1739,6 @@ export interface components {
              * @default true
              */
             is_active: boolean;
-            /** Is Pizza */
-            is_pizza: boolean;
             /** Name */
             name: string;
             /** Product Id */
@@ -1898,8 +1889,6 @@ export interface components {
              * @default []
              */
             images: components["schemas"]["ImageOut"][];
-            /** Is Pizza */
-            is_pizza: boolean;
             /** Name */
             name: string;
             /**
@@ -1916,10 +1905,10 @@ export interface components {
             base_price_vnd: number;
             /** Category Id */
             category_id: number;
+            /** Has Price Options */
+            has_price_options: boolean;
             /** Image Url */
             image_url?: string | null;
-            /** Is Pizza */
-            is_pizza: boolean;
             /** Name */
             name: string;
             /** Product Id */
@@ -3090,7 +3079,6 @@ export interface operations {
     list_items_api_admin_items_get: {
         parameters: {
             query?: {
-                kind?: ("pizza" | "side") | null;
                 category_id?: number | null;
                 active?: boolean | null;
             };

@@ -9,7 +9,7 @@ PNG = ("a.png", b"\x89PNG\r\n\x1a\n" + b"\x00" * 64, "image/png")
 def _pizza(client, cat: int, name: str = "P") -> int:
     return client.post(
         "/api/admin/items",
-        json={"category_id": cat, "name": name, "base_price_vnd": 1, "kind": "pizza"},
+        json={"category_id": cat, "name": name, "base_price_vnd": 1},
     ).json()["product_id"]
 
 

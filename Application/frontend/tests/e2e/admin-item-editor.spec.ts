@@ -16,7 +16,14 @@ async function loginAsAdmin(page: Page) {
 // active=true filter) only surface active dishes, and prior runs can soft-delete
 // individual seed dishes. The `A9 …`/`E2E …` prefixes are test debris — skip them.
 async function activePizza(page: Page): Promise<PizzaTarget> {
-  const res = await page.request.get(`${E2E_API_URL}/api/admin/items?kind=pizza&active=true`);
+  const catRes = await page.request.get(`${E2E_API_URL}/api/admin/categories`);
+  expect(catRes.ok()).toBeTruthy();
+  const categories: { category_id: number; name: string }[] = await catRes.json();
+  const pizzaCat = categories.find((c) => c.name === "Pizza");
+  expect(pizzaCat, "seed should have a Pizza category").toBeTruthy();
+  const res = await page.request.get(
+    `${E2E_API_URL}/api/admin/items?category_id=${pizzaCat!.category_id}&active=true`,
+  );
   expect(res.ok()).toBeTruthy();
   const items: PizzaTarget[] = await res.json();
   const target = items.find((i) => !/^(A9|E2E)\b/.test(i.name));

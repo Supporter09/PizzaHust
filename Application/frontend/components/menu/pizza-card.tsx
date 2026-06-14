@@ -7,11 +7,11 @@ type Props = {
   productId: number;
   name: string;
   basePriceVnd: number;
-  isPizza: boolean;
+  hasPriceOptions: boolean;
   imageUrl: string | null;
 };
 
-export function PizzaCard({ productId, name, basePriceVnd, isPizza, imageUrl }: Props) {
+export function PizzaCard({ productId, name, basePriceVnd, hasPriceOptions, imageUrl }: Props) {
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-card transition duration-200 hover:-translate-y-1 hover:border-brand/40 hover:shadow-md">
       <Link
@@ -34,7 +34,7 @@ export function PizzaCard({ productId, name, basePriceVnd, isPizza, imageUrl }: 
             </h3>
           </Link>
           <p className="mt-1 font-bold text-brand-fg">
-            {isPizza ? "from " : ""}
+            {hasPriceOptions ? "from " : ""}
             {formatVnd(basePriceVnd)}
           </p>
         </div>

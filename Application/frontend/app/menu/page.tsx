@@ -82,7 +82,7 @@ export default function MenuPage() {
               productId={item.product_id}
               name={item.name}
               basePriceVnd={item.base_price_vnd}
-              isPizza={item.is_pizza}
+              hasPriceOptions={item.has_price_options}
               imageUrl={item.image_url ?? null}
             />
           ))}
