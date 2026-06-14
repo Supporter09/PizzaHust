@@ -1,10 +1,12 @@
-"""K2/K3 – Kitchen order actions (kitchen only).
+"""K2/K3/K4 – Kitchen order actions (kitchen only).
 
-The mutations the read-only orders.py queue lacks: Accept (Received→Preparing)
-and Mark Ready for Dispatch (Preparing→ReadyForDispatch, requesting a courier via
-the delivery port; on provider failure → DispatchPending for admin retry).
-Status changes go only through order_state.transition(). Mirrors the admin
-cancel/retry-dispatch verbs (role-guard, row-lock, OrderTracking audit row).
+The mutations the read-only orders.py queue lacks: Accept (Received→Preparing),
+Mark Ready for Dispatch (Preparing→ReadyForDispatch, requesting a courier via the
+delivery port; on provider failure → DispatchPending for admin retry), and
+Confirm Pickup (ReadyForDispatch→Delivering, the manual fallback for the courier
+scan, attributed to the kitchen actor). Status changes go only through
+order_state.transition(). Mirrors the admin cancel/retry-dispatch verbs
+(role-guard, row-lock, OrderTracking audit row).
 """
 
 from __future__ import annotations
@@ -126,3 +128,35 @@ def mark_ready(
         )
     )
     return MarkReadyOut(status="ReadyForDispatch")
+
+
+@router.post("/{order_id}/pickup", status_code=204)
+def confirm_pickup(
+    order_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    kitchen: User = Depends(require_kitchen),
+) -> None:
+    """K4 — manual Confirm Pickup fallback: ReadyForDispatch → Delivering,
+    attributed to the kitchen actor. No delivery-port call (the courier scan T2
+    is the path that's unavailable). Mirrors the accept verb's shape."""
+    order: Order | None = db.get(Order, order_id, with_for_update=True)
+    if order is None:
+        raise HTTPException(status_code=404, detail="NOT_FOUND")
+    if order.current_status != OrderStatus.READY_FOR_DISPATCH:
+        raise HTTPException(status_code=409, detail="CONFLICT")
+    try:
+        new_status = OrderStatus(
+            transition(order.current_status.value, OrderStatus.DELIVERING.value)
+        )
+    except OrderTransitionError:
+        raise HTTPException(status_code=409, detail="CONFLICT") from None
+    order.current_status = new_status
+    db.add(
+        OrderTracking(
+            order_id=order.order_id,
+            updated_by=kitchen.user_id,
+            status=new_status,
+            note_source=TrackingNoteSource.KITCHEN,
+            note="Pickup confirmed by kitchen",
+        )
+    )
