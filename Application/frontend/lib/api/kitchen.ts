@@ -14,3 +14,6 @@ export type MarkReadyResult = components["schemas"]["MarkReadyOut"];
 
 export const markKitchenOrderReady = (id: number) =>
   apiFetch<MarkReadyResult>(`/kitchen/orders/${id}/mark-ready`, { method: "POST" });
+
+export const confirmKitchenPickup = (id: number) =>
+  apiFetch<void>(`/kitchen/orders/${id}/pickup`, { method: "POST" });

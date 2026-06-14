@@ -5,17 +5,20 @@ import { QueueClient } from "@/app/kitchen/queue-client";
 import { ApiClientError } from "@/lib/api/client";
 import type { KitchenTicket } from "@/lib/api/kitchen";
 
-const { listKitchenOrders, acceptKitchenOrder, markKitchenOrderReady } = vi.hoisted(() => ({
-  listKitchenOrders: vi.fn(),
-  acceptKitchenOrder: vi.fn(),
-  markKitchenOrderReady: vi.fn(),
-}));
+const { listKitchenOrders, acceptKitchenOrder, markKitchenOrderReady, confirmKitchenPickup } =
+  vi.hoisted(() => ({
+    listKitchenOrders: vi.fn(),
+    acceptKitchenOrder: vi.fn(),
+    markKitchenOrderReady: vi.fn(),
+    confirmKitchenPickup: vi.fn(),
+  }));
 
 vi.mock("@/lib/api/kitchen", async (orig) => ({
   ...(await orig<typeof import("@/lib/api/kitchen")>()),
   listKitchenOrders,
   acceptKitchenOrder,
   markKitchenOrderReady,
+  confirmKitchenPickup,
 }));
 
 function ticket(over: Partial<KitchenTicket> = {}): KitchenTicket {
@@ -134,5 +137,79 @@ describe("QueueClient — K3 mark ready", () => {
     render(<QueueClient />);
     await screen.findByTestId("kitchen-ticket");
     expect(screen.queryByRole("button", { name: /mark ready for dispatch/i })).toBeNull();
+  });
+});
+
+describe("QueueClient — K4 confirm pickup", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    confirmKitchenPickup.mockResolvedValue(undefined);
+  });
+  afterEach(cleanup);
+
+  it("shows Confirm Pickup on a ReadyForDispatch card", async () => {
+    listKitchenOrders.mockResolvedValue([
+      ticket({ status: "ReadyForDispatch", delivery_note: "ring twice" }),
+    ]);
+    render(<QueueClient />);
+    expect(await screen.findByTestId("kitchen-confirm-pickup")).toBeTruthy();
+  });
+
+  it("first click asks for confirmation and does NOT post", async () => {
+    listKitchenOrders.mockResolvedValue([ticket({ status: "ReadyForDispatch" })]);
+    render(<QueueClient />);
+
+    fireEvent.click(await screen.findByTestId("kitchen-confirm-pickup"));
+
+    expect(await screen.findByTestId("kitchen-pickup-yes")).toBeTruthy();
+    expect(confirmKitchenPickup).not.toHaveBeenCalled();
+  });
+
+  it("confirming posts the pickup and refetches", async () => {
+    listKitchenOrders
+      .mockResolvedValueOnce([ticket({ status: "ReadyForDispatch" })])
+      .mockResolvedValue([]);
+    render(<QueueClient />);
+
+    fireEvent.click(await screen.findByTestId("kitchen-confirm-pickup"));
+    fireEvent.click(await screen.findByTestId("kitchen-pickup-yes"));
+
+    expect(confirmKitchenPickup).toHaveBeenCalledWith(1);
+    await waitFor(() => expect(listKitchenOrders).toHaveBeenCalledTimes(2));
+  });
+
+  it("cancelling returns to idle without posting", async () => {
+    listKitchenOrders.mockResolvedValue([ticket({ status: "ReadyForDispatch" })]);
+    render(<QueueClient />);
+
+    fireEvent.click(await screen.findByTestId("kitchen-confirm-pickup"));
+    fireEvent.click(await screen.findByTestId("kitchen-pickup-cancel"));
+
+    expect(confirmKitchenPickup).not.toHaveBeenCalled();
+    expect(await screen.findByTestId("kitchen-confirm-pickup")).toBeTruthy();
+  });
+
+  it("on a 409 swallows the error and reconciles via refetch", async () => {
+    listKitchenOrders.mockResolvedValue([ticket({ status: "ReadyForDispatch" })]);
+    confirmKitchenPickup.mockRejectedValue(new ApiClientError("conflict", 409));
+    render(<QueueClient />);
+
+    fireEvent.click(await screen.findByTestId("kitchen-confirm-pickup"));
+    fireEvent.click(await screen.findByTestId("kitchen-pickup-yes"));
+
+    await waitFor(() => expect(listKitchenOrders).toHaveBeenCalledTimes(2));
+    expect(screen.queryByTestId("kitchen-action-error")).toBeNull();
+  });
+
+  it("on a 5xx/network failure shows an inline error and does NOT refetch", async () => {
+    listKitchenOrders.mockResolvedValue([ticket({ status: "ReadyForDispatch" })]);
+    confirmKitchenPickup.mockRejectedValue(new ApiClientError("boom", 500));
+    render(<QueueClient />);
+
+    fireEvent.click(await screen.findByTestId("kitchen-confirm-pickup"));
+    fireEvent.click(await screen.findByTestId("kitchen-pickup-yes"));
+
+    expect(await screen.findByTestId("kitchen-action-error")).toBeTruthy();
+    expect(listKitchenOrders).toHaveBeenCalledTimes(1);
   });
 });

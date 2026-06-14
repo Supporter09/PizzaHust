@@ -72,3 +72,32 @@ test.describe("K3 — Mark Ready for Dispatch", () => {
     await expect(sameCard.getByTestId("kitchen-mark-ready")).toHaveCount(0, { timeout: 15_000 });
   });
 });
+
+test.describe("K4 — Confirm Pickup (fallback)", () => {
+  test("confirming pickup advances a ReadyForDispatch order to Delivering and clears the card", async ({
+    page,
+  }) => {
+    await page.goto("/login");
+    await page.getByLabel("Phone Number").fill(KITCHEN_PHONE);
+    await page.getByLabel("Password", { exact: true }).fill(KITCHEN_PASSWORD);
+    await page.getByRole("button", { name: /sign in/i }).click();
+    await expect(page).toHaveURL(/\/kitchen/, { timeout: 20_000 });
+
+    const pickupBtn = page.getByTestId("kitchen-confirm-pickup").first();
+    await expect(pickupBtn).toBeVisible({ timeout: 15_000 });
+    const card = page
+      .getByTestId("kitchen-ticket")
+      .filter({ has: page.getByTestId("kitchen-confirm-pickup") })
+      .first();
+    const code = await card.getAttribute("data-order-code");
+    expect(code).toBeTruthy();
+
+    const cardByCode = page.locator(
+      `[data-testid="kitchen-ticket"][data-order-code="${code}"]`,
+    );
+    await cardByCode.getByTestId("kitchen-confirm-pickup").click(); // → inline confirm
+    await cardByCode.getByTestId("kitchen-pickup-yes").click(); // confirm
+
+    await expect(cardByCode).toHaveCount(0, { timeout: 15_000 });
+  });
+});
