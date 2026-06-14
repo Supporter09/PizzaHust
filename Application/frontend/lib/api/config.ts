@@ -7,6 +7,6 @@ export function getDeliveryConfig(): Promise<DeliveryConfigOut> {
   return apiFetch<DeliveryConfigOut>("/config/delivery");
 }
 
-export type BusinessConfig = { timezone: string };
+export type BusinessConfig = components["schemas"]["BusinessConfigOut"];
 
 export const getBusinessConfig = () => apiFetch<BusinessConfig>("/config/business");
