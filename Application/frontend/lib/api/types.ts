@@ -1543,8 +1543,6 @@ export interface components {
         CustomerDetailOut: {
             /** Address */
             address: string | null;
-            /** Benefits */
-            benefits: string[];
             /**
              * Created At
              * Format: date-time

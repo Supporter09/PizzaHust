@@ -72,7 +72,6 @@ class CustomerDetailOut(CustomerOut):
     address: str | None
     stats: CustomerStatsOut
     loyalty: CustomerLoyaltyOut
-    benefits: list[str]
     recent_orders: list[CustomerOrderOut]
     top_orders: list[CustomerOrderOut]
 
@@ -286,12 +285,6 @@ def get_customer(
     stats, recent_orders, top_orders = _customer_stats_payload(orders)
     s = settings_service.get_business_settings(db)
     current_balance_value_vnd = user.current_points * s.loyalty_redeem_value_vnd
-    benefits = [
-        f"Current balance can offset up to {current_balance_value_vnd:,} VND.",
-        f"Earns 1 point per {s.loyalty_accrual_rate:,} VND spent.",
-        f"Each point redeems {s.loyalty_redeem_value_vnd:,} VND with a max "
-        f"{s.loyalty_max_redeem_pct * 100:g}% cap per order.",
-    ]
     return CustomerDetailOut.model_validate(
         {
             **_customer_payload(user, int(order_count), last_order_at, stats.total_spend_vnd),
@@ -306,7 +299,6 @@ def get_customer(
                 max_redeem_pct=s.loyalty_max_redeem_pct,
                 current_balance_value_vnd=current_balance_value_vnd,
             ).model_dump(),
-            "benefits": benefits,
             "recent_orders": [
                 CustomerOrderOut.model_validate(_order_payload(order)) for order in recent_orders
             ],

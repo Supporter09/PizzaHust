@@ -1410,13 +1410,6 @@
             ],
             "title": "Address"
           },
-          "benefits": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Benefits",
-            "type": "array"
-          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -1518,7 +1511,6 @@
           "address",
           "stats",
           "loyalty",
-          "benefits",
           "recent_orders",
           "top_orders"
         ],

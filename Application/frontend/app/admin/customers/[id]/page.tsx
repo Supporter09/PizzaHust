@@ -46,7 +46,6 @@ interface CustomerDetail {
     max_redeem_pct: number;
     current_balance_value_vnd: number;
   };
-  benefits: string[];
   recent_orders: CustomerOrder[];
   top_orders: CustomerOrder[];
 }
@@ -244,17 +243,6 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                   Max {Math.round(customer.loyalty.max_redeem_pct * 100)}% of order subtotal
                 </p>
               </div>
-            </div>
-
-            <div className="rounded-xl border border-line bg-surface p-4">
-              <h3 className="text-sm font-semibold text-fg">Benefits</h3>
-              <ul className="mt-3 space-y-2 text-sm text-muted">
-                {customer.benefits.map((benefit) => (
-                  <li key={benefit} className="rounded-lg border border-line bg-card px-3 py-2 text-fg">
-                    {benefit}
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         </div>
