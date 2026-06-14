@@ -2742,6 +2742,43 @@
         "title": "MessageResponse",
         "type": "object"
       },
+      "MyOrderSummaryOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "item_summary": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Item Summary",
+            "type": "array"
+          },
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "total_vnd": {
+            "title": "Total Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "order_code",
+          "created_at",
+          "status",
+          "total_vnd",
+          "item_summary"
+        ],
+        "title": "MyOrderSummaryOut",
+        "type": "object"
+      },
       "OptionIn": {
         "properties": {
           "description": {
@@ -7322,6 +7359,66 @@
           }
         },
         "summary": "Place Order",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/api/orders/me": {
+      "get": {
+        "operationId": "list_my_orders_api_orders_me_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MyOrderSummaryOut"
+                  },
+                  "title": "Response List My Orders Api Orders Me Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List My Orders",
         "tags": [
           "orders"
         ]

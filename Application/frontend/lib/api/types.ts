@@ -999,6 +999,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List My Orders */
+        get: operations["list_my_orders_api_orders_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders/track/{code}": {
         parameters: {
             query?: never;
@@ -1967,6 +1984,22 @@ export interface components {
         MessageResponse: {
             /** Message */
             message: string;
+        };
+        /** MyOrderSummaryOut */
+        MyOrderSummaryOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Item Summary */
+            item_summary: string[];
+            /** Order Code */
+            order_code: string;
+            /** Status */
+            status: string;
+            /** Total Vnd */
+            total_vnd: number;
         };
         /** OptionIn */
         OptionIn: {
@@ -4673,6 +4706,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlaceOrderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_my_orders_api_orders_me_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyOrderSummaryOut"][];
                 };
             };
             /** @description Validation Error */
