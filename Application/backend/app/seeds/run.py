@@ -256,9 +256,7 @@ def _seed(db: Session, settings: Settings) -> None:
         ("Seafood Delight", 175_000),
     ]
     pizza_products = [
-        _upsert_product(
-            db, name, category_id=cat_pizza.category_id, base_price_vnd=price, is_pizza=True
-        )
+        _upsert_product(db, name, category_id=cat_pizza.category_id, base_price_vnd=price)
         for name, price in pizzas
     ]
 
@@ -301,17 +299,13 @@ def _seed(db: Session, settings: Settings) -> None:
         ("Coleslaw", 35_000),
     ]
     side_products = [
-        _upsert_product(
-            db, name, category_id=cat_side.category_id, base_price_vnd=price, is_pizza=False
-        )
+        _upsert_product(db, name, category_id=cat_side.category_id, base_price_vnd=price)
         for name, price in sides
     ]
 
     drinks = [("Cola", 15_000), ("Orange Juice", 25_000), ("Mineral Water", 10_000)]
     for name, price in drinks:
-        _upsert_product(
-            db, name, category_id=cat_drinks.category_id, base_price_vnd=price, is_pizza=False
-        )
+        _upsert_product(db, name, category_id=cat_drinks.category_id, base_price_vnd=price)
 
     # ── Option groups (A8) ─────────────────────────────────────────
     pizza_ids = [p.product_id for p in pizza_products]

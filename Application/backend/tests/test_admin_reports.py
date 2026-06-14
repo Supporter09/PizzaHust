@@ -56,7 +56,6 @@ def _seed_order(
             category_id=category.category_id,
             name=item_name,
             base_price_vnd=item_unit_price_vnd,
-            is_pizza=True,
         )
         db.add(product)
         db.flush()

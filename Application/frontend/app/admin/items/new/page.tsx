@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -19,7 +18,6 @@ export default function NewItemPage() {
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [price, setPrice] = useState("");
-  const [kind, setKind] = useState<"pizza" | "side">("pizza");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -46,7 +44,6 @@ export default function NewItemPage() {
             name,
             category_id: Number(categoryId),
             base_price_vnd: Number(price),
-            kind,
           }),
         });
         router.push(`/admin/items/${created.product_id}`);
@@ -55,7 +52,7 @@ export default function NewItemPage() {
         setBusy(false);
       }
     },
-    [name, categoryId, price, kind, router],
+    [name, categoryId, price, router],
   );
 
   return (
@@ -139,41 +136,6 @@ export default function NewItemPage() {
             onChange={(e) => setPrice(e.target.value)}
             className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
           />
-        </div>
-        <div className="sm:col-span-2">
-          <span className="mb-1 block text-xs font-medium text-muted">Type</span>
-          <div className="inline-flex rounded-lg border border-line p-0.5" role="radiogroup" aria-label="Dish type">
-            {(["pizza", "side"] as const).map((k) => (
-              <button
-                key={k}
-                type="button"
-                role="radio"
-                aria-checked={kind === k}
-                onClick={() => setKind(k)}
-                className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-                  kind === k ? "bg-brand text-on-brand" : "text-muted hover:text-fg"
-                }`}
-              >
-                {k === "pizza" ? "Pizza" : "Side dish"}
-              </button>
-            ))}
-          </div>
-          <p className="mt-1 text-xs text-muted">
-            Pizzas get size/crust/topping options, seeded from the{" "}
-            {activeCategories.find((c) => String(c.category_id) === categoryId) ? (
-              <>
-                <Link
-                  href={`/admin/categories/${categoryId}/preset`}
-                  className="font-medium text-brand-fg underline-offset-2 hover:underline"
-                >
-                  {activeCategories.find((c) => String(c.category_id) === categoryId)!.name} preset
-                </Link>
-                .
-              </>
-            ) : (
-              "category preset."
-            )}
-          </p>
         </div>
         <div className="flex items-center gap-3 sm:col-span-2">
           <button

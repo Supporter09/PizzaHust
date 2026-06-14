@@ -26,7 +26,7 @@ def _fixture(slug):
     marg = new_product(cat_p, "Margherita", base_price_vnd=120_000)
     pep = new_product(cat_p, "Pepperoni", base_price_vnd=130_000)
     cat_s = new_category("Sides")
-    bread = new_product(cat_s, "Garlic Bread", base_price_vnd=45_000, is_pizza=False)
+    bread = new_product(cat_s, "Garlic Bread", base_price_vnd=45_000)
     g_top = new_option_group("Toppings", select_type="multi", required=False)
     cheese = new_option(g_top, "Extra Cheese", price_delta_vnd=15_000)
     enable_option(marg, cheese)

@@ -99,9 +99,9 @@ export default function ImportPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <ImportCard
-          title="Pizzas & Side Dishes"
+          title="Menu Items"
           endpoint="/admin/import/pizzas"
-          columns="name, category_name, base_price_vnd, is_pizza"
+          columns="name, category_name, base_price_vnd"
         />
       </div>
     </div>

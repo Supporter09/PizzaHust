@@ -22,7 +22,7 @@ from tests.auth_test_utils import build_test_app
 def _create_pizza(client, category_id, name="Margherita", price=120_000):
     return client.post(
         "/api/admin/items",
-        json={"category_id": category_id, "name": name, "base_price_vnd": price, "kind": "pizza"},
+        json={"category_id": category_id, "name": name, "base_price_vnd": price},
     )
 
 
@@ -32,7 +32,6 @@ def test_create_pizza_returns_201_active_pizza():
     r = _create_pizza(client, cat)
     assert r.status_code == 201, r.text
     body = r.json()
-    assert body["is_pizza"] is True
     assert body["is_active"] is True
     assert body["category_id"] == cat
     assert body["name"] == "Margherita"
@@ -62,18 +61,19 @@ def test_inactive_category_validation_failed():
     assert r.json()["error"]["code"] == "VALIDATION_FAILED"
 
 
-def test_list_filters_by_kind():
-    client = admin_client("items-kind")
-    cat = new_category("Pizza")
-    _create_pizza(client, cat, name="Margherita")
+def test_list_filters_by_category():
+    client = admin_client("items-cat-filter")
+    pizza = new_category("Pizza")
+    sides = new_category("Sides")
+    _create_pizza(client, pizza, name="Margherita")
     client.post(
         "/api/admin/items",
-        json={"category_id": cat, "name": "Fries", "base_price_vnd": 40_000, "kind": "side"},
+        json={"category_id": sides, "name": "Fries", "base_price_vnd": 40_000},
     )
-    pizzas = [i["name"] for i in client.get("/api/admin/items?kind=pizza").json()]
-    sides = [i["name"] for i in client.get("/api/admin/items?kind=side").json()]
-    assert "Margherita" in pizzas and "Fries" not in pizzas
-    assert "Fries" in sides and "Margherita" not in sides
+    in_pizza = [i["name"] for i in client.get(f"/api/admin/items?category_id={pizza}").json()]
+    in_sides = [i["name"] for i in client.get(f"/api/admin/items?category_id={sides}").json()]
+    assert "Margherita" in in_pizza and "Fries" not in in_pizza
+    assert "Fries" in in_sides and "Margherita" not in in_sides
 
 
 def test_patch_updates_price():
@@ -251,7 +251,6 @@ def test_patch_category_change_reseeds_options_from_new_category():
             "category_id": pizza_cat,
             "name": "Margherita Recat",
             "base_price_vnd": 120_000,
-            "kind": "pizza",
         },
     ).json()["product_id"]
 
@@ -315,7 +314,6 @@ def test_patch_same_category_leaves_options_intact():
             "category_id": pizza_cat,
             "name": "Margherita Noop",
             "base_price_vnd": 120_000,
-            "kind": "pizza",
         },
     ).json()["product_id"]
 

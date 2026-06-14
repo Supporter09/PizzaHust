@@ -11,7 +11,7 @@ ADDRESS = {"administrative_unit": "Ba Đình", "street": "15 Trần Hưng Đạo
 def _order_fixture(slug: str):
     app = build_test_app(slug)
     cid = new_category("Pizza")
-    pid = new_product(cid, "Margherita", base_price_vnd=125_000, is_pizza=True)
+    pid = new_product(cid, "Margherita", base_price_vnd=125_000)
     client = TestClient(app)
     csrf = client.get("/api/cart").json()["csrf_token"]
     client.post(

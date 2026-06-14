@@ -53,7 +53,7 @@ def _new_product(db, name: str, price: int = 100_000) -> Product:
     cat = Category(name=f"cat-{uuid.uuid4().hex[:6]}", is_active=True)
     db.add(cat)
     db.flush()
-    product = Product(category_id=cat.category_id, name=name, base_price_vnd=price, is_pizza=True)
+    product = Product(category_id=cat.category_id, name=name, base_price_vnd=price)
     db.add(product)
     db.flush()
     return product
