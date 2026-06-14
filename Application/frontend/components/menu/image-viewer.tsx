@@ -3,14 +3,14 @@
 import { useState } from "react";
 
 import { CoverFallback } from "@/components/cover-fallback";
-import { imageSrc } from "@/lib/api/asset-url";
+import { resolveImageUrl } from "@/lib/image-url";
 import type { components } from "@/lib/api/types";
 
 type ImageOut = components["schemas"]["ImageOut"];
 
 export function ImageViewer({ images, name }: { images: ImageOut[]; name: string }) {
   const ordered = images;
-  const [active, setActive] = useState(ordered[0]?.url ?? null);
+  const [active, setActive] = useState(ordered[0] ? resolveImageUrl(ordered[0].url) : null);
 
   if (!active) {
     return <CoverFallback label={name} className="h-72 w-full sm:h-96" />;
@@ -20,7 +20,7 @@ export function ImageViewer({ images, name }: { images: ImageOut[]; name: string
     <div className="space-y-3">
       <div className="overflow-hidden rounded-2xl border border-line bg-card">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={imageSrc(active)} alt={name} className="h-72 w-full object-cover sm:h-96" />
+        <img src={active} alt={name} className="h-72 w-full object-cover sm:h-96" />
       </div>
       {ordered.length > 1 && (
         <div className="grid grid-cols-4 gap-3">
@@ -29,14 +29,14 @@ export function ImageViewer({ images, name }: { images: ImageOut[]; name: string
               key={img.image_id}
               type="button"
               aria-label={`Show image ${img.image_id}`}
-              aria-pressed={active === img.url}
-              onClick={() => setActive(img.url)}
+              aria-pressed={active === resolveImageUrl(img.url)}
+              onClick={() => setActive(resolveImageUrl(img.url))}
               className={`aspect-square overflow-hidden rounded-lg border focus:outline-none focus:ring-2 focus:ring-brand ${
-                active === img.url ? "border-brand ring-2 ring-brand" : "border-line"
+                active === resolveImageUrl(img.url) ? "border-brand ring-2 ring-brand" : "border-line"
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imageSrc(img.url)} alt="" className="h-full w-full object-cover" />
+              <img src={resolveImageUrl(img.url)} alt="" className="h-full w-full object-cover" />
             </button>
           ))}
         </div>

@@ -10,6 +10,12 @@ export const listKitchenOrders = () => apiFetch<KitchenTicket[]>("/kitchen/order
 export const acceptKitchenOrder = (id: number) =>
   apiFetch<void>(`/kitchen/orders/${id}/accept`, { method: "POST" });
 
+export const addKitchenOrderNote = (id: number, note: string) =>
+  apiFetch<void>(`/kitchen/orders/${id}/notes`, {
+    method: "POST",
+    body: JSON.stringify({ note }),
+  });
+
 export type MarkReadyResult = components["schemas"]["MarkReadyOut"];
 
 export const markKitchenOrderReady = (id: number) =>

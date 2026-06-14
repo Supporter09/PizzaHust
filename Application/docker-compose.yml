@@ -83,12 +83,14 @@ services:
         # Baked into the browser bundle at build time; keep it in sync with the
         # runtime value below from the same env source.
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000/api}
+        NEXT_PUBLIC_IMAGE_BASE_URL: ${NEXT_PUBLIC_IMAGE_BASE_URL:-http://localhost:8000}
     restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
     environment:
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000/api}
+      NEXT_PUBLIC_IMAGE_BASE_URL: ${NEXT_PUBLIC_IMAGE_BASE_URL:-http://localhost:8000}
     ports:
       - "3000:3000"
 

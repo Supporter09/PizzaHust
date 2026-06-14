@@ -14,9 +14,10 @@ from __future__ import annotations
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
+from app.api.kitchen.queue_logic import cancel_stale_kitchen_orders
 from app.domain.order_state import OrderTransitionError, transition
 from app.infra.auth import require_role
 from app.infra.config import Settings, get_settings_dependency
@@ -41,12 +42,25 @@ class MarkReadyOut(BaseModel):
     status: Literal["ReadyForDispatch", "DispatchPending"]
 
 
+class KitchenNoteIn(BaseModel):
+    note: str = Field(min_length=1, max_length=255)
+
+    @field_validator("note")
+    @classmethod
+    def _strip_note(cls, value: str) -> str:
+        note = value.strip()
+        if not note:
+            raise ValueError("Note must not be blank")
+        return note
+
+
 @router.post("/{order_id}/accept", status_code=204)
 def accept_order(
     order_id: int,
     db: Session = Depends(get_db, scope="function"),
     kitchen: User = Depends(require_kitchen),
 ) -> None:
+    cancel_stale_kitchen_orders(db)
     order: Order | None = db.get(Order, order_id, with_for_update=True)
     if order is None:
         raise HTTPException(status_code=404, detail="NOT_FOUND")
@@ -70,6 +84,34 @@ def accept_order(
     )
 
 
+@router.post("/{order_id}/notes", status_code=204)
+def add_note(
+    order_id: int,
+    body: KitchenNoteIn,
+    db: Session = Depends(get_db, scope="function"),
+    kitchen: User = Depends(require_kitchen),
+) -> None:
+    cancel_stale_kitchen_orders(db)
+    order: Order | None = db.get(Order, order_id, with_for_update=True)
+    if order is None:
+        raise HTTPException(status_code=404, detail="NOT_FOUND")
+    if order.current_status in {
+        OrderStatus.DELIVERED,
+        OrderStatus.CANCELLED,
+        OrderStatus.DELIVERY_FAILED,
+    }:
+        raise HTTPException(status_code=409, detail="CONFLICT")
+    db.add(
+        OrderTracking(
+            order_id=order.order_id,
+            updated_by=kitchen.user_id,
+            status=order.current_status,
+            note_source=TrackingNoteSource.KITCHEN,
+            note=body.note,
+        )
+    )
+
+
 @router.post("/{order_id}/mark-ready", response_model=MarkReadyOut)
 def mark_ready(
     order_id: int,
@@ -78,6 +120,7 @@ def mark_ready(
     port: DeliveryPort = Depends(get_delivery_port),
     settings: Settings = Depends(get_settings_dependency),
 ) -> MarkReadyOut:
+    cancel_stale_kitchen_orders(db)
     order: Order | None = db.get(Order, order_id, with_for_update=True)
     if order is None:
         raise HTTPException(status_code=404, detail="NOT_FOUND")

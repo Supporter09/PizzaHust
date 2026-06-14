@@ -2333,6 +2333,21 @@
         "title": "KitchenItemOut",
         "type": "object"
       },
+      "KitchenNoteIn": {
+        "properties": {
+          "note": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "note"
+        ],
+        "title": "KitchenNoteIn",
+        "type": "object"
+      },
       "KitchenTicketOut": {
         "properties": {
           "created_at": {
@@ -2378,6 +2393,13 @@
           "status": {
             "title": "Status",
             "type": "string"
+          },
+          "tracking": {
+            "items": {
+              "$ref": "#/components/schemas/KitchenTrackingOut"
+            },
+            "title": "Tracking",
+            "type": "array"
           }
         },
         "required": [
@@ -2388,9 +2410,63 @@
           "promised_at",
           "priority_score",
           "delivery_note",
+          "tracking",
           "items"
         ],
         "title": "KitchenTicketOut",
+        "type": "object"
+      },
+      "KitchenTrackingOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "note_source": {
+            "title": "Note Source",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tracking_id": {
+            "title": "Tracking Id",
+            "type": "integer"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "required": [
+          "tracking_id",
+          "status",
+          "note_source",
+          "created_at",
+          "note",
+          "updated_by"
+        ],
+        "title": "KitchenTrackingOut",
         "type": "object"
       },
       "LockIn": {
@@ -7224,6 +7300,51 @@
           }
         },
         "summary": "Mark Ready",
+        "tags": [
+          "kitchen-orders"
+        ]
+      }
+    },
+    "/api/kitchen/orders/{order_id}/notes": {
+      "post": {
+        "operationId": "add_note_api_kitchen_orders__order_id__notes_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "title": "Order Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KitchenNoteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Note",
         "tags": [
           "kitchen-orders"
         ]

@@ -943,6 +943,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/kitchen/orders/{order_id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Note */
+        post: operations["add_note_api_kitchen_orders__order_id__notes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/kitchen/orders/{order_id}/pickup": {
         parameters: {
             query?: never;
@@ -1811,6 +1828,11 @@ export interface components {
             /** Quantity */
             quantity: number;
         };
+        /** KitchenNoteIn */
+        KitchenNoteIn: {
+            /** Note */
+            note: string;
+        };
         /** KitchenTicketOut */
         KitchenTicketOut: {
             /**
@@ -1835,6 +1857,26 @@ export interface components {
             promised_at: string;
             /** Status */
             status: string;
+            /** Tracking */
+            tracking: components["schemas"]["KitchenTrackingOut"][];
+        };
+        /** KitchenTrackingOut */
+        KitchenTrackingOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Note */
+            note: string | null;
+            /** Note Source */
+            note_source: string;
+            /** Status */
+            status: string;
+            /** Tracking Id */
+            tracking_id: number;
+            /** Updated By */
+            updated_by: number | null;
         };
         /** LockIn */
         LockIn: {
@@ -4592,6 +4634,39 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MarkReadyOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_note_api_kitchen_orders__order_id__notes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KitchenNoteIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
