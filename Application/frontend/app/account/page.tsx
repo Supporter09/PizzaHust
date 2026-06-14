@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 
@@ -79,6 +80,12 @@ export default function AccountPage() {
       <div className="auth-card p-6 sm:p-8">
         <h1 className="text-2xl font-semibold text-fg">My Profile</h1>
         <p className="mt-1 text-sm text-muted">Update your profile details below.</p>
+        <Link
+          href="/account/orders"
+          className="mt-3 inline-block text-sm font-semibold text-brand-fg hover:underline"
+        >
+          View order history →
+        </Link>
 
         <form
           key={`${user.full_name}-${user.address ?? ""}`}

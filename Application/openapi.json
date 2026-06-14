@@ -2818,6 +2818,191 @@
         "title": "MessageResponse",
         "type": "object"
       },
+      "MyOrderDetailOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "delivery_address": {
+            "title": "Delivery Address",
+            "type": "string"
+          },
+          "delivery_fee_vnd": {
+            "title": "Delivery Fee Vnd",
+            "type": "integer"
+          },
+          "delivery_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Note"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/MyOrderLineOut"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "promised_at": {
+            "format": "date-time",
+            "title": "Promised At",
+            "type": "string"
+          },
+          "recipient_name": {
+            "title": "Recipient Name",
+            "type": "string"
+          },
+          "savings_vnd": {
+            "title": "Savings Vnd",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "subtotal_vnd": {
+            "title": "Subtotal Vnd",
+            "type": "integer"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TrackTimelineEntry"
+            },
+            "title": "Timeline",
+            "type": "array"
+          },
+          "total_vnd": {
+            "title": "Total Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "order_code",
+          "created_at",
+          "status",
+          "recipient_name",
+          "delivery_address",
+          "delivery_note",
+          "promised_at",
+          "lines",
+          "subtotal_vnd",
+          "delivery_fee_vnd",
+          "savings_vnd",
+          "total_vnd",
+          "timeline"
+        ],
+        "title": "MyOrderDetailOut",
+        "type": "object"
+      },
+      "MyOrderLineOut": {
+        "properties": {
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/MyOrderLineOut"
+            },
+            "title": "Children",
+            "type": "array"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "item",
+              "combo"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "line_total_vnd": {
+            "title": "Line Total Vnd",
+            "type": "integer"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "display_name",
+          "quantity",
+          "line_total_vnd",
+          "options",
+          "note",
+          "children"
+        ],
+        "title": "MyOrderLineOut",
+        "type": "object"
+      },
+      "MyOrderSummaryOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "item_summary": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Item Summary",
+            "type": "array"
+          },
+          "order_code": {
+            "title": "Order Code",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "total_vnd": {
+            "title": "Total Vnd",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "order_code",
+          "created_at",
+          "status",
+          "total_vnd",
+          "item_summary"
+        ],
+        "title": "MyOrderSummaryOut",
+        "type": "object"
+      },
       "OptionIn": {
         "properties": {
           "description": {
@@ -3739,6 +3924,31 @@
         "title": "RegisterResponse",
         "type": "object"
       },
+      "ReorderResultOut": {
+        "properties": {
+          "added_count": {
+            "title": "Added Count",
+            "type": "integer"
+          },
+          "cart": {
+            "$ref": "#/components/schemas/CartOut"
+          },
+          "unavailable": {
+            "items": {
+              "$ref": "#/components/schemas/UnavailableLineOut"
+            },
+            "title": "Unavailable",
+            "type": "array"
+          }
+        },
+        "required": [
+          "cart",
+          "added_count",
+          "unavailable"
+        ],
+        "title": "ReorderResultOut",
+        "type": "object"
+      },
       "ReportOverviewOut": {
         "properties": {
           "series": {
@@ -4026,6 +4236,30 @@
           "at"
         ],
         "title": "TrackTimelineEntry",
+        "type": "object"
+      },
+      "UnavailableLineOut": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "item_unavailable",
+              "option_changed",
+              "combo_unavailable",
+              "combo_changed"
+            ],
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "description",
+          "reason"
+        ],
+        "title": "UnavailableLineOut",
         "type": "object"
       },
       "UpdateProfileRequest": {
@@ -7443,6 +7677,150 @@
           }
         },
         "summary": "Place Order",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/api/orders/me": {
+      "get": {
+        "operationId": "list_my_orders_api_orders_me_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MyOrderSummaryOut"
+                  },
+                  "title": "Response List My Orders Api Orders Me Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List My Orders",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/api/orders/me/{order_code}": {
+      "get": {
+        "operationId": "get_my_order_detail_api_orders_me__order_code__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_code",
+            "required": true,
+            "schema": {
+              "title": "Order Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyOrderDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get My Order Detail",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/api/orders/me/{order_code}/reorder": {
+      "post": {
+        "operationId": "reorder_my_order_api_orders_me__order_code__reorder_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_code",
+            "required": true,
+            "schema": {
+              "title": "Order Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReorderResultOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reorder My Order",
         "tags": [
           "orders"
         ]

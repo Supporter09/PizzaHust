@@ -31,6 +31,7 @@ from app.api.kitchen.actions import router as kitchen_actions_router
 from app.api.kitchen.orders import router as kitchen_orders_router
 from app.api.loyalty import router as loyalty_router
 from app.api.menu import router as menu_router
+from app.api.order_history import router as order_history_router
 from app.api.orders import router as orders_router
 from app.api.webhooks import router as webhooks_router
 from app.infra.config import get_settings
@@ -71,6 +72,7 @@ app.include_router(combos_router)
 app.include_router(carts_router)
 app.include_router(cart_router)
 app.include_router(orders_router)
+app.include_router(order_history_router)
 app.include_router(auth_router)
 app.include_router(loyalty_router)
 app.include_router(admin_orders_router)

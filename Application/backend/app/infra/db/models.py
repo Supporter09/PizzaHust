@@ -334,6 +334,12 @@ class Order(Base):
     __table_args__ = (
         Index("ix_orders_current_status", "current_status"),
         Index("ix_orders_user_id", "user_id"),
+        Index(
+            "ix_orders_user_id_created_at_order_id",
+            "user_id",
+            "created_at",
+            "order_id",
+        ),
         Index("ix_orders_order_code", "order_code", unique=True),
         CheckConstraint(
             "loyalty_points_earned >= 0", name="ck_orders_loyalty_points_earned_nonneg"

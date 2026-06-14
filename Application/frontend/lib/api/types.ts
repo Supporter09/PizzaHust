@@ -1016,6 +1016,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List My Orders */
+        get: operations["list_my_orders_api_orders_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/me/{order_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Order Detail */
+        get: operations["get_my_order_detail_api_orders_me__order_code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/me/{order_code}/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reorder My Order */
+        post: operations["reorder_my_order_api_orders_me__order_code__reorder_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders/track/{code}": {
         parameters: {
             query?: never;
@@ -2010,6 +2061,77 @@ export interface components {
             /** Message */
             message: string;
         };
+        /** MyOrderDetailOut */
+        MyOrderDetailOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Delivery Address */
+            delivery_address: string;
+            /** Delivery Fee Vnd */
+            delivery_fee_vnd: number;
+            /** Delivery Note */
+            delivery_note: string | null;
+            /** Lines */
+            lines: components["schemas"]["MyOrderLineOut"][];
+            /** Order Code */
+            order_code: string;
+            /**
+             * Promised At
+             * Format: date-time
+             */
+            promised_at: string;
+            /** Recipient Name */
+            recipient_name: string;
+            /** Savings Vnd */
+            savings_vnd: number;
+            /** Status */
+            status: string;
+            /** Subtotal Vnd */
+            subtotal_vnd: number;
+            /** Timeline */
+            timeline: components["schemas"]["TrackTimelineEntry"][];
+            /** Total Vnd */
+            total_vnd: number;
+        };
+        /** MyOrderLineOut */
+        MyOrderLineOut: {
+            /** Children */
+            children: components["schemas"]["MyOrderLineOut"][];
+            /** Display Name */
+            display_name: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "item" | "combo";
+            /** Line Total Vnd */
+            line_total_vnd: number;
+            /** Note */
+            note: string | null;
+            /** Options */
+            options: string[];
+            /** Quantity */
+            quantity: number;
+        };
+        /** MyOrderSummaryOut */
+        MyOrderSummaryOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Item Summary */
+            item_summary: string[];
+            /** Order Code */
+            order_code: string;
+            /** Status */
+            status: string;
+            /** Total Vnd */
+            total_vnd: number;
+        };
         /** OptionIn */
         OptionIn: {
             /** Description */
@@ -2322,6 +2444,14 @@ export interface components {
         RegisterResponse: {
             user: components["schemas"]["AuthUserDTO"];
         };
+        /** ReorderResultOut */
+        ReorderResultOut: {
+            /** Added Count */
+            added_count: number;
+            cart: components["schemas"]["CartOut"];
+            /** Unavailable */
+            unavailable: components["schemas"]["UnavailableLineOut"][];
+        };
         /** ReportOverviewOut */
         ReportOverviewOut: {
             /** Series */
@@ -2430,6 +2560,16 @@ export interface components {
             at: string;
             /** Status */
             status: string;
+        };
+        /** UnavailableLineOut */
+        UnavailableLineOut: {
+            /** Description */
+            description: string;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "item_unavailable" | "option_changed" | "combo_unavailable" | "combo_changed";
         };
         /** UpdateProfileRequest */
         UpdateProfileRequest: {
@@ -4748,6 +4888,100 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlaceOrderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_my_orders_api_orders_me_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyOrderSummaryOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_order_detail_api_orders_me__order_code__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyOrderDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reorder_my_order_api_orders_me__order_code__reorder_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReorderResultOut"];
                 };
             };
             /** @description Validation Error */
