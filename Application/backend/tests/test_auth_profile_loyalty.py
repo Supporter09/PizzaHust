@@ -155,6 +155,54 @@ def test_avatar_delete_is_idempotent(tmp_path, monkeypatch) -> None:
     asyncio.run(scenario())
 
 
+def test_change_password_keeps_session_and_validates() -> None:
+    app_instance = build_test_app("auth-pwd")
+
+    async def scenario() -> None:
+        transport = httpx.ASGITransport(app=app_instance)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            await client.post(
+                "/api/auth/register",
+                json={"full_name": "Pass Word", "phone_number": "0907777777", "password": "oldpass123"},
+            )
+            await client.post(
+                "/api/auth/login",
+                json={"phone_number": "0907777777", "password": "oldpass123"},
+            )
+            csrf = (await client.get("/api/auth/me")).json()["csrf_token"]
+
+            wrong = await client.post(
+                "/api/auth/me/password",
+                json={"current_password": "notmypass", "new_password": "newpass123"},
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert wrong.status_code == 400
+            assert wrong.json()["error"]["code"] == "VALIDATION_FAILED"
+
+            short = await client.post(
+                "/api/auth/me/password",
+                json={"current_password": "oldpass123", "new_password": "short"},
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert short.status_code == 400
+
+            ok = await client.post(
+                "/api/auth/me/password",
+                json={"current_password": "oldpass123", "new_password": "newpass123"},
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert ok.status_code == 200
+            assert (await client.get("/api/auth/me")).status_code == 200
+
+            relogin = await client.post(
+                "/api/auth/login",
+                json={"phone_number": "0907777777", "password": "newpass123"},
+            )
+            assert relogin.status_code == 200
+
+    asyncio.run(scenario())
+
+
 def test_seed_creates_admin_and_kitchen_users() -> None:
     build_test_app("seed-accounts")
     run_seeds()

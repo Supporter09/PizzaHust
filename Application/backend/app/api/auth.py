@@ -95,6 +95,11 @@ class UpdateProfileRequest(BaseModel):
         return _stripped_nonblank(v) if v is not None else None
 
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(min_length=8, max_length=72)
+    new_password: str = Field(min_length=8, max_length=72)
+
+
 class MessageResponse(BaseModel):
     message: str
 
@@ -273,3 +278,27 @@ async def delete_avatar(
         db.commit()
         db.refresh(user)
     return AuthUserDTO.model_validate(user)
+
+
+@router.post(
+    "/me/password",
+    response_model=MessageResponse,
+    dependencies=[Depends(enforce_auth_rate_limit)],
+)
+async def change_password(
+    payload: ChangePasswordRequest,
+    _: Annotated[None, Depends(enforce_csrf)],
+    user: Annotated[User, Depends(get_current_user)],
+    db: DBSession,
+) -> MessageResponse:
+    assert user.password_hash is not None
+    if not verify_password(user.password_hash, payload.current_password):
+        raise APIError(
+            code="VALIDATION_FAILED",
+            message="Current password is incorrect.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    user.password_hash = hash_password(payload.new_password)
+    db.add(user)
+    db.commit()
+    return MessageResponse(message="Password updated.")
