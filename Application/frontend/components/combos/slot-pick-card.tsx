@@ -1,3 +1,4 @@
+import { imageSrc } from "@/lib/api/asset-url";
 import { formatVnd } from "@/lib/format";
 import type { ComboEligibleProduct } from "@/lib/api/combos";
 
@@ -22,7 +23,7 @@ export function SlotPickCard({ product, selected, onPick }: Props) {
       {product.image_url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={product.image_url}
+          src={imageSrc(product.image_url)}
           alt=""
           className="h-10 w-10 shrink-0 rounded-lg object-cover"
         />
