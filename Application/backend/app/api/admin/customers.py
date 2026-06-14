@@ -290,7 +290,7 @@ def get_customer(
         f"Current balance can offset up to {current_balance_value_vnd:,} VND.",
         f"Earns 1 point per {s.loyalty_accrual_rate:,} VND spent.",
         f"Each point redeems {s.loyalty_redeem_value_vnd:,} VND with a max "
-        f"{int(s.loyalty_max_redeem_pct * 100)}% cap per order.",
+        f"{s.loyalty_max_redeem_pct * 100:g}% cap per order.",
     ]
     return CustomerDetailOut.model_validate(
         {
