@@ -13,9 +13,9 @@ import {
   type MyOrderDetailOut,
   type MyOrderLineOut,
   type MyOrderSummaryOut,
-  type ReorderResultOut,
 } from "@/lib/api/orders";
 import { formatVnd } from "@/lib/format";
+import { stashReorderNotice } from "@/lib/reorder-flash";
 
 function formatOrderDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -95,13 +95,7 @@ function OrderDetailPanel({ detail }: { detail: MyOrderDetailOut }) {
   );
 }
 
-export function OrderCard({
-  summary,
-  onReorderResult,
-}: {
-  summary: MyOrderSummaryOut;
-  onReorderResult?: (result: ReorderResultOut) => void;
-}) {
+export function OrderCard({ summary }: { summary: MyOrderSummaryOut }) {
   const router = useRouter();
   const { refresh } = useCart();
   const [expanded, setExpanded] = useState(false);
@@ -142,18 +136,20 @@ export function OrderCard({
     setReorderError(null);
     try {
       const result = await reorder(summary.order_code);
-      onReorderResult?.(result);
       await refresh();
       if (result.added_count > 0) {
         if (result.unavailable.length > 0) {
+          // We navigate to /cart immediately, so carry the partial-failure notice
+          // across the navigation — the cart page consumes and shows it.
           const names = result.unavailable.map((u) => u.description).join(", ");
-          setReorderNotice(
+          stashReorderNotice(
             `${result.unavailable.length} item(s) couldn't be added — ${names}`,
           );
         }
         router.push("/cart");
         return;
       }
+      // Nothing added: stay on this page and explain inline (no navigation).
       const names = result.unavailable.map((u) => u.description).join(", ");
       setReorderNotice(
         names.length > 0
@@ -173,7 +169,7 @@ export function OrderCard({
     } finally {
       setReorderPending(false);
     }
-  }, [onReorderResult, refresh, router, summary.order_code]);
+  }, [refresh, router, summary.order_code]);
 
   return (
     <article

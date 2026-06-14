@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { OrderCard } from "@/app/account/orders/order-card";
 import { useAuth } from "@/components/auth-provider";
 import { ApiClientError } from "@/lib/api/client";
-import { listMyOrders, type MyOrderSummaryOut, type ReorderResultOut } from "@/lib/api/orders";
+import { listMyOrders, type MyOrderSummaryOut } from "@/lib/api/orders";
 
 const PAGE_SIZE = 20;
 
@@ -34,7 +34,6 @@ function OrdersPageList() {
   const [hasMore, setHasMore] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
-  const [banner, setBanner] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,15 +79,6 @@ function OrdersPageList() {
     }
   }, [page]);
 
-  const onReorderResult = useCallback((result: ReorderResultOut) => {
-    if (result.unavailable.length > 0) {
-      const names = result.unavailable.map((u) => u.description).join(", ");
-      setBanner(`${result.unavailable.length} item(s) couldn't be added: ${names}`);
-    } else {
-      setBanner(null);
-    }
-  }, []);
-
   return (
     <section
       data-testid="orders-page"
@@ -102,16 +92,6 @@ function OrdersPageList() {
         <span aria-hidden="true">←</span> Back to Account
       </Link>
       <h1 className="mb-6 text-2xl font-extrabold tracking-tight text-fg">Order History</h1>
-
-      {banner ? (
-        <p
-          role="status"
-          data-testid="orders-reorder-banner"
-          className="mb-4 rounded-md border border-warning bg-warning-subtle px-3 py-2 text-sm font-semibold text-warning"
-        >
-          {banner}
-        </p>
-      ) : null}
 
       {loadingList ? (
         <p className="text-sm text-muted" data-testid="orders-list-loading">
@@ -134,7 +114,7 @@ function OrdersPageList() {
       ) : (
         <div className="grid gap-4">
           {orders.map((o) => (
-            <OrderCard key={o.order_code} summary={o} onReorderResult={onReorderResult} />
+            <OrderCard key={o.order_code} summary={o} />
           ))}
           {hasMore ? (
             <button

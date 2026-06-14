@@ -80,6 +80,7 @@ describe("OrderCard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     refresh.mockResolvedValue(undefined);
+    window.sessionStorage.clear();
   });
 
   afterEach(cleanup);
@@ -132,7 +133,7 @@ describe("OrderCard", () => {
     expect(screen.queryByTestId("order-reorder-notice")).toBeNull();
   });
 
-  it("reorder partial unavailable shows banner then navigates", async () => {
+  it("reorder partial unavailable carries notice to cart and navigates", async () => {
     reorder.mockResolvedValue({
       added_count: 1,
       unavailable: [{ description: "1× Garlic Bread", reason: "item_unavailable" }],
@@ -142,12 +143,12 @@ describe("OrderCard", () => {
 
     fireEvent.click(screen.getByTestId("order-reorder"));
 
-    await waitFor(() =>
-      expect(screen.getByTestId("order-reorder-notice")).toHaveTextContent(
-        /1 item\(s\) couldn't be added/,
-      ),
-    );
     await waitFor(() => expect(push).toHaveBeenCalledWith("/cart"));
+    // Notice is stashed for the cart page, not shown inline (we navigate away).
+    expect(window.sessionStorage.getItem("ph:reorder-notice")).toMatch(
+      /1 item\(s\) couldn't be added/,
+    );
+    expect(screen.queryByTestId("order-reorder-notice")).toBeNull();
   });
 
   it("reorder all unavailable does not navigate", async () => {
