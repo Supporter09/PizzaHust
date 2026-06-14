@@ -9,12 +9,8 @@ export type SessionUser = {
   full_name: string;
   phone_number: string;
   address: string | null;
+  avatar_url: string | null;
   role: "customer" | "admin" | "kitchen";
-};
-
-type LoyaltyPayload = {
-  current_points: number;
-  total_points_earned: number;
 };
 
 type LoginPayload = {
@@ -38,7 +34,9 @@ type AuthContextValue = {
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (payload: { full_name?: string; address?: string }) => Promise<SessionUser>;
-  getLoyalty: () => Promise<LoyaltyPayload>;
+  uploadAvatar: (file: File) => Promise<SessionUser>;
+  removeAvatar: () => Promise<SessionUser>;
+  changePassword: (payload: { current_password: string; new_password: string }) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -110,9 +108,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  const getLoyalty = useCallback(async () => {
-    return apiFetch<LoyaltyPayload>("/loyalty/me");
+  const uploadAvatar = useCallback(async (file: File) => {
+    const body = new FormData();
+    body.append("image", file);
+    const updated = await apiFetch<SessionUser>("/auth/me/avatar", { method: "POST", body });
+    setUser(updated);
+    return updated;
   }, []);
+
+  const removeAvatar = useCallback(async () => {
+    const updated = await apiFetch<SessionUser>("/auth/me/avatar", { method: "DELETE" });
+    setUser(updated);
+    return updated;
+  }, []);
+
+  const changePassword = useCallback(
+    async (payload: { current_password: string; new_password: string }) => {
+      await apiFetch<{ message: string }>("/auth/me/password", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+    },
+    [],
+  );
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -124,9 +142,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       register,
       logout,
       updateProfile,
-      getLoyalty,
+      uploadAvatar,
+      removeAvatar,
+      changePassword,
     }),
-    [user, loading, csrfToken, refreshSession, login, register, logout, updateProfile, getLoyalty],
+    [
+      user,
+      loading,
+      csrfToken,
+      refreshSession,
+      login,
+      register,
+      logout,
+      updateProfile,
+      uploadAvatar,
+      removeAvatar,
+      changePassword,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
