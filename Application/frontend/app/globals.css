@@ -112,6 +112,25 @@ a {
   background: var(--brand-hover);
 }
 
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+  border-radius: 10px;
+  font-weight: 600;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+}
+.btn-outline:hover {
+  background: var(--surface-hover);
+  border-color: var(--muted);
+}
+
 .input-field {
   width: 100%;
   border: 1px solid var(--line);

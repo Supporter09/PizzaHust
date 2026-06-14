@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { getBusinessConfig } from "@/lib/api/config";
+import { formatOrderStatus, ORDER_STATUS_FILTERS } from "@/lib/order-status";
 
 interface OrderRow {
   order_id: number;
@@ -54,16 +55,6 @@ interface OrderDetail extends OrderRow {
   tracking: OrderTrackingEvent[];
 }
 
-const STATUS_FILTERS = [
-  { value: "", label: "All" },
-  { value: "Received", label: "Received" },
-  { value: "Preparing", label: "Preparing" },
-  { value: "DispatchPending", label: "Dispatch Pending ⚠" },
-  { value: "Delivering", label: "Delivering" },
-  { value: "Delivered", label: "Delivered" },
-  { value: "Cancelled", label: "Cancelled" },
-];
-
 const NOTE_SOURCE_LABEL: Record<string, string> = {
   system: "System",
   kitchen: "Kitchen",
@@ -110,13 +101,7 @@ function defaultRange(tz: string = DEFAULT_TZ) {
 }
 
 function statusLabel(status: string) {
-  return (
-    {
-      ReadyForDispatch: "Ready for Dispatch",
-      DispatchPending: "Dispatch Pending",
-      DeliveryFailed: "Delivery Failed",
-    }[status] ?? status
-  );
+  return formatOrderStatus(status);
 }
 
 export default function MonitorOrdersPage() {
@@ -431,7 +416,7 @@ export default function MonitorOrdersPage() {
       </div>
 
       <div className="flex gap-2 flex-wrap mb-4">
-        {STATUS_FILTERS.map((f) => (
+        {ORDER_STATUS_FILTERS.map((f) => (
           <button
             key={f.value}
             onClick={() => setStatusFilter(f.value)}

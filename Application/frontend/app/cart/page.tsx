@@ -9,6 +9,7 @@ import { QuantityStepper } from "@/components/menu/quantity-stepper";
 import { imageSrc } from "@/lib/api/asset-url";
 import { formatVnd } from "@/lib/format";
 import type { CartLineOut } from "@/lib/cart-types";
+import { consumeReorderNotice } from "@/lib/reorder-flash";
 
 function TrashIcon() {
   return (
@@ -188,6 +189,9 @@ function CartLineCard({
 
 export default function CartPage() {
   const { cart, loading, updateLine, removeLine } = useCart();
+  // Reorder navigates here (client-side) after a partial add; consume the carried
+  // notice once on mount. Lazy initializer keeps it out of an effect.
+  const [reorderNotice, setReorderNotice] = useState<string | null>(consumeReorderNotice);
 
   const hasUnavailable = cart?.lines.some((l) => l.unavailable) ?? false;
   const isEmpty = !cart || cart.lines.length === 0;
@@ -240,6 +244,24 @@ export default function CartPage() {
   return (
     <div className="space-y-8 pb-16">
       <h1 className="text-3xl font-bold text-fg">Your Cart</h1>
+
+      {reorderNotice ? (
+        <div
+          role="status"
+          data-testid="cart-reorder-notice"
+          className="flex items-start justify-between gap-3 rounded-xl border border-warning bg-warning-subtle px-4 py-3 text-sm font-medium text-warning"
+        >
+          <span>{reorderNotice}</span>
+          <button
+            type="button"
+            aria-label="Dismiss notice"
+            onClick={() => setReorderNotice(null)}
+            className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full hover:opacity-70"
+          >
+            ✕
+          </button>
+        </div>
+      ) : null}
 
       <div className="grid gap-8 lg:grid-cols-[1fr_340px] lg:items-start">
         <div className="space-y-4">

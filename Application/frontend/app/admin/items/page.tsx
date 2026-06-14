@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { resolveImageUrl } from "@/lib/image-url";
 import type { components } from "@/lib/api/types";
 import Breadcrumb from "@/components/admin/Breadcrumb";
 import SearchBar from "@/components/admin/SearchBar";
@@ -203,7 +204,7 @@ export default function ItemsPage() {
                   <td className="px-4 py-3">
                     {it.image_url ? (
                       <Image
-                        src={imageSrc(it.image_url)}
+                        src={resolveImageUrl(it.image_url)}
                         alt={it.name}
                         width={40}
                         height={40}

@@ -78,6 +78,7 @@ def make_order(
     status: OrderStatus,
     code: str | None = None,
     created_minutes_ago: int = 5,
+    promised_minutes_from_now: int = 20,
     delivery_note: str | None = None,
     product_name: str = "Margherita",
     quantity: int = 2,
@@ -96,7 +97,7 @@ def make_order(
             current_status=status,
             delivery_note=delivery_note,
             created_at=now - timedelta(minutes=created_minutes_ago),
-            promised_at=now + timedelta(minutes=20),
+            promised_at=now + timedelta(minutes=promised_minutes_from_now),
         )
         db.add(order)
         db.flush()

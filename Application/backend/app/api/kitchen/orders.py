@@ -1,8 +1,9 @@
 """K1 – View Incoming Orders (kitchen only). Read-only queue.
 
 Ordering comes from kitchen_queue_view.priority_score (SQL single source of
-truth). Combo parents nest their child prep items. No mutations — those are
-K2/K3/K4.
+truth). The queue read path also opportunistically auto-cancels stale active
+orders so they stop lingering past one day. Combo parents nest their child prep
+items. No mutations — those are K2/K3/K4.
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ from pydantic import BaseModel
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session, selectinload
 
+from app.api.kitchen.queue_logic import cancel_stale_kitchen_orders
 from app.infra.auth import require_role
 from app.infra.db.deps import get_db
 from app.infra.db.models import Order, OrderItem, User, UserRole
@@ -36,6 +38,15 @@ class KitchenItemOut(BaseModel):
     children: list[KitchenItemOut]
 
 
+class KitchenTrackingOut(BaseModel):
+    tracking_id: int
+    status: str
+    note_source: str
+    created_at: datetime
+    note: str | None
+    updated_by: int | None
+
+
 class KitchenTicketOut(BaseModel):
     order_id: int
     order_code: str
@@ -44,10 +55,13 @@ class KitchenTicketOut(BaseModel):
     promised_at: datetime
     priority_score: int
     delivery_note: str | None
+    tracking: list[KitchenTrackingOut]
     items: list[KitchenItemOut]
 
 
 KitchenItemOut.model_rebuild()
+KitchenTrackingOut.model_rebuild()
+KitchenTicketOut.model_rebuild()
 
 _QUEUE_SQL = text(
     """
@@ -97,6 +111,18 @@ def _ticket(order: Order, priority_score: int) -> KitchenTicketOut:
         promised_at=order.promised_at,
         priority_score=priority_score,
         delivery_note=order.delivery_note,
+        tracking=[
+            KitchenTrackingOut(
+                tracking_id=event.tracking_id,
+                status=event.status.value,
+                note_source=event.note_source.value,
+                created_at=event.created_at,
+                note=event.note,
+                updated_by=event.updated_by,
+            )
+            for event in sorted(order.tracking, key=lambda row: row.created_at)
+            if event.note is not None
+        ],
         items=[_item_out(it, children_by_parent.get(it.order_item_id, [])) for it in top_level],
     )
 
@@ -106,6 +132,7 @@ def list_incoming_orders(
     db: Session = Depends(get_db, scope="function"),
     _kitchen: User = Depends(require_kitchen),
 ) -> list[KitchenTicketOut]:
+    cancel_stale_kitchen_orders(db)
     rows = db.execute(_QUEUE_SQL).all()
     score_by_id = {row.order_id: int(row.priority_score) for row in rows}
     ordered_ids = [row.order_id for row in rows]
@@ -118,6 +145,7 @@ def list_incoming_orders(
             selectinload(Order.items).selectinload(OrderItem.product),
             selectinload(Order.items).selectinload(OrderItem.combo),
             selectinload(Order.items).selectinload(OrderItem.options),
+            selectinload(Order.tracking),
         )
     ).all()
     by_id = {order.order_id: order for order in orders}

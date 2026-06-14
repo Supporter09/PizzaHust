@@ -5,8 +5,8 @@ import { useCallback, useEffect, useState } from "react";
 
 import Breadcrumb from "@/components/admin/Breadcrumb";
 import { CoverFallback } from "@/components/cover-fallback";
-import { imageSrc } from "@/lib/api/asset-url";
 import { ApiClientError } from "@/lib/api/client";
+import { resolveImageUrl } from "@/lib/image-url";
 import { deleteCombo, listCombos, type AdminCombo } from "@/lib/api/admin-combos";
 import { formatComboComponent } from "@/lib/format-combo-component";
 import { formatVnd } from "@/lib/format";
@@ -91,7 +91,7 @@ export default function AdminCombosPage() {
               {c.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={imageSrc(c.image_url)}
+                  src={resolveImageUrl(c.image_url)}
                   alt=""
                   className="aspect-[16/9] w-full object-cover"
                 />

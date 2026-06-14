@@ -1,5 +1,7 @@
 "use client";
 
+import { formatOrderStatus } from "@/lib/order-status";
+
 const ORDER_STATUSES = [
   "Received",
   "Preparing",
@@ -11,7 +13,7 @@ const ORDER_STATUSES = [
 const STATUS_LABELS: Record<string, string> = {
   Received: "Order Received",
   Preparing: "Preparing",
-  ReadyForDispatch: "Ready for Pickup",
+  ReadyForDispatch: formatOrderStatus("ReadyForDispatch"),
   DispatchPending: "Dispatch Pending",
   Delivering: "Out for Delivery",
   Delivered: "Delivered",

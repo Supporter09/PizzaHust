@@ -364,24 +364,7 @@ def _line_in_session(cart: Cart, line_id: int) -> CartLine | None:
     return None
 
 
-@router.get("", response_model=CartOut)
-def get_cart(
-    request: Request,
-    response: Response,
-    db: Session = Depends(get_db, scope="function"),
-    settings: Settings = Depends(get_settings_dependency),
-) -> CartOut:
-    return _render_cart(db, request, response, settings)
-
-
-@router.post("/lines", response_model=CartOut, dependencies=[Depends(enforce_csrf)])
-def add_cart_line(
-    body: AddLineIn,
-    request: Request,
-    response: Response,
-    db: Session = Depends(get_db, scope="function"),
-    settings: Settings = Depends(get_settings_dependency),
-) -> CartOut:
+def _validate_line_body(db: Session, body: AddLineIn) -> tuple[dict[str, Any], int, str | None]:
     note: str | None = None
     if isinstance(body, AddItemLineIn):
         resolve_item_line(db, body)
@@ -408,8 +391,16 @@ def add_cart_line(
             ],
         }
         quantity = body.quantity
+    return raw, quantity, note
 
-    cart = ensure_cart(db, request)
+
+def _persist_line_to_cart(
+    db: Session,
+    cart: Cart,
+    raw: dict[str, Any],
+    quantity: int,
+    note: str | None,
+) -> None:
     stored = canonical_payload(raw)
     db.add(
         CartLine(
@@ -420,6 +411,34 @@ def add_cart_line(
         )
     )
     touch_and_gc(db, cart)
+
+
+def append_line_to_cart(db: Session, cart: Cart, body: AddLineIn) -> None:
+    raw, quantity, note = _validate_line_body(db, body)
+    _persist_line_to_cart(db, cart, raw, quantity, note)
+
+
+@router.get("", response_model=CartOut)
+def get_cart(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db, scope="function"),
+    settings: Settings = Depends(get_settings_dependency),
+) -> CartOut:
+    return _render_cart(db, request, response, settings)
+
+
+@router.post("/lines", response_model=CartOut, dependencies=[Depends(enforce_csrf)])
+def add_cart_line(
+    body: AddLineIn,
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db, scope="function"),
+    settings: Settings = Depends(get_settings_dependency),
+) -> CartOut:
+    raw, quantity, note = _validate_line_body(db, body)
+    cart = ensure_cart(db, request)
+    _persist_line_to_cart(db, cart, raw, quantity, note)
     db.commit()
     db.refresh(cart)
     return _render_cart(db, request, response, settings)

@@ -114,8 +114,9 @@ Error codes (closed set, extend in this doc only):
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/orders/track/{code}` | Public, rate-limited. Returns minimal projection |
-| GET | `/api/orders/me` | Customer order history (auth required) |
-| GET | `/api/orders/me/{id}` | Customer order detail (auth required) |
+| GET | `/api/orders/me` | Customer order history (auth). Query `page` (default 1), `page_size` (default 20, max 50). `200` → `MyOrderSummaryOut[]` (newest first) |
+| GET | `/api/orders/me/{order_code}` | Owner order detail (auth). `200` → `MyOrderDetailOut`; `404 NOT_FOUND` if missing or not owned by caller |
+| POST | `/api/orders/me/{order_code}/reorder` | Best-effort append resolvable lines into session cart (CSRF). `200` → `ReorderResultOut` `{ cart, added_count, unavailable[] }`; `404` if not owned |
 
 ### Auth & profile (U8, U9, U12, U13)
 
@@ -435,6 +436,67 @@ delivery fee. No combo discount and (in this sprint) no loyalty redemption.
   "total_points_earned": 0
 }
 ```
+
+### U11 — `GET /api/orders/me` — response item (`MyOrderSummaryOut`)
+
+```json
+{
+  "order_code": "PIZZ-7K2M9Q",
+  "created_at": "2026-04-28T10:00:00Z",
+  "status": "Delivered",
+  "total_vnd": 277000,
+  "item_summary": ["1× Margherita (M)", "1× Family Feast"]
+}
+```
+
+### U11 — `GET /api/orders/me/{order_code}` — response (`MyOrderDetailOut`)
+
+Wrong or another user's code → `404 NOT_FOUND`.
+
+| Field | Type | Notes |
+|---|---|---|
+| `order_code` | string | `PIZZ-…` |
+| `created_at` | datetime (ISO 8601 UTC) | |
+| `status` | string | Order status enum value |
+| `recipient_name` | string | |
+| `delivery_address` | string | |
+| `delivery_note` | string \| null | |
+| `promised_at` | datetime (ISO 8601 UTC) | |
+| `lines` | `MyOrderLineOut[]` | Top-level cart lines only; combo components nested under `children` |
+| `subtotal_vnd` | int | Sum of line totals before delivery (from persisted `unit_price_vnd` × qty per line, including combo children) |
+| `delivery_fee_vnd` | int | Persisted on the order |
+| `savings_vnd` | int | **Derived at read time:** `max(0, subtotal_vnd + delivery_fee_vnd - total_vnd)` from persisted order totals. Not a stored combo/loyalty breakdown. Loyalty earned/redeemed line items are **U13/U14** (not on this payload). |
+| `total_vnd` | int | Charged total (persisted) |
+| `timeline` | `TrackTimelineEntry[]` | Same shape as public track: `{ status, at }` |
+
+#### `MyOrderLineOut` (recursive)
+
+| Field | Type | Notes |
+|---|---|---|
+| `kind` | `"item"` \| `"combo"` | |
+| `display_name` | string | Resolved at read time from the order line’s `product` / `combo` relation when the catalog row still exists; otherwise a fallback label (`"Item"` / `"Combo"`). Line economics use **historical** persisted `unit_price_vnd`; names are not snapshotted on the line. |
+| `quantity` | int | |
+| `line_total_vnd` | int | Includes nested `children` for combos |
+| `options` | string[] | Human labels, e.g. `"Size: M"` |
+| `note` | string \| null | Per-line note (items) |
+| `children` | `MyOrderLineOut[]` | Combo component lines; empty for `kind: "item"` |
+
+### U11 — `POST /api/orders/me/{order_code}/reorder` — response (`ReorderResultOut`)
+
+Best-effort: resolvable top-level lines are **appended** to the session cart; failures are listed in `unavailable` (request still `200`).
+
+| Field | Type | Notes |
+|---|---|---|
+| `cart` | `CartOut` | Full session cart after reorder — same as `GET /api/cart` (`lines`, `quote`, `csrf_token`) |
+| `added_count` | int | Number of top-level lines successfully appended |
+| `unavailable` | `UnavailableLineOut[]` | Lines that could not be rebuilt |
+
+#### `UnavailableLineOut`
+
+| Field | Type | Notes |
+|---|---|---|
+| `description` | string | Short line label (e.g. `"1× Margherita (M)"`) |
+| `reason` | enum | `item_unavailable` \| `option_changed` \| `combo_unavailable` \| `combo_changed` |
 
 ### `GET /api/orders/track/{code}` — response
 

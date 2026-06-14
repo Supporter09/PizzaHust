@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { CoverFallback } from "@/components/cover-fallback";
-import { imageSrc } from "@/lib/api/asset-url";
 import { formatVnd } from "@/lib/format";
+import { resolveImageUrl } from "@/lib/image-url";
 import type { PublicCombo } from "@/lib/api/combos";
 
 export function ComboCard({ combo }: { combo: PublicCombo }) {
@@ -13,7 +13,7 @@ export function ComboCard({ combo }: { combo: PublicCombo }) {
         {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={imageSrc(cover)}
+            src={resolveImageUrl(cover)}
             alt={combo.name}
             loading="lazy"
             className="aspect-[16/7] w-full object-cover"
@@ -36,7 +36,7 @@ export function ComboCard({ combo }: { combo: PublicCombo }) {
               {it.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={imageSrc(it.image_url)}
+                  src={resolveImageUrl(it.image_url)}
                   alt=""
                   className="h-9 w-9 shrink-0 rounded-lg object-cover"
                 />
