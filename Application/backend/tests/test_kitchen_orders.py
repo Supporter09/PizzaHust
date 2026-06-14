@@ -1,4 +1,4 @@
-from app.infra.db.models import OrderStatus
+from app.infra.db.models import Order, OrderStatus, TrackingNoteSource
 from tests.admin_test_utils import admin_client
 from tests.kitchen_test_utils import anon_client, kitchen_client, make_combo_order, make_order
 
@@ -65,12 +65,66 @@ def test_delivery_note_surfaces():
     assert client.get("/api/kitchen/orders").json()[0]["delivery_note"] == "Ring doorbell twice"
 
 
-def test_orders_oldest_first():
+def test_orders_are_prioritized_by_status_and_due_time():
     client = kitchen_client("kitchen-order")
-    make_order(status=OrderStatus.RECEIVED, code="PIZZ-OLD001", created_minutes_ago=40)
-    make_order(status=OrderStatus.RECEIVED, code="PIZZ-NEW001", created_minutes_ago=2)
+    make_order(
+        status=OrderStatus.RECEIVED,
+        code="PIZZ-FAR001",
+        created_minutes_ago=5,
+        promised_minutes_from_now=120,
+    )
+    make_order(
+        status=OrderStatus.RECEIVED,
+        code="PIZZ-NEAR001",
+        created_minutes_ago=5,
+        promised_minutes_from_now=10,
+    )
+    make_order(status=OrderStatus.PREPARING, code="PIZZ-PREP001", created_minutes_ago=20)
     codes = [t["order_code"] for t in client.get("/api/kitchen/orders").json()]
-    assert codes.index("PIZZ-OLD001") < codes.index("PIZZ-NEW001")
+    assert codes.index("PIZZ-PREP001") < codes.index("PIZZ-NEAR001")
+    assert codes.index("PIZZ-NEAR001") < codes.index("PIZZ-FAR001")
+
+
+def test_stale_orders_are_auto_cancelled_and_removed_from_queue():
+    client = kitchen_client("kitchen-stale")
+    stale_id = make_order(
+        status=OrderStatus.RECEIVED,
+        code="PIZZ-OLDSTALE",
+        created_minutes_ago=24 * 60 + 5,
+    )
+    fresh_id = make_order(
+        status=OrderStatus.RECEIVED,
+        code="PIZZ-KEEP001",
+        created_minutes_ago=10,
+    )
+
+    payload = client.get("/api/kitchen/orders").json()
+    codes = [t["order_code"] for t in payload]
+
+    assert "PIZZ-OLDSTALE" not in codes
+    assert "PIZZ-KEEP001" in codes
+
+    from app.infra.db.session import create_session_factory
+
+    with create_session_factory()() as db:
+        stale = db.get(Order, stale_id)
+        assert stale is not None
+        assert stale.current_status == OrderStatus.CANCELLED
+        assert stale.tracking[-1].note_source == TrackingNoteSource.SYSTEM
+        assert stale.tracking[-1].note == "Auto-cancelled after 24 hours without kitchen action"
+        fresh = db.get(Order, fresh_id)
+        assert fresh is not None
+        assert fresh.current_status == OrderStatus.RECEIVED
+
+
+def test_queue_exposes_kitchen_notes_for_active_orders():
+    client = kitchen_client("kitchen-note-queue")
+    order_id = make_order(status=OrderStatus.PREPARING, code="PIZZ-NOTEQ")
+    client.post(f"/api/kitchen/orders/{order_id}/notes", json={"note": "Need extra sauce"})
+
+    ticket = client.get("/api/kitchen/orders").json()[0]
+    notes = [event["note"] for event in ticket["tracking"]]
+    assert "Need extra sauce" in notes
 
 
 def test_empty_queue_returns_empty_list():

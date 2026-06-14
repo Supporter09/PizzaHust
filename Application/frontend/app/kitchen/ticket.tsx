@@ -3,7 +3,13 @@
 import { useState } from "react";
 
 import { ApiClientError } from "@/lib/api/client";
-import { acceptKitchenOrder, markKitchenOrderReady, type KitchenItem, type KitchenTicket } from "@/lib/api/kitchen";
+import {
+  acceptKitchenOrder,
+  addKitchenOrderNote,
+  markKitchenOrderReady,
+  type KitchenItem,
+  type KitchenTicket,
+} from "@/lib/api/kitchen";
 import { ageMinutes, isUrgent, statusLabel } from "@/lib/kitchen-queue";
 
 // Repo theme tokens (see globals.css @theme). The mockup maps Received=blue,
@@ -15,6 +21,13 @@ const BADGE: Record<string, string> = {
   Received: "bg-info-subtle text-info border border-info",
   Preparing: "bg-warning-subtle text-warning border border-warning",
   ReadyForDispatch: "bg-success-subtle text-success border border-success",
+};
+
+const TRACKING_SOURCE_LABEL: Record<string, string> = {
+  system: "System",
+  kitchen: "Kitchen",
+  transport: "Transport",
+  customer: "Customer",
 };
 
 function ClockIcon() {
@@ -94,6 +107,35 @@ function ItemLine({ item, depth = 0 }: { item: KitchenItem; depth?: number }) {
   );
 }
 
+function TrackingNote({
+  source,
+  note,
+  createdAt,
+}: {
+  source: string;
+  note: string;
+  createdAt: string;
+}) {
+  return (
+    <div className="rounded-lg border border-line bg-card px-3 py-2">
+      <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-wide">
+        <span className="rounded-full border border-line bg-surface px-2 py-0.5 text-muted">
+          {TRACKING_SOURCE_LABEL[source] ?? source}
+        </span>
+        <span className="text-muted">
+          {new Date(createdAt).toLocaleString("vi-VN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            day: "2-digit",
+            month: "2-digit",
+          })}
+        </span>
+      </div>
+      <p className="mt-2 text-sm text-fg">{note}</p>
+    </div>
+  );
+}
+
 export function Ticket({
   ticket,
   onChanged,
@@ -104,8 +146,12 @@ export function Ticket({
   onDeferred: (message: string) => void;
 }) {
   const urgent = isUrgent(ticket.status, ticket.created_at);
+  const noteId = `kitchen-note-${ticket.order_id}`;
   const [pending, setPending] = useState(false);
+  const [note, setNote] = useState("");
+  const [notePending, setNotePending] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [noteError, setNoteError] = useState<string | null>(null);
 
   const accept = async () => {
     setPending(true);
@@ -144,6 +190,25 @@ export function Ticket({
     }
   };
 
+  const saveNote = async () => {
+    const trimmed = note.trim();
+    if (!trimmed) {
+      setNoteError("Enter a note first.");
+      return;
+    }
+    setNotePending(true);
+    setNoteError(null);
+    try {
+      await addKitchenOrderNote(ticket.order_id, trimmed);
+      setNote("");
+      onChanged();
+    } catch (e) {
+      setNoteError(e instanceof ApiClientError ? e.message : "Couldn't save note.");
+    } finally {
+      setNotePending(false);
+    }
+  };
+
   return (
     <article
       data-testid="kitchen-ticket"
@@ -175,6 +240,47 @@ export function Ticket({
           <ItemLine key={i} item={item} />
         ))}
       </ul>
+      {ticket.tracking.filter((event) => event.note).length > 0 && (
+        <div className="space-y-2 rounded-lg border border-line bg-surface px-3 py-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">Kitchen steps</p>
+          <div className="grid gap-2">
+            {ticket.tracking
+              .filter((event) => event.note)
+              .map((event) => (
+                <TrackingNote
+                  key={event.tracking_id}
+                  source={event.note_source}
+                  note={event.note as string}
+                  createdAt={event.created_at}
+                />
+              ))}
+          </div>
+        </div>
+      )}
+      <div className="space-y-2 rounded-lg border border-line bg-surface px-3 py-3">
+        <label htmlFor={noteId} className="block text-xs font-semibold uppercase tracking-wide text-muted">
+          Kitchen note
+        </label>
+        <textarea
+          id={noteId}
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+          rows={2}
+          placeholder="Add a prep note for the timeline..."
+          className="w-full rounded-md border border-line bg-card px-3 py-2 text-sm text-fg outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
+        />
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => void saveNote()}
+            disabled={notePending}
+            className="rounded-lg border border-line bg-card px-3 py-2 text-sm font-semibold text-fg hover:bg-surface-hover disabled:opacity-50"
+          >
+            {notePending ? "Saving…" : "Add Note"}
+          </button>
+          {noteError && <p className="text-xs text-danger">{noteError}</p>}
+        </div>
+      </div>
       {ticket.status === "ReadyForDispatch" && ticket.delivery_note && (
         <p
           data-testid="kitchen-delivery-note"

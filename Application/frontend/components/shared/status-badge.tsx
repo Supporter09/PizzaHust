@@ -1,5 +1,7 @@
 "use client";
 
+import { formatOrderStatus } from "@/lib/order-status";
+
 const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
   Received: {
     label: "Received",
@@ -12,7 +14,7 @@ const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
       "bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 ring-amber-200 dark:ring-amber-500/30",
   },
   ReadyForDispatch: {
-    label: "Ready",
+    label: "Ready for Dispatch",
     classes:
       "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 ring-indigo-200 dark:ring-indigo-500/30",
   },
@@ -32,7 +34,7 @@ const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
       "bg-green-50 dark:bg-green-500/15 text-green-700 dark:text-green-300 ring-green-200 dark:ring-green-500/30",
   },
   DeliveryFailed: {
-    label: "Failed",
+    label: "Delivery Failed",
     classes:
       "bg-red-50 dark:bg-red-500/15 text-red-700 dark:text-red-300 ring-red-200 dark:ring-red-500/30",
   },
@@ -45,7 +47,6 @@ const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
 
 export function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_CONFIG[status] ?? {
-    label: status,
     classes:
       "bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-300 ring-gray-200 dark:ring-gray-500/30",
   };
@@ -53,7 +54,7 @@ export function StatusBadge({ status }: { status: string }) {
     <span
       className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${cfg.classes}`}
     >
-      {cfg.label}
+      {formatOrderStatus(status)}
     </span>
   );
 }

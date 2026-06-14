@@ -4,6 +4,7 @@
 import { useRef, useState } from "react";
 
 import { apiFetch } from "@/lib/api/client";
+import { resolveImageUrl } from "@/lib/image-url";
 import type { components } from "@/lib/api/types";
 
 type ImageOut = components["schemas"]["ImageOut"];
@@ -92,7 +93,7 @@ export function ImageGallery({
             className="group relative aspect-square overflow-hidden rounded-lg border border-line bg-surface"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={img.url} alt="" className="h-full w-full object-cover" />
+            <img src={resolveImageUrl(img.url)} alt="" className="h-full w-full object-cover" />
             {img.is_cover && (
               <span className="absolute bottom-2 left-2 rounded bg-brand px-2 py-0.5 text-xs font-semibold text-white">
                 Cover

@@ -11,7 +11,7 @@ from sqlalchemy import text
 def _create_sqlite_kitchen_queue_view(engine) -> None:
     """Portable kitchen_queue_view for SQLite tests.
 
-    Membership mirrors migration 0012 (Received/Preparing/ReadyForDispatch).
+    Membership mirrors migration 0018 (Received/Preparing/ReadyForDispatch).
     priority_score uses a SQLite age expression; tests assert membership and
     *relative* ordering only — the exact MySQL formula is covered by smoke.
     """
@@ -27,10 +27,18 @@ def _create_sqlite_kitchen_queue_view(engine) -> None:
                     o.current_status,
                     o.created_at,
                     o.promised_at,
-                    (strftime('%s', 'now') - strftime('%s', o.created_at))
-                        + max(strftime('%s', 'now') - strftime('%s', o.promised_at), 0) * 5
-                        + (CASE WHEN o.current_status = 'Preparing' THEN 10 ELSE 0 END)
-                        AS priority_score
+                    CASE
+                        WHEN o.current_status = 'Preparing' THEN
+                            2000000000 + (strftime('%s', 'now') - strftime('%s', o.created_at))
+                        WHEN o.current_status = 'Received' THEN
+                            1000000000
+                                + (strftime('%s', 'now') - strftime('%s', o.created_at))
+                                + (strftime('%s', 'now') - strftime('%s', o.promised_at)) * 10
+                        WHEN o.current_status = 'ReadyForDispatch' THEN
+                            (strftime('%s', 'now') - strftime('%s', o.created_at))
+                        ELSE
+                            (strftime('%s', 'now') - strftime('%s', o.created_at))
+                    END AS priority_score
                 FROM orders o
                 WHERE o.current_status IN ('Received', 'Preparing', 'ReadyForDispatch')
                 """

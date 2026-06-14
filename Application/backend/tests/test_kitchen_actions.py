@@ -63,6 +63,20 @@ def test_accept_missing_order_404() -> None:
     assert resp.status_code == 404
 
 
+def test_add_note_attaches_kitchen_tracking_row() -> None:
+    client = kitchen_client("k2-note-ok")
+    order_id = make_order(status=OrderStatus.PREPARING)
+
+    resp = client.post(f"/api/kitchen/orders/{order_id}/notes", json={"note": "Need extra sauce"})
+
+    assert resp.status_code == 204, resp.text
+    rows = _tracking(order_id)
+    assert len(rows) == 1
+    assert rows[0].status == OrderStatus.PREPARING
+    assert rows[0].note_source == TrackingNoteSource.KITCHEN
+    assert rows[0].note == "Need extra sauce"
+
+
 def test_accept_requires_kitchen_role_401() -> None:
     client = anon_client("k2-accept-anon")
     order_id = make_order(status=OrderStatus.RECEIVED)

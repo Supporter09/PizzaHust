@@ -1,3 +1,7 @@
+"use client";
+
+import { formatOrderStatus } from "@/lib/order-status";
+
 export const URGENT_AFTER_MIN = 10;
 
 export function ageMinutes(createdAt: string, now: Date = new Date()): number {
@@ -10,6 +14,5 @@ export function isUrgent(status: string, createdAt: string, now: Date = new Date
 }
 
 export function statusLabel(status: string): string {
-  if (status === "ReadyForDispatch") return "Ready for Dispatch";
-  return status;
+  return formatOrderStatus(status);
 }

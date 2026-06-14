@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { CoverFallback } from "@/components/cover-fallback";
 import { formatVnd } from "@/lib/format";
+import { resolveImageUrl } from "@/lib/image-url";
 
 type Props = {
   productId: number;
@@ -21,7 +22,12 @@ export function PizzaCard({ productId, name, basePriceVnd, isPizza, imageUrl }: 
       >
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageUrl} alt={name} loading="lazy" className="h-44 w-full object-cover" />
+          <img
+            src={resolveImageUrl(imageUrl)}
+            alt={name}
+            loading="lazy"
+            className="h-44 w-full object-cover"
+          />
         ) : (
           <CoverFallback label={name} className="h-44 w-full" />
         )}

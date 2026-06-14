@@ -1807,6 +1807,8 @@ export interface components {
             created_at: string;
             /** Delivery Note */
             delivery_note: string | null;
+            /** Tracking */
+            tracking: components["schemas"]["OrderTrackingOut"][];
             /** Items */
             items: components["schemas"]["KitchenItemOut"][];
             /** Order Code */

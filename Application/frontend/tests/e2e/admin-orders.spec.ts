@@ -22,6 +22,7 @@ test.describe("A5 - Monitor Orders", () => {
 
     await expect(page.getByRole("heading", { name: "Monitor Orders" })).toBeVisible();
     await expect(page.getByRole("button", { name: /all/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /ready for dispatch/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /dispatch pending/i })).toBeVisible();
   });
 

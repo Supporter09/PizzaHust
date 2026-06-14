@@ -5,9 +5,10 @@ import { QueueClient } from "@/app/kitchen/queue-client";
 import { ApiClientError } from "@/lib/api/client";
 import type { KitchenTicket } from "@/lib/api/kitchen";
 
-const { listKitchenOrders, acceptKitchenOrder, markKitchenOrderReady } = vi.hoisted(() => ({
+const { listKitchenOrders, acceptKitchenOrder, addKitchenOrderNote, markKitchenOrderReady } = vi.hoisted(() => ({
   listKitchenOrders: vi.fn(),
   acceptKitchenOrder: vi.fn(),
+  addKitchenOrderNote: vi.fn(),
   markKitchenOrderReady: vi.fn(),
 }));
 
@@ -15,6 +16,7 @@ vi.mock("@/lib/api/kitchen", async (orig) => ({
   ...(await orig<typeof import("@/lib/api/kitchen")>()),
   listKitchenOrders,
   acceptKitchenOrder,
+  addKitchenOrderNote,
   markKitchenOrderReady,
 }));
 
@@ -27,6 +29,7 @@ function ticket(over: Partial<KitchenTicket> = {}): KitchenTicket {
     promised_at: new Date(Date.now() + 1.2e6).toISOString(),
     priority_score: 0,
     delivery_note: null,
+    tracking: [],
     items: [{ display_name: "Margherita", quantity: 1, options: [], note: null, children: [] }],
     ...over,
   };
@@ -134,5 +137,40 @@ describe("QueueClient — K3 mark ready", () => {
     render(<QueueClient />);
     await screen.findByTestId("kitchen-ticket");
     expect(screen.queryByRole("button", { name: /mark ready for dispatch/i })).toBeNull();
+  });
+
+  it("sends a kitchen note when submitted", async () => {
+    listKitchenOrders.mockResolvedValue([ticket({ status: "Preparing" })]);
+    addKitchenOrderNote.mockResolvedValue(undefined);
+    render(<QueueClient />);
+
+    const textarea = await screen.findByRole("textbox", { name: /kitchen note/i });
+    fireEvent.change(textarea, { target: { value: "Need extra sauce" } });
+    fireEvent.click(screen.getByRole("button", { name: /add note/i }));
+
+    expect(addKitchenOrderNote).toHaveBeenCalledWith(1, "Need extra sauce");
+    await waitFor(() => expect(listKitchenOrders).toHaveBeenCalledTimes(2));
+  });
+
+  it("renders kitchen tracking notes on the ticket", async () => {
+    listKitchenOrders.mockResolvedValue([
+      ticket({
+        status: "Preparing",
+        tracking: [
+          {
+            tracking_id: 10,
+            status: "Preparing",
+            note_source: "kitchen",
+            created_at: new Date().toISOString(),
+            note: "Need extra sauce",
+            updated_by: 2,
+          },
+        ],
+      }),
+    ]);
+    render(<QueueClient />);
+
+    expect(await screen.findByText("Need extra sauce")).toBeTruthy();
+    expect(screen.getByText("Kitchen steps")).toBeTruthy();
   });
 });
