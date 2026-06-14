@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import type { components } from "@/lib/api/types";
 
@@ -22,6 +22,7 @@ const TEXT_BTN = "inline-flex h-11 items-center justify-center rounded-lg px-3 t
 export function ItemRowActions({ item, busy, onUpload, onDelete, onRestore }: Props) {
   const [confirm, setConfirm] = useState<"none" | "soft" | "hard">("none");
   const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
     setUploading(true);
@@ -45,9 +46,12 @@ export function ItemRowActions({ item, busy, onUpload, onDelete, onRestore }: Pr
         </svg>
       </Link>
 
-      <label
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={busy || uploading}
         aria-label={`Change image for ${item.name}`}
-        className={`${ICON_BTN} cursor-pointer text-muted hover:bg-surface-hover hover:text-fg focus-within:outline-none focus-within:ring-2 focus-within:ring-brand/40`}
+        className={`${ICON_BTN} text-muted hover:bg-surface-hover hover:text-fg disabled:opacity-50`}
       >
         {uploading ? (
           <span className="text-xs">…</span>
@@ -58,17 +62,18 @@ export function ItemRowActions({ item, busy, onUpload, onDelete, onRestore }: Pr
             <path d="m21 15-5-5L5 21" />
           </svg>
         )}
-        <input
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) void handleFile(f);
-            e.target.value = "";
-          }}
-        />
-      </label>
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void handleFile(f);
+          e.target.value = "";
+        }}
+      />
 
       {item.is_active ? (
         confirm === "soft" ? (
