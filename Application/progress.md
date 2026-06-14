@@ -4,6 +4,24 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 ---
 
+## 2026-06-15 — U11 View Order History & Reorder
+
+**Done**
+- `GET /api/orders/me` (paginated summaries), `GET /api/orders/me/{order_code}` (detail + timeline), `POST /api/orders/me/{order_code}/reorder` (CSRF) → `ReorderResultOut`; handlers in `order_history.py`.
+- Reorder is best-effort: resolvable top-level lines appended via shared `append_line_to_cart`; options recovered by matching snapshot `(group_name, option_name)` to current menu; partial/unavailable lines reported without failing the whole request.
+- `/account/orders` — expandable cards, Reorder → cart (banner on partial skip); vitest + `order-history.spec.ts` e2e.
+
+**Fidelity**
+- `docs/superpowers/design-fidelity/U11-FIDELITY.md` (mockup `Design/order-history.html`; screenshots not committed).
+
+**Verified**
+- `./verify.sh` green at `d3b3797`, `2026-06-14T18:42:25Z` — e2e 47 passed/4 skipped incl. U11 order-history.
+
+**Next**
+- `U12` Manage Profile.
+
+---
+
 ## 2026-06-14 — K4 Confirm Pickup (fallback)
 
 **Done**

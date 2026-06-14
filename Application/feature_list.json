@@ -194,9 +194,9 @@
         "U6",
         "U9"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hoang",
-      "evidence": ""
+      "evidence": "verify.sh green at d3b3797 (feat/u11-order-history), 2026-06-14T18:42:25Z — backend 429 passed/1 skipped, contract parity, frontend 113 vitest + build, smoke, e2e 47 passed/4 skipped (incl. order-history place→history→expand→reorder). GET /api/orders/me, GET /api/orders/me/{order_code}, POST /api/orders/me/{order_code}/reorder; reorder best-effort append via append_line_to_cart + (group_name, option_name) option recovery; /account/orders. Fidelity pass documented at docs/superpowers/design-fidelity/U11-FIDELITY.md."
     },
     {
       "id": "U12",
