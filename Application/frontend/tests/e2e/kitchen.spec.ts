@@ -23,3 +23,52 @@ test.describe("K1 — View Incoming Orders", () => {
     await expect(page.getByTestId("kitchen-delivery-note").first()).toBeVisible();
   });
 });
+
+test.describe("K2 — Accept Order", () => {
+  test("accepting a Received order moves it to Preparing", async ({ page }) => {
+    await page.goto("/login");
+    await page.getByLabel("Phone Number").fill(KITCHEN_PHONE);
+    await page.getByLabel("Password", { exact: true }).fill(KITCHEN_PASSWORD);
+    await page.getByRole("button", { name: /sign in/i }).click();
+    await expect(page).toHaveURL(/\/kitchen/, { timeout: 20_000 });
+
+    const acceptBtn = page.getByTestId("kitchen-accept").first();
+    await expect(acceptBtn).toBeVisible({ timeout: 15_000 });
+    const card = page
+      .getByTestId("kitchen-ticket")
+      .filter({ has: page.getByTestId("kitchen-accept") })
+      .first();
+    const code = await card.getAttribute("data-order-code");
+    expect(code).toBeTruthy();
+    await acceptBtn.click();
+
+    // After the post-action refresh that card no longer offers Accept (now Preparing → Mark Ready).
+    const sameCard = page.locator(`[data-testid="kitchen-ticket"][data-order-code="${code}"]`);
+    await expect(sameCard.getByTestId("kitchen-accept")).toHaveCount(0, { timeout: 15_000 });
+  });
+});
+
+test.describe("K3 — Mark Ready for Dispatch", () => {
+  test("marking a Preparing order ready requests dispatch and clears the button", async ({ page }) => {
+    await page.goto("/login");
+    await page.getByLabel("Phone Number").fill(KITCHEN_PHONE);
+    await page.getByLabel("Password", { exact: true }).fill(KITCHEN_PASSWORD);
+    await page.getByRole("button", { name: /sign in/i }).click();
+    await expect(page).toHaveURL(/\/kitchen/, { timeout: 20_000 });
+
+    const readyBtn = page.getByTestId("kitchen-mark-ready").first();
+    await expect(readyBtn).toBeVisible({ timeout: 15_000 });
+    const card = page
+      .getByTestId("kitchen-ticket")
+      .filter({ has: page.getByTestId("kitchen-mark-ready") })
+      .first();
+    const code = await card.getAttribute("data-order-code");
+    expect(code).toBeTruthy();
+    await readyBtn.click();
+
+    // After dispatch the order leaves Preparing (→ ReadyForDispatch, or → Delivering via the
+    // mock provider's webhook) and the card no longer offers Mark Ready.
+    const sameCard = page.locator(`[data-testid="kitchen-ticket"][data-order-code="${code}"]`);
+    await expect(sameCard.getByTestId("kitchen-mark-ready")).toHaveCount(0, { timeout: 15_000 });
+  });
+});

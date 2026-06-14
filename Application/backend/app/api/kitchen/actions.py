@@ -1,0 +1,128 @@
+"""K2/K3 – Kitchen order actions (kitchen only).
+
+The mutations the read-only orders.py queue lacks: Accept (Received→Preparing)
+and Mark Ready for Dispatch (Preparing→ReadyForDispatch, requesting a courier via
+the delivery port; on provider failure → DispatchPending for admin retry).
+Status changes go only through order_state.transition(). Mirrors the admin
+cancel/retry-dispatch verbs (role-guard, row-lock, OrderTracking audit row).
+"""
+
+from __future__ import annotations
+
+from typing import Literal
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.domain.order_state import OrderTransitionError, transition
+from app.infra.auth import require_role
+from app.infra.config import Settings, get_settings_dependency
+from app.infra.db.deps import get_db
+from app.infra.db.models import (
+    Order,
+    OrderStatus,
+    OrderTracking,
+    TrackingNoteSource,
+    User,
+    UserRole,
+)
+from app.infra.delivery import get_delivery_port
+from app.infra.delivery.port import DeliveryError, DeliveryPort, OrderForDispatch
+
+router = APIRouter(prefix="/api/kitchen/orders", tags=["kitchen-orders"])
+
+require_kitchen = require_role(UserRole.KITCHEN)
+
+
+class MarkReadyOut(BaseModel):
+    status: Literal["ReadyForDispatch", "DispatchPending"]
+
+
+@router.post("/{order_id}/accept", status_code=204)
+def accept_order(
+    order_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    kitchen: User = Depends(require_kitchen),
+) -> None:
+    order: Order | None = db.get(Order, order_id, with_for_update=True)
+    if order is None:
+        raise HTTPException(status_code=404, detail="NOT_FOUND")
+    if order.current_status != OrderStatus.RECEIVED:
+        raise HTTPException(status_code=409, detail="CONFLICT")
+    try:
+        new_status = OrderStatus(
+            transition(order.current_status.value, OrderStatus.PREPARING.value)
+        )
+    except OrderTransitionError:
+        raise HTTPException(status_code=409, detail="CONFLICT") from None
+    order.current_status = new_status
+    db.add(
+        OrderTracking(
+            order_id=order.order_id,
+            updated_by=kitchen.user_id,
+            status=new_status,
+            note_source=TrackingNoteSource.KITCHEN,
+            note="Accepted by kitchen",
+        )
+    )
+
+
+@router.post("/{order_id}/mark-ready", response_model=MarkReadyOut)
+def mark_ready(
+    order_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    kitchen: User = Depends(require_kitchen),
+    port: DeliveryPort = Depends(get_delivery_port),
+    settings: Settings = Depends(get_settings_dependency),
+) -> MarkReadyOut:
+    order: Order | None = db.get(Order, order_id, with_for_update=True)
+    if order is None:
+        raise HTTPException(status_code=404, detail="NOT_FOUND")
+    if order.current_status != OrderStatus.PREPARING:
+        raise HTTPException(status_code=409, detail="CONFLICT")
+    try:
+        ref = port.request(
+            OrderForDispatch(
+                order_code=order.order_code,
+                recipient_name=order.recipient_name,
+                recipient_phone=order.recipient_phone,
+                address=order.delivery_address,
+                cod_amount_vnd=order.total_amount_vnd,
+                pickup_address=settings.delivery_pickup_address,
+            )
+        )
+    except DeliveryError:
+        # Hand off to admin: persist Preparing→DispatchPending (do NOT re-raise,
+        # which would roll back via get_db). Card leaves the kitchen queue; A5
+        # retry-dispatch picks it up. This is the producer that makes
+        # DispatchPending reachable.
+        pending = OrderStatus(
+            transition(order.current_status.value, OrderStatus.DISPATCH_PENDING.value)
+        )
+        order.current_status = pending
+        db.add(
+            OrderTracking(
+                order_id=order.order_id,
+                updated_by=kitchen.user_id,
+                status=pending,
+                note_source=TrackingNoteSource.TRANSPORT,
+                note="Dispatch request failed — pending admin retry",
+            )
+        )
+        return MarkReadyOut(status="DispatchPending")
+    order.delivery_reference = ref.reference
+    new_status = OrderStatus(
+        transition(order.current_status.value, OrderStatus.READY_FOR_DISPATCH.value)
+    )
+    order.current_status = new_status
+    db.add(
+        OrderTracking(
+            order_id=order.order_id,
+            updated_by=kitchen.user_id,
+            status=new_status,
+            note_source=TrackingNoteSource.TRANSPORT,
+            note=f"Dispatch requested: {ref.reference}",
+        )
+    )
+    return MarkReadyOut(status="ReadyForDispatch")

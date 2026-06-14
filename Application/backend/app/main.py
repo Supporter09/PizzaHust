@@ -27,6 +27,7 @@ from app.api.errors import (
     handle_http_exception,
     handle_validation_error,
 )
+from app.api.kitchen.actions import router as kitchen_actions_router
 from app.api.kitchen.orders import router as kitchen_orders_router
 from app.api.loyalty import router as loyalty_router
 from app.api.menu import router as menu_router
@@ -82,6 +83,7 @@ app.include_router(admin_import_router)
 app.include_router(admin_reports_router)
 app.include_router(admin_settings_router)
 app.include_router(kitchen_orders_router)
+app.include_router(kitchen_actions_router)
 
 # Serve uploaded product images. check_dir=False so the app boots before the
 # upload dir exists (created lazily on first upload / by the compose volume).

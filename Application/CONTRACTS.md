@@ -243,8 +243,18 @@ All under `/api/kitchen/`, role=`kitchen` required.
 |---|---|---|
 | GET | `/api/kitchen/queue` | Ordered queue (reads `kitchen_queue_view`) |
 | POST | `/api/kitchen/orders/{id}/accept` | K2 flow: Received → Preparing |
-| PATCH | `/api/kitchen/orders/{id}/status` | K2: update preparation sub-stage |
-| POST | `/api/kitchen/orders/{id}/ready` | K3: T1 handoff; success → ReadyForDispatch, timeout/fail → DispatchPending |
+| POST | `/api/kitchen/orders/{id}/mark-ready` | K3: T1 handoff; success → ReadyForDispatch, provider fail → DispatchPending |
+
+### POST /api/kitchen/orders/{order_id}/accept  (kitchen)
+Accept an incoming order: `Received → Preparing`. 204 on success.
+- 409 if the order is not in `Received`. 404 if unknown. 403/401 if not kitchen.
+
+### POST /api/kitchen/orders/{order_id}/mark-ready  (kitchen)
+Mark a Preparing order ready and request a courier (delivery port).
+- 200 `{ "status": "ReadyForDispatch" }` on dispatch success (stores delivery_reference).
+- 200 `{ "status": "DispatchPending" }` if the provider errors — order is handed
+  to admin retry (A5), not rolled back.
+- 409 if not in `Preparing`. 404 if unknown. 403/401 if not kitchen.
 
 ### Delivery webhook (T2)
 

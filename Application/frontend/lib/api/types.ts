@@ -909,6 +909,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/kitchen/orders/{order_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept Order */
+        post: operations["accept_order_api_kitchen_orders__order_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kitchen/orders/{order_id}/mark-ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark Ready */
+        post: operations["mark_ready_api_kitchen_orders__order_id__mark_ready_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/loyalty/me": {
         parameters: {
             query?: never;
@@ -1822,6 +1856,14 @@ export interface components {
             current_points: number;
             /** Total Points Earned */
             total_points_earned: number;
+        };
+        /** MarkReadyOut */
+        MarkReadyOut: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ReadyForDispatch" | "DispatchPending";
         };
         /** MeResponse */
         MeResponse: {
@@ -4488,6 +4530,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KitchenTicketOut"][];
+                };
+            };
+        };
+    };
+    accept_order_api_kitchen_orders__order_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_ready_api_kitchen_orders__order_id__mark_ready_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarkReadyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
