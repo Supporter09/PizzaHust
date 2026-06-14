@@ -1,15 +1,15 @@
 """Kitchen queue priority scoring and stable preparing bucket.
 
-Revision ID: 0018_kitchen_queue_priority_scoring
-Revises: 0017_business_settings_checks
+Revision ID: 0019_kitchen_queue_priority_scoring
+Revises: 0018_drop_product_is_pizza
 """
 
 from __future__ import annotations
 
 from alembic import op
 
-revision = "0018_kitchen_queue_priority_scoring"
-down_revision = "0017_business_settings_checks"
+revision = "0019_kitchen_queue_priority_scoring"
+down_revision = "0018_drop_product_is_pizza"
 branch_labels = None
 depends_on = None
 
