@@ -3848,6 +3848,31 @@
         "title": "RegisterResponse",
         "type": "object"
       },
+      "ReorderResultOut": {
+        "properties": {
+          "added_count": {
+            "title": "Added Count",
+            "type": "integer"
+          },
+          "cart": {
+            "$ref": "#/components/schemas/CartOut"
+          },
+          "unavailable": {
+            "items": {
+              "$ref": "#/components/schemas/UnavailableLineOut"
+            },
+            "title": "Unavailable",
+            "type": "array"
+          }
+        },
+        "required": [
+          "cart",
+          "added_count",
+          "unavailable"
+        ],
+        "title": "ReorderResultOut",
+        "type": "object"
+      },
       "ReportOverviewOut": {
         "properties": {
           "series": {
@@ -4135,6 +4160,30 @@
           "at"
         ],
         "title": "TrackTimelineEntry",
+        "type": "object"
+      },
+      "UnavailableLineOut": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "item_unavailable",
+              "option_changed",
+              "combo_unavailable",
+              "combo_changed"
+            ],
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "description",
+          "reason"
+        ],
+        "title": "UnavailableLineOut",
         "type": "object"
       },
       "UpdateProfileRequest": {
@@ -7609,6 +7658,48 @@
           }
         },
         "summary": "Get My Order Detail",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/api/orders/me/{order_code}/reorder": {
+      "post": {
+        "operationId": "reorder_my_order_api_orders_me__order_code__reorder_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_code",
+            "required": true,
+            "schema": {
+              "title": "Order Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReorderResultOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reorder My Order",
         "tags": [
           "orders"
         ]

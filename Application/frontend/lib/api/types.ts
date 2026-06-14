@@ -1033,6 +1033,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders/me/{order_code}/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reorder My Order */
+        post: operations["reorder_my_order_api_orders_me__order_code__reorder_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders/track/{code}": {
         parameters: {
             query?: never;
@@ -2385,6 +2402,14 @@ export interface components {
         RegisterResponse: {
             user: components["schemas"]["AuthUserDTO"];
         };
+        /** ReorderResultOut */
+        ReorderResultOut: {
+            /** Added Count */
+            added_count: number;
+            cart: components["schemas"]["CartOut"];
+            /** Unavailable */
+            unavailable: components["schemas"]["UnavailableLineOut"][];
+        };
         /** ReportOverviewOut */
         ReportOverviewOut: {
             /** Series */
@@ -2493,6 +2518,16 @@ export interface components {
             at: string;
             /** Status */
             status: string;
+        };
+        /** UnavailableLineOut */
+        UnavailableLineOut: {
+            /** Description */
+            description: string;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "item_unavailable" | "option_changed" | "combo_unavailable" | "combo_changed";
         };
         /** UpdateProfileRequest */
         UpdateProfileRequest: {
@@ -4841,6 +4876,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MyOrderDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reorder_my_order_api_orders_me__order_code__reorder_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReorderResultOut"];
                 };
             };
             /** @description Validation Error */

@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy import delete, select
 
+from app.core.errors import APIError
 from app.infra.auth.passwords import hash_password
 from app.infra.db.models import (
     Combo,
@@ -166,7 +168,9 @@ def _seed_combo_order_from_placed(app, ids: dict, user_id: int, code: str) -> No
     )
     assert r.status_code == 201, r.text
     with create_session_factory()() as db:
-        order = db.scalar(select(Order).where(Order.user_id == user_id).order_by(Order.order_id.desc()))
+        order = db.scalar(
+            select(Order).where(Order.user_id == user_id).order_by(Order.order_id.desc())
+        )
         assert order is not None
         order.order_code = code
         db.commit()
@@ -267,8 +271,7 @@ def test_reorder_requires_csrf() -> None:
 
 def test_reorder_requires_login() -> None:
     app, pid, _m = _item_fixture("reorder-auth")
-    uid = _make_customer()
-    _seed_item_order(uid, "PIZZ-REORD06", product_id=pid)
+    _seed_item_order(_make_customer(), "PIZZ-REORD06", product_id=pid)
     client = TestClient(app)
     csrf = _csrf(client)
     r = client.post(
@@ -280,7 +283,7 @@ def test_reorder_requires_login() -> None:
 
 def test_reorder_404_for_non_owned_order() -> None:
     app, pid, _m = _item_fixture("reorder-404")
-    uid = _make_customer()
+    _make_customer()
     other = _make_customer("0988333444")
     _seed_item_order(other, "PIZZ-OTHER01", product_id=pid)
     client = _login(app)
@@ -350,3 +353,29 @@ def test_reorder_combo_unavailable_when_expired() -> None:
     body = r.json()
     assert body["added_count"] == 0
     assert body["unavailable"][0]["reason"] == "combo_unavailable"
+
+
+def test_reorder_append_validation_failure_returns_unavailable_not_abort() -> None:
+    app, pid, m = _item_fixture("reorder-append-fail")
+    uid = _make_customer()
+    _seed_item_order(uid, "PIZZ-REORD07", product_id=pid)
+    client = _login(app)
+    csrf = _csrf(client)
+
+    def _boom(db, cart, body):
+        raise APIError(
+            code="VALIDATION_FAILED",
+            message="Invalid option selection.",
+            status_code=400,
+        )
+
+    with patch("app.api.order_history.append_line_to_cart", side_effect=_boom):
+        r = client.post(
+            "/api/orders/me/PIZZ-REORD07/reorder",
+            headers={"X-CSRF-Token": csrf},
+        )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["added_count"] == 0
+    assert len(body["unavailable"]) == 1
+    assert body["unavailable"][0]["reason"] == "option_changed"

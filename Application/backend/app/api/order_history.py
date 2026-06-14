@@ -419,8 +419,19 @@ def reorder_my_order(
             unavailable.append(skip)
             continue
         assert body is not None
-        append_line_to_cart(db, cart, body)
-        added_count += 1
+        try:
+            append_line_to_cart(db, cart, body)
+            added_count += 1
+        except APIError:
+            reason: UnavailableReason = (
+                "combo_changed" if isinstance(body, AddComboLineIn) else "option_changed"
+            )
+            unavailable.append(
+                UnavailableLineOut(
+                    description=_unavailable_description(line),
+                    reason=reason,
+                )
+            )
 
     touch_and_gc(db, cart)
     db.commit()
