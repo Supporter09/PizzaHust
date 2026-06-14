@@ -33,6 +33,7 @@ function OrdersPageList() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -64,6 +65,8 @@ function OrdersPageList() {
   }, []);
 
   const loadMore = useCallback(async () => {
+    if (loadingMore) return;
+    setLoadingMore(true);
     const next = page + 1;
     try {
       const rows = await listMyOrders(next, PAGE_SIZE);
@@ -76,8 +79,10 @@ function OrdersPageList() {
       } else {
         setListError("Couldn't load more orders — try again.");
       }
+    } finally {
+      setLoadingMore(false);
     }
-  }, [page]);
+  }, [loadingMore, page]);
 
   return (
     <section
@@ -121,9 +126,11 @@ function OrdersPageList() {
               type="button"
               data-testid="orders-load-more"
               onClick={() => void loadMore()}
-              className="min-h-11 rounded-lg border border-line bg-card px-4 py-2.5 text-sm font-semibold text-fg hover:bg-surface"
+              disabled={loadingMore}
+              aria-busy={loadingMore}
+              className="min-h-11 rounded-lg border border-line bg-card px-4 py-2.5 text-sm font-semibold text-fg hover:bg-surface disabled:opacity-60"
             >
-              Load more
+              {loadingMore ? "Loading…" : "Load more"}
             </button>
           ) : null}
         </div>
