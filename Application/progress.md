@@ -647,8 +647,20 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 - Fixed in `aa35680`: ward names are trimmed + blank-rejected in `WardFeeIn` (closes a direct-API whitespace-ward junk row), `available_timezones()` hoisted to module level (off the per-PUT validator path), and the seed passes `loyalty_max_redeem_pct` as a `float` not `str`.
 - Deferred (ship-as-is, low value/churn): promote `_fold` to a public name; `put_settings` echoes the request instead of re-reading; `models.py` is 528 lines (pre-existing, could split the two settings models out); reports `setdefault` is academic for the no-DST business zone.
 
-**Known follow-up** (out of scope, pre-existing — not introduced by A13)
-- Loyalty **accrual** is still not wired to order placement (`compute_accrual_points` has no production caller); the injectable `accrual_rate` param is ready for whenever accrual-on-order lands.
-
 **Next**
 - Whole-branch review, then `superpowers:finishing-a-development-branch`. This branch now carries **A11 + A12 + A13**; A13 finally gives a clean `verify.sh` exit 0, so the long-standing `admin-orders:28` blocker on merging this lineage to `main` is resolved.
+
+---
+
+## 2026-06-14 — Loyalty accrual on order placement (folded into `feat/admin-business-settings`, PR #36)
+
+**Goal:** Close the A13 follow-up — wire `compute_accrual_points` (which existed in the domain but had no caller) to order placement so logged-in customers actually earn points.
+
+**Done** (commit `013f644`)
+- **Placement (`app/api/orders.py`):** a logged-in customer earns `points = (subtotal_vnd − discount_combo_vnd − discount_loyalty_vnd) // accrual_rate` at placement, credited to `User.current_points` + `User.total_points_earned` in the same transaction as the order insert (atomic — rolls back together on failure). The rate is the **admin-configurable** `settings_service.get_business_settings(db).loyalty_accrual_rate` (the A13 setting). Guests (`session.user_id is None`) and zero-subtotal orders earn nothing.
+- **Reversal (`app/api/admin/orders.py`):** the earned amount is stored on a new `orders.loyalty_points_earned` column (migration `0016`, CHECK ≥ 0 mirrored in the model). Admin cancel subtracts exactly that stored amount (clamped ≥ 0) and zeroes it — so reversal is **exact and rate-change-safe** (it never recomputes, so an admin editing the rate between placement and cancel can't skew it), and the per-order amount means cancelling one of several orders only claws back that order's points. The order state machine forbids re-cancelling, so reversal runs at most once.
+- Redemption stays stubbed (`current_points=0` in the quote — that's U14). No frontend change: `/api/loyalty/me` + the account page already display the now-growing balance.
+
+**Reviewed** (adversarial, **APPROVED**, no Critical/Important behavioral defects): transaction atomicity, reversal idempotency, clamp correctness, rate-change safety, guest/deleted-user guards, migration prod-safety all confirmed. Two test-coverage gaps it flagged were then closed (stored-amount-zeroed assertion + a multi-order cancel test).
+
+**Verified:** `./verify.sh` **EXIT 0** at `013f644`: backend **393 passed/1 skipped** (4 new accrual tests; ruff, mypy domain, lint-imports, alembic-drift clean), migration 0016 down/up roundtrip clean on dev MySQL, OpenAPI↔types parity clean (the new column isn't exposed in any DTO), 80 vitest, smoke 1/1-skip, Playwright 44/4-skip/0-fail.
