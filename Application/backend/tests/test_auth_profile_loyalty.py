@@ -37,6 +37,7 @@ def test_auth_me_profile_and_loyalty_flow() -> None:
             assert me_response.status_code == 200
             me_body = me_response.json()
             assert me_body["user"]["full_name"] == "Profile User"
+            assert me_body["user"]["avatar_url"] is None
             csrf_token = me_body["csrf_token"]
 
             patch_forbidden = await client.patch(
