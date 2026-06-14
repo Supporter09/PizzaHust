@@ -114,9 +114,9 @@ Error codes (closed set, extend in this doc only):
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/orders/track/{code}` | Public, rate-limited. Returns minimal projection |
-| GET | `/api/orders/me` | Customer order history (auth required) |
-| GET | `/api/orders/me/{order_code}` | Customer order detail (auth required) |
-| POST | `/api/orders/me/{order_code}/reorder` | Best-effort rebuild into session cart; CSRF; `ReorderResultOut` |
+| GET | `/api/orders/me` | Customer order history (auth). Query `page` (default 1), `page_size` (default 20, max 50). `200` → `MyOrderSummaryOut[]` (newest first) |
+| GET | `/api/orders/me/{order_code}` | Owner order detail (auth). `200` → `MyOrderDetailOut`; `404 NOT_FOUND` if missing or not owned by caller |
+| POST | `/api/orders/me/{order_code}/reorder` | Best-effort append resolvable lines into session cart (CSRF). `200` → `ReorderResultOut` `{ cart, added_count, unavailable[] }`; `404` if not owned |
 
 ### Auth & profile (U8, U9, U12, U13)
 
@@ -436,6 +436,36 @@ delivery fee. No combo discount and (in this sprint) no loyalty redemption.
   "total_points_earned": 0
 }
 ```
+
+### U11 — `GET /api/orders/me` — response item (`MyOrderSummaryOut`)
+
+```json
+{
+  "order_code": "PIZZ-7K2M9Q",
+  "created_at": "2026-04-28T10:00:00Z",
+  "status": "Delivered",
+  "total_vnd": 277000,
+  "item_summary": ["1× Margherita (M)", "1× Family Feast"]
+}
+```
+
+### U11 — `GET /api/orders/me/{order_code}` — response (`MyOrderDetailOut`)
+
+Full receipt for the authenticated owner: lines (item/combo tree with options, notes, line totals), pricing breakdown, and status timeline. Wrong or another user's code → `404`.
+
+### U11 — `POST /api/orders/me/{order_code}/reorder` — response (`ReorderResultOut`)
+
+```json
+{
+  "cart": { "lines": [], "quote": {}, "csrf_token": "…" },
+  "added_count": 2,
+  "unavailable": [
+    { "description": "1× Seasonal Combo", "reason": "combo_unavailable" }
+  ]
+}
+```
+
+`unavailable[].reason` (closed): `item_unavailable`, `option_changed`, `combo_unavailable`, `combo_changed`. Skipped lines do not fail the request.
 
 ### `GET /api/orders/track/{code}` — response
 
