@@ -158,15 +158,17 @@ def test_detail_owner_only_and_full_breakdown() -> None:
     assert body["delivery_fee_vnd"] == 20_000
     assert body["subtotal_vnd"] == 195_000
     assert body["savings_vnd"] == 0
-    assert body["discount_loyalty_vnd"] == 0
-    assert body["loyalty_points_earned"] == 0
-    assert body["loyalty_redeemed"] == 0
+    assert body["recipient_name"] == "Hana Pham"
+    assert body["delivery_address"] == "1 Dai Co Viet, Hai Ba Trung"
+    assert "recipient_phone" not in body
+    assert "delivery_ward" not in body
     assert len(body["lines"]) == 1
     line = body["lines"][0]
+    assert line["kind"] == "item"
     assert line["quantity"] == 1
-    assert line["unit_price_vnd"] == 155_000
     assert line["line_total_vnd"] == 195_000
-    assert line["options"][0]["option_name"] == "Large"
+    assert line["options"] == ["Size: Large"]
+    assert line["children"] == []
     assert body["timeline"]
 
     assert client.get("/api/orders/me/PIZZ-OTHER01").status_code == 404

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, status
 from pydantic import BaseModel
@@ -27,40 +27,32 @@ class MyOrderSummaryOut(BaseModel):
     item_summary: list[str]
 
 
-class MyOrderLineOptionOut(BaseModel):
-    group_name: str
-    option_name: str
-    price_delta_vnd: int
-
-
 class MyOrderLineOut(BaseModel):
-    name: str
+    kind: Literal["item", "combo"]
+    display_name: str
     quantity: int
-    unit_price_vnd: int
     line_total_vnd: int
-    notes: str | None
-    options: list[MyOrderLineOptionOut]
-    picks: list[MyOrderLineOut] | None = None
+    options: list[str]
+    note: str | None
+    children: list[MyOrderLineOut]
+
+
+MyOrderLineOut.model_rebuild()
 
 
 class MyOrderDetailOut(BaseModel):
     order_code: str
     created_at: datetime
     status: str
-    promised_at: datetime
     recipient_name: str
-    recipient_phone: str
     delivery_address: str
-    delivery_ward: str | None
     delivery_note: str | None
-    subtotal_vnd: int
-    savings_vnd: int
-    discount_loyalty_vnd: int
-    delivery_fee_vnd: int
-    total_vnd: int
-    loyalty_points_earned: int
-    loyalty_redeemed: int
+    promised_at: datetime
     lines: list[MyOrderLineOut]
+    subtotal_vnd: int
+    delivery_fee_vnd: int
+    savings_vnd: int
+    total_vnd: int
     timeline: list[TrackTimelineEntry]
 
 
@@ -68,14 +60,18 @@ def _top_level(order: Order) -> list[OrderItem]:
     return [it for it in order.items if it.parent_order_item_id is None]
 
 
-def _line_name(item: OrderItem) -> str:
+def _line_kind(item: OrderItem) -> Literal["item", "combo"]:
+    return "combo" if item.combo_id is not None else "item"
+
+
+def _display_name(item: OrderItem) -> str:
     if item.combo_id is not None:
         return item.combo.name if item.combo is not None else "Combo"
     return item.product.name if item.product is not None else "Item"
 
 
 def _summary_line(item: OrderItem) -> str:
-    text = f"{item.quantity}× {_line_name(item)}"
+    text = f"{item.quantity}× {_display_name(item)}"
     if item.options:
         text += f" ({item.options[0].option_name})"
     return text
@@ -86,23 +82,21 @@ def _line_total(item: OrderItem) -> int:
     return (item.unit_price_vnd + option_delta) * item.quantity
 
 
+def _option_labels(item: OrderItem) -> list[str]:
+    return [f"{o.group_name}: {o.option_name}" for o in item.options]
+
+
 def _line_to_out(item: OrderItem, children_by_parent: dict[int, list[OrderItem]]) -> MyOrderLineOut:
-    picks = children_by_parent.get(item.order_item_id)
+    kids = children_by_parent.get(item.order_item_id, [])
+    kids.sort(key=lambda c: c.order_item_id)
     return MyOrderLineOut(
-        name=_line_name(item),
+        kind=_line_kind(item),
+        display_name=_display_name(item),
         quantity=item.quantity,
-        unit_price_vnd=item.unit_price_vnd,
         line_total_vnd=_line_total(item),
-        notes=item.notes,
-        options=[
-            MyOrderLineOptionOut(
-                group_name=o.group_name,
-                option_name=o.option_name,
-                price_delta_vnd=o.price_delta_vnd,
-            )
-            for o in item.options
-        ],
-        picks=[_line_to_out(c, children_by_parent) for c in picks] if picks else None,
+        options=_option_labels(item),
+        note=item.notes,
+        children=[_line_to_out(c, children_by_parent) for c in kids],
     )
 
 
@@ -129,15 +123,11 @@ def _load_owned_order(db: Session, user: User, order_code: str) -> Order:
     return order
 
 
-def _order_breakdown(order: Order) -> tuple[int, int, int]:
+def _order_subtotal_and_savings(order: Order) -> tuple[int, int]:
     top = _top_level(order)
     subtotal_vnd = sum(_line_total(it) for it in top)
     savings_vnd = max(0, subtotal_vnd + order.delivery_fee_vnd - order.total_amount_vnd)
-    discount_loyalty_vnd = max(
-        0,
-        subtotal_vnd - savings_vnd + order.delivery_fee_vnd - order.total_amount_vnd,
-    )
-    return subtotal_vnd, savings_vnd, discount_loyalty_vnd
+    return subtotal_vnd, savings_vnd
 
 
 @router.get("/me", response_model=list[MyOrderSummaryOut])
@@ -185,30 +175,23 @@ def get_my_order_detail(
     for it in order.items:
         if it.parent_order_item_id is not None:
             children_by_parent.setdefault(it.parent_order_item_id, []).append(it)
-    for kids in children_by_parent.values():
-        kids.sort(key=lambda c: c.order_item_id)
 
-    subtotal_vnd, savings_vnd, discount_loyalty_vnd = _order_breakdown(order)
+    subtotal_vnd, savings_vnd = _order_subtotal_and_savings(order)
     timeline_rows = sorted(order.tracking, key=lambda t: t.created_at)
 
     return MyOrderDetailOut(
         order_code=order.order_code,
         created_at=order.created_at,
         status=order.current_status.value,
-        promised_at=order.promised_at,
         recipient_name=order.recipient_name,
-        recipient_phone=order.recipient_phone,
         delivery_address=order.delivery_address,
-        delivery_ward=order.delivery_ward,
         delivery_note=order.delivery_note,
-        subtotal_vnd=subtotal_vnd,
-        savings_vnd=savings_vnd,
-        discount_loyalty_vnd=discount_loyalty_vnd,
-        delivery_fee_vnd=order.delivery_fee_vnd,
-        total_vnd=order.total_amount_vnd,
-        loyalty_points_earned=order.loyalty_points_earned,
-        loyalty_redeemed=0,
+        promised_at=order.promised_at,
         lines=[_line_to_out(it, children_by_parent) for it in _top_level(order)],
+        subtotal_vnd=subtotal_vnd,
+        delivery_fee_vnd=order.delivery_fee_vnd,
+        savings_vnd=savings_vnd,
+        total_vnd=order.total_amount_vnd,
         timeline=[
             TrackTimelineEntry(status=row.status.value, at=row.created_at) for row in timeline_rows
         ],
