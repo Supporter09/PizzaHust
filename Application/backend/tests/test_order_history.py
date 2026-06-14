@@ -13,7 +13,9 @@ from app.infra.db.models import (
     OrderItem,
     OrderItemOption,
     OrderStatus,
+    OrderTracking,
     Product,
+    TrackingNoteSource,
     User,
     UserRole,
 )
@@ -126,3 +128,46 @@ def test_list_paginates() -> None:
     page2 = client.get("/api/orders/me?page=2&page_size=2").json()
     assert len(page1) == 2
     assert len(page2) == 1
+
+
+def test_detail_owner_only_and_full_breakdown() -> None:
+    app = build_test_app("u11-detail")
+    from app.seeds.run import main as run_seeds
+
+    run_seeds()
+    uid = _make_customer()
+    other = _make_customer("0988333444")
+    mine_id = _seed_order(uid, "PIZZ-MINE001")
+    _seed_order(other, "PIZZ-OTHER01")
+    with create_session_factory()() as db:
+        db.add(
+            OrderTracking(
+                order_id=mine_id,
+                status=OrderStatus.DELIVERED,
+                note_source=TrackingNoteSource.SYSTEM,
+            )
+        )
+        db.commit()
+
+    client = _login(app)
+    ok = client.get("/api/orders/me/PIZZ-MINE001")
+    assert ok.status_code == 200, ok.text
+    body = ok.json()
+    assert body["order_code"] == "PIZZ-MINE001"
+    assert body["total_vnd"] == 215_000
+    assert body["delivery_fee_vnd"] == 20_000
+    assert body["subtotal_vnd"] == 195_000
+    assert body["savings_vnd"] == 0
+    assert body["discount_loyalty_vnd"] == 0
+    assert body["loyalty_points_earned"] == 0
+    assert body["loyalty_redeemed"] == 0
+    assert len(body["lines"]) == 1
+    line = body["lines"][0]
+    assert line["quantity"] == 1
+    assert line["unit_price_vnd"] == 155_000
+    assert line["line_total_vnd"] == 195_000
+    assert line["options"][0]["option_name"] == "Large"
+    assert body["timeline"]
+
+    assert client.get("/api/orders/me/PIZZ-OTHER01").status_code == 404
+    assert client.get("/api/orders/me/PIZZ-NOTREAL").status_code == 404
