@@ -63,7 +63,7 @@ test.describe("U11 — View Order History", () => {
     await expect(page.getByRole("heading", { name: "Order History" })).toBeVisible();
     const card = page.locator(`[data-testid="order-history-card"][data-order-code="${orderCode}"]`);
     await expect(card).toBeVisible({ timeout: 15_000 });
-    await expect(card.getByText(new RegExp(orderCode))).toBeVisible();
+    await expect(card.getByText(orderCode)).toBeVisible();
 
     await card.getByTestId("order-details-toggle").click();
     const detailPanel = card.getByTestId("order-detail-panel");
