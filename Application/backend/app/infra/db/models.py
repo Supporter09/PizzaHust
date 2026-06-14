@@ -516,7 +516,18 @@ class OrderTracking(Base):
 
 class BusinessSettings(Base):
     __tablename__ = "business_settings"
-    __table_args__ = (CheckConstraint("id = 1", name="ck_business_settings_singleton"),)
+    # Names are bare suffixes; the metadata ``ck`` naming convention prefixes
+    # ``ck_business_settings_`` (see app/infra/db/base.py). The pre-existing
+    # singleton keeps its already-prefixed name for back-compat with migration 0015.
+    __table_args__ = (
+        CheckConstraint("id = 1", name="ck_business_settings_singleton"),
+        CheckConstraint("loyalty_accrual_rate > 0", name="accrual_rate_positive"),
+        CheckConstraint("loyalty_redeem_value_vnd > 0", name="redeem_value_positive"),
+        CheckConstraint(
+            "loyalty_max_redeem_pct > 0 AND loyalty_max_redeem_pct <= 1",
+            name="max_redeem_pct_fraction",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
     timezone: Mapped[str] = mapped_column(String(64), nullable=False)
