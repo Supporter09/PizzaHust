@@ -11,7 +11,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api";
 
 /** Pure resolver: prefix a root-relative URL with the origin behind `apiBase`. */
 export function resolveAssetUrl(url: string, apiBase: string): string {
-  if (url.startsWith("http")) return url;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
   return `${apiBase.replace(/\/api\/?$/, "")}${url}`;
 }
 
