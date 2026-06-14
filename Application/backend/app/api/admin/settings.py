@@ -24,6 +24,10 @@ from app.infra.db.models import User, UserRole
 router = APIRouter(prefix="/api/admin", tags=["admin-settings"])
 require_admin = require_role(UserRole.ADMIN)
 
+# Evaluated once at import: available_timezones() builds a ~600-entry set and is
+# too costly to call inside a per-request validator.
+_VALID_TIMEZONES = available_timezones()
+
 
 def _conflict(message: str) -> APIError:
     return APIError(code="CONFLICT", message=message, status_code=409)
@@ -38,7 +42,7 @@ class SettingsIn(BaseModel):
     @field_validator("timezone")
     @classmethod
     def _valid_tz(cls, v: str) -> str:
-        if v not in available_timezones():
+        if v not in _VALID_TIMEZONES:
             raise ValueError("Unknown IANA timezone")
         return v
 
@@ -53,6 +57,16 @@ class SettingsOut(BaseModel):
 class WardFeeIn(BaseModel):
     ward: str = Field(min_length=1)
     fee_vnd: int = Field(ge=0)
+
+    @field_validator("ward")
+    @classmethod
+    def _strip_ward(cls, v: str) -> str:
+        # Trim so " Hoan Kiem " and "Hoan Kiem" fold to one row, and reject a
+        # whitespace-only name that would otherwise store an empty ward_normalized.
+        stripped = v.strip()
+        if not stripped:
+            raise ValueError("Ward name must not be blank")
+        return stripped
 
 
 class WardFeesIn(BaseModel):

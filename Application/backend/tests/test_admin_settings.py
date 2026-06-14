@@ -156,3 +156,17 @@ def test_put_ward_fees_rejects_duplicate_folded_ward() -> None:
     r = c.put("/api/admin/settings/ward-fees", json=body)
     assert r.status_code == 409, r.text
     assert r.json()["error"]["code"] == "CONFLICT"
+
+
+def test_put_ward_fees_rejects_blank_ward_name() -> None:
+    c = admin_client("ward-blank")
+    body = {"wards": [{"ward": "   ", "fee_vnd": 15000}]}
+    assert c.put("/api/admin/settings/ward-fees", json=body).status_code == 400
+
+
+def test_put_ward_fees_trims_ward_name() -> None:
+    c = admin_client("ward-trim")
+    body = {"wards": [{"ward": "  Hoan Kiem  ", "fee_vnd": 15000}]}
+    r = c.put("/api/admin/settings/ward-fees", json=body)
+    assert r.status_code == 200, r.text
+    assert r.json()["wards"] == [{"ward": "Hoan Kiem", "fee_vnd": 15000}]
