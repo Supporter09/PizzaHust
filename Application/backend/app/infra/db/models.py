@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 from enum import Enum, StrEnum
 
 from sqlalchemy import (
@@ -11,6 +12,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -499,3 +501,28 @@ class OrderTracking(Base):
     staff: Mapped[User | None] = relationship(
         back_populates="tracking_logs", foreign_keys=[updated_by]
     )
+
+
+class BusinessSettings(Base):
+    __tablename__ = "business_settings"
+    __table_args__ = (CheckConstraint("id = 1", name="ck_business_settings_singleton"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
+    timezone: Mapped[str] = mapped_column(String(64), nullable=False)
+    loyalty_accrual_rate: Mapped[int] = mapped_column(Integer, nullable=False)
+    loyalty_redeem_value_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
+    loyalty_max_redeem_pct: Mapped[Decimal] = mapped_column(Numeric(3, 2), nullable=False)
+
+
+class DeliveryWardFee(Base):
+    __tablename__ = "delivery_ward_fees"
+    __table_args__ = (
+        UniqueConstraint("ward_name", name="uq_delivery_ward_fees_name"),
+        UniqueConstraint("ward_normalized", name="uq_delivery_ward_fees_normalized"),
+        CheckConstraint("fee_vnd >= 0", name="ck_delivery_ward_fees_nonneg"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ward_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    ward_normalized: Mapped[str] = mapped_column(String(128), nullable=False)
+    fee_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
