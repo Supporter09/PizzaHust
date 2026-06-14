@@ -65,6 +65,63 @@ def test_auth_me_profile_and_loyalty_flow() -> None:
     asyncio.run(scenario())
 
 
+def test_avatar_upload_replace_and_bad_type(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("IMAGE_UPLOAD_DIR", str(tmp_path))
+    app_instance = build_test_app("auth-avatar")
+
+    async def scenario() -> None:
+        transport = httpx.ASGITransport(app=app_instance)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            await client.post(
+                "/api/auth/register",
+                json={
+                    "full_name": "Ava Tar",
+                    "phone_number": "0905555555",
+                    "password": "strongpass123",
+                },
+            )
+            await client.post(
+                "/api/auth/login",
+                json={"phone_number": "0905555555", "password": "strongpass123"},
+            )
+            csrf = (await client.get("/api/auth/me")).json()["csrf_token"]
+
+            bad = await client.post(
+                "/api/auth/me/avatar",
+                files={"image": ("note.txt", b"hello", "text/plain")},
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert bad.status_code == 400
+            assert bad.json()["error"]["code"] == "VALIDATION_FAILED"
+
+            up1 = await client.post(
+                "/api/auth/me/avatar",
+                files={"image": ("a.png", b"\x89PNG\r\n\x1a\nfake", "image/png")},
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert up1.status_code == 200
+            url1 = up1.json()["avatar_url"]
+            assert url1 and url1.endswith(".png")
+
+            up2 = await client.post(
+                "/api/auth/me/avatar",
+                files={"image": ("b.webp", b"RIFFfake", "image/webp")},
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert up2.status_code == 200
+            url2 = up2.json()["avatar_url"]
+            assert url2 != url1
+            assert (await client.get("/api/auth/me")).json()["user"]["avatar_url"] == url2
+
+            no_csrf = await client.post(
+                "/api/auth/me/avatar",
+                files={"image": ("c.png", b"\x89PNGfake", "image/png")},
+            )
+            assert no_csrf.status_code == 403
+
+    asyncio.run(scenario())
+
+
 def test_seed_creates_admin_and_kitchen_users() -> None:
     build_test_app("seed-accounts")
     run_seeds()

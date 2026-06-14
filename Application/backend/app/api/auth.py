@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request, Response, status
+from fastapi import APIRouter, Depends, File, Request, Response, UploadFile, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.api.images import save_blob, schedule_blob_removal
 from app.core.errors import APIError
 from app.infra.auth import (
     clear_authenticated_session,
@@ -240,4 +241,20 @@ async def update_me(
         db.commit()
         db.refresh(user)
 
+    return AuthUserDTO.model_validate(user)
+
+
+@router.post("/me/avatar", response_model=AuthUserDTO)
+async def upload_avatar(
+    image: Annotated[UploadFile, File()],
+    _: Annotated[None, Depends(enforce_csrf)],
+    user: Annotated[User, Depends(get_current_user)],
+    db: DBSession,
+) -> AuthUserDTO:
+    new_url = save_blob(image)
+    schedule_blob_removal(db, [user.avatar_url])
+    user.avatar_url = new_url
+    db.add(user)
+    db.commit()
+    db.refresh(user)
     return AuthUserDTO.model_validate(user)
