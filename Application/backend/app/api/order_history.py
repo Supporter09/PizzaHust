@@ -281,7 +281,14 @@ def _combo_selections(
 ) -> list[ComboSelectionIn] | None:
     if combo.combo_items is None:
         return None
-    components = sorted(combo.combo_items, key=lambda ci: ci.combo_item_id)
+    # Match fixed components (locked to one exact product) before choice slots, so a
+    # child that could satisfy both is claimed by the fixed component first. This is
+    # still greedy best-effort: two overlapping choice slots can mis-assign and degrade
+    # to combo_changed rather than guess a configuration (spec decision 4).
+    components = sorted(
+        combo.combo_items,
+        key=lambda ci: (ci.product_id is None, ci.combo_item_id),
+    )
     remaining = list(children)
     selections: list[ComboSelectionIn] = []
 

@@ -355,6 +355,36 @@ def test_reorder_combo_unavailable_when_expired() -> None:
     assert body["unavailable"][0]["reason"] == "combo_unavailable"
 
 
+def test_reorder_all_unavailable_leaves_existing_cart_unchanged() -> None:
+    app, pid, m = _item_fixture("reorder-all-unavail")
+    uid = _make_customer()
+    _seed_item_order(uid, "PIZZ-REORD08", product_id=pid)
+    client = _login(app)
+    csrf = _csrf(client)
+    # Pre-existing cart line, then deactivate the product so reorder can add nothing.
+    client.post(
+        "/api/cart/lines",
+        json={"kind": "item", "item_id": pid, "option_ids": [m], "quantity": 1},
+        headers={"X-CSRF-Token": csrf},
+    )
+    with create_session_factory()() as db:
+        product = db.get(Product, pid)
+        assert product is not None
+        product.is_active = False
+        db.commit()
+    r = client.post(
+        "/api/orders/me/PIZZ-REORD08/reorder",
+        headers={"X-CSRF-Token": csrf},
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["added_count"] == 0
+    assert len(body["unavailable"]) == 1
+    assert body["unavailable"][0]["reason"] == "item_unavailable"
+    # The single pre-existing line is still there; nothing new was appended.
+    assert len(body["cart"]["lines"]) == 1
+
+
 def test_reorder_append_validation_failure_returns_unavailable_not_abort() -> None:
     app, pid, m = _item_fixture("reorder-append-fail")
     uid = _make_customer()
