@@ -451,21 +451,52 @@ delivery fee. No combo discount and (in this sprint) no loyalty redemption.
 
 ### U11 — `GET /api/orders/me/{order_code}` — response (`MyOrderDetailOut`)
 
-Full receipt for the authenticated owner: lines (item/combo tree with options, notes, line totals), pricing breakdown, and status timeline. Wrong or another user's code → `404`.
+Wrong or another user's code → `404 NOT_FOUND`.
+
+| Field | Type | Notes |
+|---|---|---|
+| `order_code` | string | `PIZZ-…` |
+| `created_at` | datetime (ISO 8601 UTC) | |
+| `status` | string | Order status enum value |
+| `recipient_name` | string | |
+| `delivery_address` | string | |
+| `delivery_note` | string \| null | |
+| `promised_at` | datetime (ISO 8601 UTC) | |
+| `lines` | `MyOrderLineOut[]` | Top-level cart lines only; combo components nested under `children` |
+| `subtotal_vnd` | int | Sum of line totals before delivery |
+| `delivery_fee_vnd` | int | |
+| `savings_vnd` | int | Combo/loyalty savings attributed on the receipt |
+| `total_vnd` | int | Charged total |
+| `timeline` | `TrackTimelineEntry[]` | Same shape as public track: `{ status, at }` |
+
+#### `MyOrderLineOut` (recursive)
+
+| Field | Type | Notes |
+|---|---|---|
+| `kind` | `"item"` \| `"combo"` | |
+| `display_name` | string | Product or combo name at order time |
+| `quantity` | int | |
+| `line_total_vnd` | int | Includes nested `children` for combos |
+| `options` | string[] | Human labels, e.g. `"Size: M"` |
+| `note` | string \| null | Per-line note (items) |
+| `children` | `MyOrderLineOut[]` | Combo component lines; empty for `kind: "item"` |
 
 ### U11 — `POST /api/orders/me/{order_code}/reorder` — response (`ReorderResultOut`)
 
-```json
-{
-  "cart": { "lines": [], "quote": {}, "csrf_token": "…" },
-  "added_count": 2,
-  "unavailable": [
-    { "description": "1× Seasonal Combo", "reason": "combo_unavailable" }
-  ]
-}
-```
+Best-effort: resolvable top-level lines are **appended** to the session cart; failures are listed in `unavailable` (request still `200`).
 
-`unavailable[].reason` (closed): `item_unavailable`, `option_changed`, `combo_unavailable`, `combo_changed`. Skipped lines do not fail the request.
+| Field | Type | Notes |
+|---|---|---|
+| `cart` | `CartOut` | Full session cart after reorder — same as `GET /api/cart` (`lines`, `quote`, `csrf_token`) |
+| `added_count` | int | Number of top-level lines successfully appended |
+| `unavailable` | `UnavailableLineOut[]` | Lines that could not be rebuilt |
+
+#### `UnavailableLineOut`
+
+| Field | Type | Notes |
+|---|---|---|
+| `description` | string | Short line label (e.g. `"1× Margherita (M)"`) |
+| `reason` | enum | `item_unavailable` \| `option_changed` \| `combo_unavailable` \| `combo_changed` |
 
 ### `GET /api/orders/track/{code}` — response
 
