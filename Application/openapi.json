@@ -2509,6 +2509,23 @@
         "title": "LoyaltyMeResponse",
         "type": "object"
       },
+      "MarkReadyOut": {
+        "properties": {
+          "status": {
+            "enum": [
+              "ReadyForDispatch",
+              "DispatchPending"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "MarkReadyOut",
+        "type": "object"
+      },
       "MeResponse": {
         "properties": {
           "csrf_token": {
@@ -7174,6 +7191,83 @@
           }
         },
         "summary": "List Incoming Orders",
+        "tags": [
+          "kitchen-orders"
+        ]
+      }
+    },
+    "/api/kitchen/orders/{order_id}/accept": {
+      "post": {
+        "operationId": "accept_order_api_kitchen_orders__order_id__accept_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "title": "Order Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept Order",
+        "tags": [
+          "kitchen-orders"
+        ]
+      }
+    },
+    "/api/kitchen/orders/{order_id}/mark-ready": {
+      "post": {
+        "operationId": "mark_ready_api_kitchen_orders__order_id__mark_ready_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "title": "Order Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkReadyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark Ready",
         "tags": [
           "kitchen-orders"
         ]

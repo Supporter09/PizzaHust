@@ -319,9 +319,9 @@
       "depends_on": [
         "K1"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "equivalent gate green (alt-port) at 9719fe2, 2026-06-14T01:31:29+07:00"
     },
     {
       "id": "K3",
@@ -330,9 +330,9 @@
         "K2",
         "infra-005"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "equivalent gate green (alt-port) at 9719fe2, 2026-06-14T01:31:29+07:00"
     },
     {
       "id": "T1",
