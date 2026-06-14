@@ -15,6 +15,7 @@ from app.api.admin.items import router as admin_items_router
 from app.api.admin.option_groups import router as admin_option_groups_router
 from app.api.admin.orders import router as admin_orders_router
 from app.api.admin.reports import router as admin_reports_router
+from app.api.admin.settings import router as admin_settings_router
 from app.api.auth import router as auth_router
 from app.api.cart import router as cart_router
 from app.api.carts import router as carts_router
@@ -79,6 +80,7 @@ app.include_router(admin_option_groups_router)
 app.include_router(admin_combos_router)
 app.include_router(admin_import_router)
 app.include_router(admin_reports_router)
+app.include_router(admin_settings_router)
 app.include_router(kitchen_orders_router)
 
 # Serve uploaded product images. check_dir=False so the app boots before the

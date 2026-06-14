@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
@@ -285,6 +286,13 @@ export default function CategoriesPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`/admin/categories/${c.category_id}/preset`}
+                        aria-label={`Edit preset for ${c.name}`}
+                        className="inline-flex h-11 items-center justify-center rounded-lg px-3 text-xs font-medium text-muted hover:bg-surface-hover hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                      >
+                        Preset
+                      </Link>
                       <button
                         type="button"
                         onClick={() => startEdit(c)}

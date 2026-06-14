@@ -417,6 +417,41 @@
       "status": "todo",
       "owner": "Hung",
       "evidence": ""
+    },
+    {
+      "id": "A11",
+      "name": "Admin Menu Management Overhaul",
+      "depends_on": [
+        "A1",
+        "A2",
+        "A3",
+        "A8"
+      ],
+      "status": "done",
+      "owner": "Hung",
+      "evidence": "verify.sh all feature gates green at 63ae5b8 (2026-06-13T17:29:35Z); e2e 39 passed/4 skipped/1 pre-existing fail (admin-orders.spec.ts:28 — unrelated; needs a today-order, order-placing smoke is @pytest.mark.skip; zero orders-domain diff on this branch)"
+    },
+    {
+      "id": "A12",
+      "name": "Per-Category Option Ownership",
+      "depends_on": [
+        "A11"
+      ],
+      "status": "done",
+      "owner": "Hung",
+      "evidence": "Each Category now OWNS its option groups+options (dropped CategoryPresetGroup; OptionGroup.category_id NOT NULL FK, name unique per-category); a category's groups ARE its preset, new dishes seed ProductOptions from them, and changing a dish's category reseeds from the new preset. All per-category gates green at 6464fd0 (2026-06-13T19:57Z): backend 351 passed/1 skipped (ruff, mypy domain, lint-imports, alembic-drift clean); fresh `alembic upgrade head` on a wiped schema reaches 0014 with 0 errors (migration's prod backfill empirically verified 4-in/4-out, zero deletions, on a populated-from-0013 MySQL copy); frontend tsc/eslint clean, 76 vitest, next build ok; OpenAPI<->types parity clean; smoke 1 passed/1 skipped; per-category e2e green (Side-Dishes-has-no-pizza-groups, dish-editor option-toggle + add-category-appears, new-pizza inherits category preset). e2e 41 passed/4 skipped/1 fail. Contained-ripple proof: cart/menu/pricing/kitchen/orders backend tests (80) green UNMODIFIED — those domains byte-identical to main@85dc937. The sole e2e fail is admin-orders.spec.ts:28 — PRE-EXISTING and UNRELATED (today-order/timezone data dependency in the 00:00-07:00+07 window; fails identically on main; orders domain byte-identical to merge-base). cart.spec.ts:4 (combo parallel-load flake) failed the first run and passed the rerun — confirmed flaky, not a regression; verify.sh exits 1 because this env lacks ~/.local/bin/open-chrome-debug so its flake-retry path is unavailable."
+    },
+    {
+      "id": "A13",
+      "name": "Admin Business Settings",
+      "depends_on": [
+        "A5",
+        "A7",
+        "A11"
+      ],
+      "status": "done",
+      "owner": "Hung",
+      "evidence": "Business config (timezone, per-ward delivery fees, loyalty rules) is now admin-editable from /admin/settings, replacing static constants, and the UTC-vs-+07 date-window bug that kept admin-orders.spec.ts:28 red since A11 is FIXED. Architecture: two typed tables (business_settings singleton + delivery_ward_fees map) behind infra/settings_service.py with constant-default fallback when unseeded; pure domain (pricing/loyalty/service_area) takes injected data params (constants stay as defaults) so domain-purity/import-linter holds; infra/timezone.py converts business-tz day windows -> UTC bounds for orders + reports. Delivery fee is a pure ward->fee map (the rows ARE the service area; fee(ward)=ward_fees[ward], out-of-area when absent); admin write endpoints validate IANA tz, loyalty rates >0, max_redeem_pct in (0,1], non-empty ward set, and reject duplicate folded ward names (409). ./verify.sh EXIT 0 at aa35680 (2026-06-14T12:50Z, first clean exit-0 in the A11->A12->A13 lineage; includes the whole-branch-review fixes below): backend 389 passed/1 skipped (ruff, mypy domain, lint-imports, alembic-drift all clean); migration 0015 applied on dev MySQL; frontend tsc/eslint clean, 80 vitest, next build ok (/admin/settings route present); OpenAPI<->types parity clean; smoke 1 passed/1 skipped; Playwright 44 passed/4 skipped/0 FAILED — including admin-orders.spec.ts:28 (now GREEN via the tz fix), both A13 admin-settings specs (renders + ward-fee edit reflected in /api/config/delivery), and cart.spec.ts:4 (prior combo parallel-load flake, now green). Whole-branch review (SHIP, no Critical) found minor items, fixed in aa35680: ward names are trimmed + blank-rejected in WardFeeIn (closes the direct-API whitespace-ward row), available_timezones() hoisted to module level (off the per-PUT path), and the seed passes loyalty_max_redeem_pct as a float. Contained-ripple proof: domain stays pure (no infra import; lint-imports 2 kept/0 broken) and existing cart/menu/pricing/kitchen/order tests pass unmodified via the empty-table fallback (all inner-Hanoi wards @ 22000 + loyalty defaults). Follow-on (folded into this branch at 013f644): loyalty accrual is now wired to order placement — a logged-in customer earns (subtotal-after-discount // accrual_rate) points at placement using the admin-configured rate, the earned amount is stored on orders.loyalty_points_earned (migration 0016) so admin cancel reverses the exact amount rate-safely; guests earn nothing; redemption stays stubbed (U14). verify.sh still EXIT 0 at 013f644 (backend 393 passed/1 skipped)."
     }
   ]
 }

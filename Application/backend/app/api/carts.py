@@ -25,6 +25,7 @@ from app.core.errors import APIError
 from app.domain.cart_payload import canonical_payload
 from app.domain.pricing import CartLine as PricingLine
 from app.domain.pricing import PricingError, compute_order_total
+from app.infra import settings_service
 from app.infra.auth.csrf import enforce_csrf
 from app.infra.auth.session_state import ensure_csrf_token
 from app.infra.config import Settings, get_settings_dependency
@@ -223,6 +224,8 @@ def quote_session_cart(
             status_code=400,
         )
     district = address.administrative_unit if address else None
+    ward_fees = settings_service.get_ward_fees(db)
+    s = settings_service.get_business_settings(db)
     try:
         quote = compute_order_total(
             lines=pricing_lines,
@@ -230,6 +233,9 @@ def quote_session_cart(
             combo_discount_vnd=combo_discount,
             redeem_points=redeem_points,
             current_points=0,
+            ward_fees=ward_fees,
+            redeem_value_vnd=s.loyalty_redeem_value_vnd,
+            max_redeem_pct=s.loyalty_max_redeem_pct,
         )
     except PricingError as exc:
         status = 422 if exc.code in {"OUT_OF_SERVICE_AREA", "INSUFFICIENT_LOYALTY"} else 400
@@ -314,6 +320,8 @@ def _render_cart(
 
     if preview_quote:
         if pricing_lines:
+            ward_fees = settings_service.get_ward_fees(db)
+            s = settings_service.get_business_settings(db)
             try:
                 quote = compute_order_total(
                     lines=pricing_lines,
@@ -321,6 +329,9 @@ def _render_cart(
                     combo_discount_vnd=combo_discount,
                     redeem_points=0,
                     current_points=0,
+                    ward_fees=ward_fees,
+                    redeem_value_vnd=s.loyalty_redeem_value_vnd,
+                    max_redeem_pct=s.loyalty_max_redeem_pct,
                 )
                 quote_out = CartQuoteOut(
                     subtotal_vnd=quote.subtotal_vnd,

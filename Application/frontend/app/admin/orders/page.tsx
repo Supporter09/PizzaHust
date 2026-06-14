@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { getBusinessConfig } from "@/lib/api/config";
 
 interface OrderRow {
   order_id: number;
@@ -90,16 +91,21 @@ function formatDateTime(iso: string) {
   });
 }
 
-function isoDate(date: Date) {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  return `${year}-${month}-${day}`;
+// "Today" must be the business-timezone calendar day, not the browser's, so the
+// initial window matches the server's tz-aware filter (en-CA yields YYYY-MM-DD).
+const DEFAULT_TZ = "Asia/Ho_Chi_Minh";
+
+function isoDateInTz(tz: string, d = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
 }
 
-function defaultRange() {
-  const today = new Date();
-  const value = isoDate(today);
+function defaultRange(tz: string = DEFAULT_TZ) {
+  const value = isoDateInTz(tz);
   return { from: value, to: value };
 }
 
@@ -129,8 +135,27 @@ export default function MonitorOrdersPage() {
   const [detailError, setDetailError] = useState("");
   const [detailBusy, setDetailBusy] = useState(false);
   const [openedQueryOrderId, setOpenedQueryOrderId] = useState<string | null>(null);
+  const businessTz = useRef(DEFAULT_TZ);
+  const rangeEdited = useRef(false);
   const { from, to } = dateRange;
   const dispatchPendingCount = dispatchPending.length;
+
+  // The initial range is computed synchronously from the default tz so the date
+  // inputs render the +07 "today" immediately; once the real business tz loads we
+  // recompute it — but only if the admin hasn't already picked a range.
+  useEffect(() => {
+    let active = true;
+    void getBusinessConfig().then((config) => {
+      if (!active) return;
+      businessTz.current = config.timezone;
+      if (config.timezone !== DEFAULT_TZ && !rangeEdited.current) {
+        setDateRange(defaultRange(config.timezone));
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const fetchOrders = useCallback(
     async (background = false) => {
@@ -306,12 +331,18 @@ export default function MonitorOrdersPage() {
   }
 
   const handleDateChange = (key: "from" | "to", value: string) => {
+    rangeEdited.current = true;
     setDateRange((current) => {
       if (key === "from") {
         return value > current.to ? { from: value, to: value } : { ...current, from: value };
       }
       return value < current.from ? { from: value, to: value } : { ...current, to: value };
     });
+  };
+
+  const resetToToday = () => {
+    rangeEdited.current = false;
+    setDateRange(defaultRange(businessTz.current));
   };
 
   return (
@@ -343,7 +374,7 @@ export default function MonitorOrdersPage() {
             />
           </label>
           <button
-            onClick={() => setDateRange(defaultRange())}
+            onClick={resetToToday}
             className="rounded-lg border border-line bg-card px-4 py-2 text-sm font-medium text-fg hover:bg-surface-hover"
           >
             Today

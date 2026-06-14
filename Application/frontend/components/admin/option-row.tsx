@@ -2,13 +2,22 @@
 
 import { useState } from "react";
 
-import type { AdminItemOption } from "@/lib/api/admin-options";
+// Structural option type: works for the dish editor (has `enabled`) and the
+// category preset editor (no per-dish `enabled` — `onToggle` is omitted).
+type RowOption = {
+  option_id: number;
+  name: string;
+  description?: string | null;
+  price_delta_vnd: number;
+  enabled?: boolean;
+};
 
 type Props = {
-  option: AdminItemOption;
+  option: RowOption;
   busy: boolean;
   onCommit: (patch: { name?: string; description?: string; price_delta_vnd?: number }) => void;
-  onToggle: (enabled: boolean) => void;
+  /** When omitted, no enable switch is rendered (preset editor has no toggle). */
+  onToggle?: (enabled: boolean) => void;
   onDelete: () => void;
 };
 
@@ -36,27 +45,30 @@ export function OptionRow({ option, busy, onCommit, onToggle, onDelete }: Props)
     if (Object.keys(patch).length > 0) onCommit(patch);
   }
 
+  // Dimming only applies when this is a per-dish toggle and it's off.
+  const dimmed = onToggle && !option.enabled;
+
   return (
-    <li
-      className={`flex flex-wrap items-center gap-2 py-2 ${option.enabled ? "" : "opacity-50"}`}
-    >
-      <button
-        type="button"
-        role="switch"
-        aria-checked={option.enabled}
-        aria-label={option.name}
-        disabled={busy}
-        onClick={() => onToggle(!option.enabled)}
-        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-          option.enabled ? "bg-brand" : "bg-surface-active"
-        }`}
-      >
-        <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-card transition-transform ${
-            option.enabled ? "translate-x-6" : "translate-x-1"
+    <li className={`flex flex-wrap items-center gap-2 py-2 ${dimmed ? "opacity-50" : ""}`}>
+      {onToggle && (
+        <button
+          type="button"
+          role="switch"
+          aria-checked={option.enabled}
+          aria-label={option.name}
+          disabled={busy}
+          onClick={() => onToggle(!option.enabled)}
+          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+            option.enabled ? "bg-brand" : "bg-surface-active"
           }`}
-        />
-      </button>
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-card transition-transform ${
+              option.enabled ? "translate-x-6" : "translate-x-1"
+            }`}
+          />
+        </button>
+      )}
       <input
         aria-label={`${option.name} name`}
         value={name}

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from unicodedata import combining, normalize
 
 INNER_HANOI_WARDS = frozenset(
@@ -72,3 +73,7 @@ _NORMALIZED_WARDS = frozenset(_fold(ward) for ward in INNER_HANOI_WARDS)
 
 def is_inner_hanoi(administrative_unit: str) -> bool:
     return _fold(administrative_unit) in _NORMALIZED_WARDS
+
+
+def resolve_fee(ward_fees: Mapping[str, int], administrative_unit: str) -> int | None:
+    return ward_fees.get(_fold(administrative_unit))

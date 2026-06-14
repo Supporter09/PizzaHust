@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
 
+import { BasicsEditor } from "@/components/admin/basics-editor";
 import Breadcrumb from "@/components/admin/Breadcrumb";
 import { ImageGallery } from "@/components/admin/image-gallery";
 import { OptionsEditor } from "@/components/admin/options-editor";
@@ -12,57 +13,41 @@ import type { components } from "@/lib/api/types";
 type ItemOut = components["schemas"]["ItemDetailOut"];
 type CategoryOut = components["schemas"]["CategoryOut"];
 
-const vnd = (n: number) => `${n.toLocaleString("vi-VN")}₫`;
-
 export default function AdminItemEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const numericId = Number(id);
 
   const [item, setItem] = useState<ItemOut | null>(null);
-  const [categoryName, setCategoryName] = useState<string | null>(null);
+  const [categories, setCategories] = useState<CategoryOut[]>([]);
   const [error, setError] = useState("");
 
-  const load = useCallback(() => {
+  const load = useCallback(async () => {
     if (!Number.isInteger(numericId) || numericId < 1) {
       setError("Item not found.");
       return;
     }
-    let cancelled = false;
-    apiFetch<ItemOut>(`/admin/items/${numericId}`)
-      .then((loaded) => {
-        if (cancelled) return;
-        setItem(loaded);
-        // Category name lives on a separate endpoint; resolve it for the subtitle.
-        // Failures are deliberately swallowed: the name is decorative, so the
-        // subtitle just omits it and the editor keeps working.
-        apiFetch<CategoryOut[]>(`/admin/categories`)
-          .then((cats) => {
-            if (cancelled) return;
-            setCategoryName(cats.find((c) => c.category_id === loaded.category_id)?.name ?? null);
-          })
-          .catch(() => undefined);
-      })
-      .catch((e) => {
-        if (!cancelled) setError(e instanceof ApiClientError ? e.message : String(e));
-      });
-    return () => {
-      cancelled = true;
-    };
+    try {
+      const loaded = await apiFetch<ItemOut>(`/admin/items/${numericId}`);
+      setItem(loaded);
+      // Categories feed the basics-editor dropdown; a failure leaves it empty
+      // but the rest of the editor keeps working.
+      apiFetch<CategoryOut[]>(`/admin/categories`)
+        .then((cats) => setCategories(cats))
+        .catch(() => undefined);
+    } catch (e) {
+      setError(e instanceof ApiClientError ? e.message : String(e));
+    }
   }, [numericId]);
 
   useEffect(() => {
-    let cleanup: (() => void) | undefined;
     const t = setTimeout(() => {
-      cleanup = load();
+      void load();
     }, 0);
-    return () => {
-      clearTimeout(t);
-      cleanup?.();
-    };
+    return () => clearTimeout(t);
   }, [load]);
 
   return (
-    <div>
+    <div className="pb-24">
       <Breadcrumb
         items={[
           { label: "Admin", href: "/admin" },
@@ -86,22 +71,9 @@ export default function AdminItemEditorPage({ params }: { params: Promise<{ id: 
 
       {item && (
         <>
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-semibold text-fg">Edit Dish</h1>
-              <p className="mt-1 text-sm text-muted">
-                {item.name}
-                {categoryName ? ` · ${categoryName}` : ""}
-              </p>
-              <p className="mt-1 text-sm text-muted">
-                Base price {vnd(item.base_price_vnd)} ·{" "}
-                {item.is_active ? "Active" : "Inactive"} ·{" "}
-                <Link href="/admin/items" className="text-brand hover:underline">
-                  edit basics in the items list
-                </Link>
-              </p>
-            </div>
-          </div>
+          <h1 className="mb-4 text-2xl font-semibold text-fg">Edit Dish</h1>
+
+          <BasicsEditor item={item} categories={categories} onSaved={setItem} />
 
           <div className="mb-6 rounded-xl border border-line bg-surface p-4">
             <ImageGallery ownerKind="items" ownerId={item.product_id} initial={item.images ?? []} />
@@ -109,7 +81,7 @@ export default function AdminItemEditorPage({ params }: { params: Promise<{ id: 
 
           <section className="rounded-xl border border-line bg-surface p-4">
             <h2 className="mb-4 text-lg font-semibold text-fg">Options</h2>
-            <OptionsEditor productId={item.product_id} itemName={item.name} />
+            <OptionsEditor productId={item.product_id} categoryId={item.category_id} />
           </section>
         </>
       )}

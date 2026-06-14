@@ -4,6 +4,27 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 ---
 
+## 2026-06-14 — A11 Admin Menu Management Overhaul
+
+**Done**
+- Migration `0013_category_preset_groups`: new `category_preset_groups` table + `CategoryPresetGroup` model.
+- `GET/PUT /api/admin/categories/{id}/preset` endpoints; seed `ProductOption` from category preset on dish create.
+- `DELETE /api/admin/items/{id}?hard=true` hard delete (reference-free); soft-delete + restore on same endpoint.
+- Pizza category seeded with Size/Crust/Toppings preset; `BasicsEditor` (inline name/category/price/active edit).
+- Dedicated `/admin/items/new` create page; items list with dynamic category tabs, show-inactive toggle, delete/restore/hard-delete actions.
+- Per-category preset editor page + "Preset" nav link; Admin link in top nav (admin role only).
+- Removed cart/kitchen preview panels; deleted dead `compose-line-text` component.
+- OpenAPI + TS types regenerated; CONTRACTS.md updated; e2e specs for tabs/delete/presets.
+
+**Verified**
+- All feature gates green (backend ruff/format/mypy/import-linter/pytest, alembic drift, OpenAPI parity, frontend tsc/eslint/vitest/build) at `63ae5b8`, `2026-06-13T17:29:35Z`.
+- e2e: 39 passed / 4 skipped / 1 pre-existing fail (`admin-orders.spec.ts:28` — unrelated; needs a today-order, order-placing smoke is `@pytest.mark.skip`; zero orders-domain diff on this branch).
+
+**Next**
+- Address `admin-orders.spec.ts:28` data dependency (K1 merged; order-placing smoke next), or start `K2` Update Preparation Status.
+
+---
+
 ## 2026-06-12 — U7 Track Order (+U16 tracking display)
 
 **Done**
@@ -571,3 +592,75 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 **Next**
 - `K2` Update Preparation Status (`depends_on` K1): add Accept→Preparing + Mark Ready action buttons to the kitchen cards.
+
+---
+
+## 2026-06-14 — A12 Per-Category Option Ownership (branch `feat/admin-menu-overhaul`)
+
+**Goal:** Each `Category` owns its own option groups + options — a category's groups ARE its preset. The Side Dishes preset never shows Pizza's Size/Crust/Toppings; the preset page is the rich option editor; dishes seed/reseed their options from their category.
+
+**Done** (12 commits, `2715c04..6464fd0`, stacked on the A11-done commit `0e884d1`)
+- **Model + migration (`0014`):** `OptionGroup.category_id` NOT-NULL FK (CASCADE), name uniqueness moved global→composite `(category_id, name)`; `CategoryPresetGroup` dropped. Backfill = majority-vote of products' categories via `product_options→products`, lowest-`category_id` fallback, then drop any still-NULL orphan groups (handles fresh migrate-then-seed where no categories exist yet — `init.sh`/CI/new-deploy path). Backfill is an importable, unit-tested helper.
+- **Backend API:** option-groups API category-scoped (create requires `category_id`, `?category_id=` list filter, per-category dup-name 409, `item_options` filtered to the dish's category, `replace_item_options` rejects cross-category options 409). Old `GET/PUT /categories/{id}/preset` replaced by rich `GET /categories/{id}/option-groups`. `_apply_category_preset` seeds from the category's own groups; **`patch_item` now reseeds a dish's options from the new category's preset on category change** (review fix — see below). Seeds rework: groups keyed on `(category_id, name)`, Size/Crust/Toppings scoped to Pizza.
+- **Frontend:** new `category-options-editor.tsx` (toggle-less rich editor) on the preset page; `options-editor.tsx`/`option-row.tsx` take `categoryId`; dish editor passes `categoryId`; New-Item helper links to the selected category's preset editor. Plus the original UI fixes: dish-editor select height matches inputs, Active+Save pinned to a sticky bottom bar.
+- **Contract + e2e:** OpenAPI + TS types regenerated; `CONTRACTS.md` updated (per-category model, removed preset routes, `?category_id=` filter). e2e rewritten to prove per-category ownership (Side-Dishes-no-pizza-groups, new-pizza inherits preset, add-category-appears).
+
+**Reviewed** (whole-branch, code-scrutiny-optimizer over `85dc937..b4f9096`)
+- Migration empirically confirmed **production-safe**: on a populated-from-`0013` MySQL copy the backfill assigned correct categories and the final orphan-DELETE matched **zero** rows (4 in / 4 out); downgrade clean (FK-before-index avoids MySQL 1553). No Critical issues.
+- One **Important** regression found & fixed (`6464fd0`): changing a dish's category left its old `ProductOption` rows in place — invisible to the now-category-scoped admin editor but still served to customers by `menu.py` (no category filter). `patch_item` now clears + reseeds from the new category's preset on change; TDD-covered via admin + customer + DB assertions, plus a no-op-PATCH guard test.
+
+**Verified**
+- `./verify.sh` at `6464fd0` (2026-06-13T19:57Z): backend **351 passed/1 skipped** (ruff, mypy domain, lint-imports, alembic-drift clean); fresh `alembic upgrade head` on a wiped schema reaches `0014` with 0 errors; frontend tsc/eslint clean, **76 vitest**, `next build` ok; OpenAPI↔types parity clean; smoke 1 passed/1 skipped; Playwright **41 passed/4 skipped/1 fail**.
+- **Contained-ripple proof:** cart/menu/pricing/kitchen/orders backend tests (**80**) green **unmodified** — those domains are byte-identical to `main@85dc937`. The ripple is contained.
+- **`verify.sh` exits 1 on one PRE-EXISTING, UNRELATED e2e fail only** — `admin-orders.spec.ts:28` (today-order/timezone data dependency; the 00:00–07:00 +07 window stores orders on the prior UTC date so the "today" filter is empty; fails identically on `main`, orders domain byte-identical to merge-base). `cart.spec.ts:4` failed the first run and **passed the rerun** — the documented combo parallel-load flake, not a regression. This env lacks `~/.local/bin/open-chrome-debug`, so `verify.sh`'s flake-retry path is unavailable (the only reason the flaky first run isn't auto-absorbed).
+
+**Next**
+- Decide branch finish: this branch carries **A11 + A12** (A11 not yet on `main`). Open PR `feat/admin-menu-overhaul → main` once the `admin-orders.spec.ts:28` data dependency is resolved (un-skip order-placement smoke or seed a today-order in e2e setup) — that, not this feature, is the sole red gate. Do NOT modify `admin-orders.spec.ts` until the smoke is un-skipped (per standing handoff note).
+
+---
+
+## 2026-06-14 — A13 Admin Business Settings (branch `feat/admin-business-settings`)
+
+**Goal:** Make business config admin-editable from `/admin/settings` (timezone, **per-ward delivery fees**, loyalty rules) instead of static constants, and fix the UTC-vs-+07 date-window bug that had kept `admin-orders.spec.ts:28` red since A11. Branched off `feat/admin-menu-overhaul @ 69f8b86` (migration `0015` chains from A12's `0014`).
+
+**Architecture** (design + 11-task TDD plan executed via subagent-driven-development — fresh implementer per task → spec review → quality review → commit)
+- **Storage:** two typed tables behind `infra/settings_service.py` — `business_settings` (singleton id=1, CHECK id=1: timezone, loyalty accrual/redeem/max-redeem) + `delivery_ward_fees` (ward_name + unique ward_normalized + fee_vnd ≥ 0). Migration `0015_business_settings`. The service falls back to domain constants when a table is unseeded (all 51 inner-Hanoi wards @ 22000 + loyalty defaults), so existing behavior is preserved with zero rows.
+- **Domain purity held:** `pricing`/`loyalty`/`service_area` gained injected data params (`ward_fees`, loyalty rates) that **default to the module constants**; the API/service layer loads live values and injects them (load-at-edge, inject-into-pure-domain). No `app.infra` import in `app.domain` — `lint-imports` 2 kept/0 broken.
+- **Per-ward delivery** is a pure `ward→fee` map: the rows ARE the service area, `fee(ward)=ward_fees[ward]`, out-of-area (422) when a ward is absent. Cart **quote** and order **placement** load the same `get_ward_fees(db)` so a customer can't be quoted one fee and charged another.
+- **Timezone fix:** `infra/timezone.py` converts a business-tz day window → UTC bounds; `admin/orders.py` and `admin/reports.py` (list + overview bucket keys) now compute "today"/buckets in the configured business tz instead of UTC. `GET /api/config/business` exposes the tz; the admin Orders/Reports pages compute default ranges in business tz.
+
+**Done** (commits `4a0525f..86a8581`)
+- T1 pure tz helpers + tzdata dep; T2 tables + migration 0015; T3 settings service (default fallback); **T4 tz date-window fix** (orders + reports + frontend "today"); T5 seed defaults (insert-if-absent so admin edits survive reseed); T6 domain injection + all 4 caller sites; T7 `/api/config/delivery` (ward_fees map, flat `fee_vnd` dropped) + `/api/config/loyalty` served from the store; T8 admin write endpoints (`GET/PUT /api/admin/settings`, `GET/PUT /api/admin/settings/ward-fees`) with validation (IANA tz, rates >0, max-redeem ∈ (0,1], non-empty ward set, dup-folded-ward → 409); admin no-CSRF convention followed. T9 contract regen (`openapi.json` + `types.ts` + `CONTRACTS.md`). T10 admin Settings page (`app/admin/settings/page.tsx` + `components/admin/ward-fees-editor.tsx` + typed `lib/api/admin-settings.ts` + nav gear) reusing `basics-editor` styling. T11 e2e + DoD.
+- **Validation surfaces as 400 `VALIDATION_FAILED`** (app-wide `RequestValidationError` handler), not 422 — confirmed convention, matching every other router; 422 is reserved for domain `APIError`s.
+
+**Reviewed** (two-stage per task: spec-compliance then code-quality)
+- T6 (money path) reviewed adversarially: per-ward branch correct (free-delivery ward fee 0 resolves to 0, not out-of-area; `None`→out-of-area), back-compat preserved (no existing pricing/cart/order assertion changed), quote↔placement fee parity confirmed, Decimal→float `max_redeem_pct` bit-identical to the old `0.5`.
+- T8 reviewed: dup-ward 409 folds with the same `_fold` as the unique column (catches whitespace/case AND accent collisions before the DB insert), both mutating routes admin-guarded, persistence is a real engine round-trip.
+- T10 had one **must-fix** (caught + amended in `ac51fa1`): the accrual `<input>` allowed `0`/fractions (`min={0} step="any"`) but the backend field is `int gt=0` → corrected to `min={1} step={1}`, and the test fixture switched from an unrealistic `0.01` to integer `10000→12000`.
+
+**Verified**
+- **`./verify.sh` EXIT 0 at `aa35680` (2026-06-14T12:50Z)** — the **first clean exit-0 in the A11→A12→A13 lineage** (re-run after the whole-branch-review fixes). Backend **389 passed/1 skipped** (ruff, mypy domain, lint-imports, alembic-drift all clean); frontend tsc/eslint clean, **80 vitest**, `next build` ok (`/admin/settings` route present); OpenAPI↔types parity clean; smoke **1 passed/1 skipped**; Playwright **44 passed/4 skipped/0 FAILED**. (An earlier clean run was recorded at `86a8581`/387 before the review fixes added two ward-trim tests.)
+- **The prior red gate is fixed:** `admin-orders.spec.ts:28` now **passes** (T4 tz window fix + seeded settings). Both A13 e2e specs pass (settings page renders; editing Ha Dong's ward fee → 30000 is reflected in `GET /api/config/delivery`). `cart.spec.ts:4` (the documented combo parallel-load flake) passed too.
+- **Contained-ripple proof:** domain stays pure and the existing cart/menu/pricing/kitchen/order backend tests pass **unmodified** via the empty-table fallback.
+
+**Whole-branch review** (verdict **SHIP**, no Critical; migration prod-safe, security solid, quote↔placement fee parity confirmed, domain pure, `tzdata` present)
+- Fixed in `aa35680`: ward names are trimmed + blank-rejected in `WardFeeIn` (closes a direct-API whitespace-ward junk row), `available_timezones()` hoisted to module level (off the per-PUT validator path), and the seed passes `loyalty_max_redeem_pct` as a `float` not `str`.
+- Deferred (ship-as-is, low value/churn): promote `_fold` to a public name; `put_settings` echoes the request instead of re-reading; `models.py` is 528 lines (pre-existing, could split the two settings models out); reports `setdefault` is academic for the no-DST business zone.
+
+**Next**
+- Whole-branch review, then `superpowers:finishing-a-development-branch`. This branch now carries **A11 + A12 + A13**; A13 finally gives a clean `verify.sh` exit 0, so the long-standing `admin-orders:28` blocker on merging this lineage to `main` is resolved.
+
+---
+
+## 2026-06-14 — Loyalty accrual on order placement (folded into `feat/admin-business-settings`, PR #36)
+
+**Goal:** Close the A13 follow-up — wire `compute_accrual_points` (which existed in the domain but had no caller) to order placement so logged-in customers actually earn points.
+
+**Done** (commit `013f644`)
+- **Placement (`app/api/orders.py`):** a logged-in customer earns `points = (subtotal_vnd − discount_combo_vnd − discount_loyalty_vnd) // accrual_rate` at placement, credited to `User.current_points` + `User.total_points_earned` in the same transaction as the order insert (atomic — rolls back together on failure). The rate is the **admin-configurable** `settings_service.get_business_settings(db).loyalty_accrual_rate` (the A13 setting). Guests (`session.user_id is None`) and zero-subtotal orders earn nothing.
+- **Reversal (`app/api/admin/orders.py`):** the earned amount is stored on a new `orders.loyalty_points_earned` column (migration `0016`, CHECK ≥ 0 mirrored in the model). Admin cancel subtracts exactly that stored amount (clamped ≥ 0) and zeroes it — so reversal is **exact and rate-change-safe** (it never recomputes, so an admin editing the rate between placement and cancel can't skew it), and the per-order amount means cancelling one of several orders only claws back that order's points. The order state machine forbids re-cancelling, so reversal runs at most once.
+- Redemption stays stubbed (`current_points=0` in the quote — that's U14). No frontend change: `/api/loyalty/me` + the account page already display the now-growing balance.
+
+**Reviewed** (adversarial, **APPROVED**, no Critical/Important behavioral defects): transaction atomicity, reversal idempotency, clamp correctness, rate-change safety, guest/deleted-user guards, migration prod-safety all confirmed. Two test-coverage gaps it flagged were then closed (stored-amount-zeroed assertion + a multi-order cancel test).
+
+**Verified:** `./verify.sh` **EXIT 0** at `013f644`: backend **393 passed/1 skipped** (4 new accrual tests; ruff, mypy domain, lint-imports, alembic-drift clean), migration 0016 down/up roundtrip clean on dev MySQL, OpenAPI↔types parity clean (the new column isn't exposed in any DTO), 80 vitest, smoke 1/1-skip, Playwright 44/4-skip/0-fail.

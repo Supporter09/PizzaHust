@@ -1,10 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import Breadcrumb from "@/components/admin/Breadcrumb";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
+import { getBusinessConfig } from "@/lib/api/config";
 import { formatVnd } from "@/lib/format";
 
 type ReportPreset = "7d" | "30d" | "custom";
@@ -44,22 +45,36 @@ const PRESETS: Array<{ value: ReportPreset; label: string }> = [
 
 const msg = (e: unknown) => (e instanceof ApiClientError ? e.message : String(e));
 
-function isoDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  return `${year}-${month}-${day}`;
+// "Today" must be the business-timezone calendar day so presets match the
+// server's tz-aware filter (en-CA yields YYYY-MM-DD).
+const DEFAULT_TZ = "Asia/Ho_Chi_Minh";
+
+function isoDateInTz(tz: string, d = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
 }
 
-function rangeForPreset(preset: ReportPreset) {
-  const end = new Date();
-  const start = new Date();
+// Shift a YYYY-MM-DD string by a number of days using calendar arithmetic at UTC
+// midnight, so the result is independent of the browser's local timezone.
+function shiftIsoDate(iso: string, days: number): string {
+  const base = new Date(`${iso}T00:00:00Z`);
+  base.setUTCDate(base.getUTCDate() + days);
+  return base.toISOString().slice(0, 10);
+}
+
+function rangeForPreset(preset: ReportPreset, tz: string = DEFAULT_TZ) {
+  const end = isoDateInTz(tz);
   if (preset === "7d") {
-    start.setDate(end.getDate() - 6);
-  } else if (preset === "30d") {
-    start.setDate(end.getDate() - 29);
+    return { from: shiftIsoDate(end, -6), to: end };
   }
-  return { from: isoDate(start), to: isoDate(end) };
+  if (preset === "30d") {
+    return { from: shiftIsoDate(end, -29), to: end };
+  }
+  return { from: end, to: end };
 }
 
 function shortDateLabel(iso: string): string {
@@ -226,7 +241,29 @@ export default function ReportsPage() {
   const [overview, setOverview] = useState<ReportOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const businessTz = useRef(DEFAULT_TZ);
   const { from, to } = range;
+
+  // Presets render synchronously from the default tz; once the real business tz
+  // loads, recompute the active preset (a custom range the admin picked is kept).
+  useEffect(() => {
+    let active = true;
+    void getBusinessConfig().then((config) => {
+      if (!active) return;
+      businessTz.current = config.timezone;
+      if (config.timezone !== DEFAULT_TZ) {
+        setPreset((current) => {
+          if (current !== "custom") {
+            setRange(rangeForPreset(current, config.timezone));
+          }
+          return current;
+        });
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const csvHref = `${API_BASE}/admin/reports/sales?from=${from}&to=${to}&format=csv`;
 
@@ -255,7 +292,7 @@ export default function ReportsPage() {
     if (next === "custom") {
       return;
     }
-    setRange(rangeForPreset(next));
+    setRange(rangeForPreset(next, businessTz.current));
   }
 
   function handleCustomDateChange(key: "from" | "to", value: string) {

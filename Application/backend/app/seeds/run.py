@@ -11,12 +11,21 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.domain.loyalty import (
+    LOYALTY_ACCRUAL_RATE,
+    LOYALTY_MAX_REDEEM_PCT,
+    LOYALTY_REDEEM_VALUE_VND,
+)
+from app.domain.pricing import DELIVERY_FEE_VND
+from app.domain.service_area import INNER_HANOI_WARDS, _fold
 from app.infra.auth import hash_password
 from app.infra.config import Settings, get_settings
 from app.infra.db.models import (
+    BusinessSettings,
     Category,
     Combo,
     ComboItem,
+    DeliveryWardFee,
     Option,
     OptionGroup,
     Order,
@@ -108,12 +117,18 @@ def _upsert_product(db: Session, name: str, **kwargs) -> Product:
 
 
 def _upsert_option_group(
-    db: Session, name: str, *, select_type: str, required: bool, sort_order: int
+    db: Session, name: str, *, category_id: int, select_type: str, required: bool, sort_order: int
 ) -> OptionGroup:
-    g = db.scalar(select(OptionGroup).where(OptionGroup.name == name))
+    g = db.scalar(
+        select(OptionGroup).where(OptionGroup.category_id == category_id, OptionGroup.name == name)
+    )
     if g is None:
         g = OptionGroup(
-            name=name, select_type=select_type, required=required, sort_order=sort_order
+            category_id=category_id,
+            name=name,
+            select_type=select_type,
+            required=required,
+            sort_order=sort_order,
         )
         db.add(g)
         db.flush()
@@ -139,6 +154,35 @@ def _enable_for(db: Session, product_ids: list[int], option: Option) -> None:
     for pid in product_ids:
         if not db.get(ProductOption, (pid, option.option_id)):
             db.add(ProductOption(product_id=pid, option_id=option.option_id))
+
+
+def _upsert_business_settings(db: Session) -> None:
+    if db.get(BusinessSettings, 1) is None:
+        db.add(
+            BusinessSettings(
+                id=1,
+                timezone="Asia/Ho_Chi_Minh",
+                loyalty_accrual_rate=LOYALTY_ACCRUAL_RATE,
+                loyalty_redeem_value_vnd=LOYALTY_REDEEM_VALUE_VND,
+                loyalty_max_redeem_pct=LOYALTY_MAX_REDEEM_PCT,
+            )
+        )
+        db.flush()
+
+
+def _upsert_ward_fees(db: Session) -> None:
+    for ward in INNER_HANOI_WARDS:
+        normalized = _fold(ward)
+        existing = db.scalar(
+            select(DeliveryWardFee).where(DeliveryWardFee.ward_normalized == normalized)
+        )
+        if existing is None:
+            db.add(
+                DeliveryWardFee(
+                    ward_name=ward, ward_normalized=normalized, fee_vnd=DELIVERY_FEE_VND
+                )
+            )
+    db.flush()
 
 
 def main() -> None:
@@ -271,9 +315,16 @@ def _seed(db: Session, settings: Settings) -> None:
 
     # ── Option groups (A8) ─────────────────────────────────────────
     pizza_ids = [p.product_id for p in pizza_products]
-    g_size = _upsert_option_group(db, "Size", select_type="single", required=True, sort_order=1)
-    g_crust = _upsert_option_group(db, "Crust", select_type="single", required=True, sort_order=2)
-    g_top = _upsert_option_group(db, "Toppings", select_type="multi", required=False, sort_order=3)
+    pizza_cat_id = cat_pizza.category_id
+    g_size = _upsert_option_group(
+        db, "Size", category_id=pizza_cat_id, select_type="single", required=True, sort_order=1
+    )
+    g_crust = _upsert_option_group(
+        db, "Crust", category_id=pizza_cat_id, select_type="single", required=True, sort_order=2
+    )
+    g_top = _upsert_option_group(
+        db, "Toppings", category_id=pizza_cat_id, select_type="multi", required=False, sort_order=3
+    )
 
     for i, (name, delta) in enumerate([("S", 0), ("M", 30_000), ("L", 60_000)], start=1):
         _enable_for(db, pizza_ids, _upsert_option(db, g_size, name, delta=delta, sort_order=i))
@@ -355,6 +406,10 @@ def _seed(db: Session, settings: Settings) -> None:
             ComboItem(combo_id=combo3.combo_id, product_id=side_products[0].product_id, quantity=1)
         )
         db.add(ComboItem(combo_id=combo3.combo_id, category_id=cat_drinks.category_id, quantity=2))
+
+    # ── Business settings + delivery ward fees ─────────────
+    _upsert_business_settings(db)
+    _upsert_ward_fees(db)
 
     # ── Demo orders ────────────────────────────────────────────────
     # Deterministic order codes keyed by (user_id, days_ago) so re-seeding is a

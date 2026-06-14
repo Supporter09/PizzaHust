@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 from enum import Enum, StrEnum
 
 from sqlalchemy import (
@@ -11,6 +12,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -138,6 +140,9 @@ class Category(Base):
     )
 
     products: Mapped[list[Product]] = relationship(back_populates="category")
+    option_groups: Mapped[list[OptionGroup]] = relationship(
+        back_populates="category", cascade="all, delete-orphan"
+    )
 
 
 class Product(Base):
@@ -183,9 +188,16 @@ class ProductImage(Base):
 
 class OptionGroup(Base):
     __tablename__ = "option_groups"
+    __table_args__ = (
+        UniqueConstraint("category_id", "name", name="uq_option_groups_category_name"),
+        Index("ix_option_groups_category_id", "category_id"),
+    )
 
     group_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    category_id: Mapped[int] = mapped_column(
+        ForeignKey("categories.category_id", ondelete="CASCADE"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
     select_type: Mapped[str] = mapped_column(
         SqlEnum("single", "multi", name="option_select_type"),
         nullable=False,
@@ -197,6 +209,7 @@ class OptionGroup(Base):
     )
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
 
+    category: Mapped[Category] = relationship(back_populates="option_groups")
     options: Mapped[list[Option]] = relationship(
         back_populates="group", cascade="all, delete-orphan"
     )
@@ -325,6 +338,9 @@ class Order(Base):
         Index("ix_orders_current_status", "current_status"),
         Index("ix_orders_user_id", "user_id"),
         Index("ix_orders_order_code", "order_code", unique=True),
+        CheckConstraint(
+            "loyalty_points_earned >= 0", name="ck_orders_loyalty_points_earned_nonneg"
+        ),
     )
 
     order_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -356,6 +372,14 @@ class Order(Base):
     )
     promised_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False)
     delivery_reference: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Loyalty points credited to the user at placement. Stored so cancellation can
+    # reverse the exact amount even if the admin-configured accrual rate later changes.
+    loyalty_points_earned: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=False),
         nullable=False,
@@ -488,3 +512,39 @@ class OrderTracking(Base):
     staff: Mapped[User | None] = relationship(
         back_populates="tracking_logs", foreign_keys=[updated_by]
     )
+
+
+class BusinessSettings(Base):
+    __tablename__ = "business_settings"
+    # Names are bare suffixes; the metadata ``ck`` naming convention prefixes
+    # ``ck_business_settings_`` (see app/infra/db/base.py). The pre-existing
+    # singleton keeps its already-prefixed name for back-compat with migration 0015.
+    __table_args__ = (
+        CheckConstraint("id = 1", name="ck_business_settings_singleton"),
+        CheckConstraint("loyalty_accrual_rate > 0", name="accrual_rate_positive"),
+        CheckConstraint("loyalty_redeem_value_vnd > 0", name="redeem_value_positive"),
+        CheckConstraint(
+            "loyalty_max_redeem_pct > 0 AND loyalty_max_redeem_pct <= 1",
+            name="max_redeem_pct_fraction",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
+    timezone: Mapped[str] = mapped_column(String(64), nullable=False)
+    loyalty_accrual_rate: Mapped[int] = mapped_column(Integer, nullable=False)
+    loyalty_redeem_value_vnd: Mapped[int] = mapped_column(Integer, nullable=False)
+    loyalty_max_redeem_pct: Mapped[Decimal] = mapped_column(Numeric(3, 2), nullable=False)
+
+
+class DeliveryWardFee(Base):
+    __tablename__ = "delivery_ward_fees"
+    __table_args__ = (
+        UniqueConstraint("ward_name", name="uq_delivery_ward_fees_name"),
+        UniqueConstraint("ward_normalized", name="uq_delivery_ward_fees_normalized"),
+        CheckConstraint("fee_vnd >= 0", name="ck_delivery_ward_fees_nonneg"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ward_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    ward_normalized: Mapped[str] = mapped_column(String(128), nullable=False)
+    fee_vnd: Mapped[int] = mapped_column(Integer, nullable=False)

@@ -6,3 +6,7 @@ export type DeliveryConfigOut = components["schemas"]["DeliveryConfigOut"];
 export function getDeliveryConfig(): Promise<DeliveryConfigOut> {
   return apiFetch<DeliveryConfigOut>("/config/delivery");
 }
+
+export type BusinessConfig = components["schemas"]["BusinessConfigOut"];
+
+export const getBusinessConfig = () => apiFetch<BusinessConfig>("/config/business");

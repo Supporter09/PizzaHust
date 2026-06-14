@@ -4,9 +4,13 @@ import type { components } from "@/lib/api/types";
 export type AdminGroup = components["schemas"]["GroupOut"];
 export type AdminItemOptionGroup = components["schemas"]["ItemOptionGroupOut"];
 export type AdminItemOption = components["schemas"]["ItemOptionOut"];
+export type AdminCategoryOptionGroup = components["schemas"]["CategoryOptionGroupOut"];
 
 export const listItemOptions = (productId: number) =>
   apiFetch<AdminItemOptionGroup[]>(`/admin/items/${productId}/options`);
+
+export const listCategoryOptionGroups = (categoryId: number) =>
+  apiFetch<AdminCategoryOptionGroup[]>(`/admin/categories/${categoryId}/option-groups`);
 
 export const replaceItemOptions = (productId: number, optionIds: number[]) =>
   apiFetch<AdminItemOptionGroup[]>(`/admin/items/${productId}/options`, {

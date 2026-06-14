@@ -23,9 +23,11 @@ from app.api.cart_store import load_cart, now_naive_utc
 from app.api.carts import _quote_line_from_row
 from app.core.errors import APIError
 from app.domain.combo_slots import pick_surcharge
+from app.domain.loyalty import compute_accrual_points
 from app.domain.order_code import generate_order_code
 from app.domain.pricing import CartLine as PricingLine
 from app.domain.pricing import PricingError, compute_order_total
+from app.infra import settings_service
 from app.infra.auth.csrf import enforce_csrf
 from app.infra.auth.rate_limit import enforce_track_rate_limit
 from app.infra.auth.session_state import read_session
@@ -42,6 +44,7 @@ from app.infra.db.models import (
     OrderStatus,
     OrderTracking,
     Product,
+    User,
 )
 
 router = APIRouter(prefix="/api/orders", tags=["orders"])
@@ -134,6 +137,8 @@ def quote_cart_for_placement(
         except APIError as exc:
             raise _attach_api_line_id(exc, row.line_id) from exc
     district = address.administrative_unit
+    ward_fees = settings_service.get_ward_fees(db)
+    s = settings_service.get_business_settings(db)
     try:
         quote = compute_order_total(
             lines=pricing_lines,
@@ -141,6 +146,9 @@ def quote_cart_for_placement(
             combo_discount_vnd=combo_discount,
             redeem_points=redeem_points,
             current_points=0,
+            ward_fees=ward_fees,
+            redeem_value_vnd=s.loyalty_redeem_value_vnd,
+            max_redeem_pct=s.loyalty_max_redeem_pct,
         )
     except PricingError as exc:
         status = 422 if exc.code in {"OUT_OF_SERVICE_AREA", "INSUFFICIENT_LOYALTY"} else 400
@@ -314,6 +322,15 @@ def place_order(
     promised_at = now_naive_utc() + timedelta(minutes=settings.order_promised_time_default_min)
     session = read_session(request)
 
+    # Loyalty accrual: credit a logged-in customer for what they spent on goods
+    # after discounts (subtotal minus combo and loyalty discounts, excluding the
+    # delivery fee), at the admin-configured rate. Guests earn nothing.
+    earned_points = 0
+    if session.user_id is not None:
+        accrual_base = quote.subtotal_vnd - quote.discount_combo_vnd - quote.discount_loyalty_vnd
+        accrual_rate = settings_service.get_business_settings(db).loyalty_accrual_rate
+        earned_points = compute_accrual_points(accrual_base, accrual_rate=accrual_rate)
+
     order = Order(
         order_code=unique_order_code(db),
         user_id=session.user_id,
@@ -326,9 +343,16 @@ def place_order(
         delivery_fee_vnd=quote.delivery_fee_vnd,
         promised_at=promised_at,
         current_status=OrderStatus.RECEIVED,
+        loyalty_points_earned=earned_points,
     )
     db.add(order)
     db.flush()
+
+    if earned_points:  # implies session.user_id is not None (set only in that branch)
+        user = db.get(User, session.user_id)
+        if user is not None:
+            user.current_points += earned_points
+            user.total_points_earned += earned_points
 
     for row in cart.lines:
         quote_line = _quote_line_from_row(db, row)

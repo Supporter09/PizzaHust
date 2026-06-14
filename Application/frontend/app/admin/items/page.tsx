@@ -7,10 +7,10 @@ import { ApiClientError, apiFetch } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
 import Breadcrumb from "@/components/admin/Breadcrumb";
 import SearchBar from "@/components/admin/SearchBar";
+import { ItemRowActions } from "@/components/admin/item-row-actions";
 
 type ItemOut = components["schemas"]["ItemOut"];
 type CategoryOut = components["schemas"]["CategoryOut"];
-type Kind = "pizza" | "side";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api";
 const ASSET_ORIGIN = API_BASE.replace(/\/api\/?$/, "");
@@ -18,29 +18,26 @@ const imageSrc = (url: string) => (url.startsWith("http") ? url : `${ASSET_ORIGI
 const vnd = (n: number) => `${n.toLocaleString("vi-VN")}₫`;
 const msg = (e: unknown) => (e instanceof ApiClientError ? e.message : String(e));
 
-const EMPTY = { name: "", category_id: "", base_price_vnd: "" };
-
 export default function ItemsPage() {
-  const [kind, setKind] = useState<Kind>("pizza");
+  const [categoryId, setCategoryId] = useState<number | null>(null);
   const [items, setItems] = useState<ItemOut[]>([]);
   const [categories, setCategories] = useState<CategoryOut[]>([]);
   const [search, setSearch] = useState("");
+  const [showInactive, setShowInactive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [form, setForm] = useState(EMPTY);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editActive, setEditActive] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [confirmId, setConfirmId] = useState<number | null>(null);
-  const [uploadingId, setUploadingId] = useState<number | null>(null);
-  const [showForm, setShowForm] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
+    const params = new URLSearchParams();
+    if (!showInactive) params.set("active", "true");
+    if (categoryId !== null) params.set("category_id", String(categoryId));
+    const qs = params.toString();
     try {
       const [its, cats] = await Promise.all([
-        apiFetch<ItemOut[]>(`/admin/items?kind=${kind}`),
+        apiFetch<ItemOut[]>(`/admin/items${qs ? `?${qs}` : ""}`),
         apiFetch<CategoryOut[]>(`/admin/categories`),
       ]);
       setItems(its);
@@ -51,11 +48,9 @@ export default function ItemsPage() {
     } finally {
       setLoading(false);
     }
-  }, [kind]);
+  }, [categoryId, showInactive]);
 
   useEffect(() => {
-    // Defer to a macrotask so the loader's setState is not called synchronously
-    // within the effect body (react-hooks/set-state-in-effect).
     const t = setTimeout(() => {
       void load();
     }, 0);
@@ -65,43 +60,11 @@ export default function ItemsPage() {
   const activeCategories = categories.filter((c) => c.is_active);
   const catName = (id: number) => categories.find((c) => c.category_id === id)?.name ?? `#${id}`;
 
-  function resetForm() {
-    setForm(EMPTY);
-    setEditingId(null);
-    setEditActive(true);
-    setShowForm(false);
-  }
-
-  function startEdit(it: ItemOut) {
-    setEditingId(it.product_id);
-    setEditActive(it.is_active);
-    setForm({
-      name: it.name,
-      category_id: String(it.category_id),
-      base_price_vnd: String(it.base_price_vnd),
-    });
-    setShowForm(true);
-  }
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  async function remove(id: number, hard: boolean) {
     setBusy(true);
     setError("");
-    const category_id = Number(form.category_id);
-    const base_price_vnd = Number(form.base_price_vnd);
     try {
-      if (editingId === null) {
-        await apiFetch("/admin/items", {
-          method: "POST",
-          body: JSON.stringify({ name: form.name, category_id, base_price_vnd, kind }),
-        });
-      } else {
-        await apiFetch(`/admin/items/${editingId}`, {
-          method: "PATCH",
-          body: JSON.stringify({ name: form.name, category_id, base_price_vnd, is_active: editActive }),
-        });
-      }
-      resetForm();
+      await apiFetch(`/admin/items/${id}${hard ? "?hard=true" : ""}`, { method: "DELETE" });
       await load();
     } catch (e) {
       setError(msg(e));
@@ -110,22 +73,23 @@ export default function ItemsPage() {
     }
   }
 
-  async function remove(id: number) {
+  async function restore(id: number) {
     setBusy(true);
     setError("");
     try {
-      await apiFetch(`/admin/items/${id}`, { method: "DELETE" });
+      await apiFetch(`/admin/items/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ is_active: true }),
+      });
       await load();
     } catch (e) {
       setError(msg(e));
     } finally {
-      setConfirmId(null);
       setBusy(false);
     }
   }
 
   async function uploadImage(id: number, file: File) {
-    setUploadingId(id);
     setError("");
     try {
       const fd = new FormData();
@@ -134,13 +98,10 @@ export default function ItemsPage() {
       await load();
     } catch (e) {
       setError(msg(e));
-    } finally {
-      setUploadingId(null);
     }
   }
 
   const visible = items.filter((it) => it.name.toLowerCase().includes(search.toLowerCase()));
-  const noCategories = activeCategories.length === 0;
 
   return (
     <div>
@@ -150,137 +111,62 @@ export default function ItemsPage() {
           <h1 className="text-2xl font-semibold text-fg">Menu Management</h1>
           <span className="text-sm text-muted">{visible.length} shown</span>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            if (showForm) {
-              resetForm();
-            } else {
-              setEditingId(null);
-              setForm(EMPTY);
-              setEditActive(true);
-              setShowForm(true);
-            }
-          }}
+        <Link
+          href="/admin/items/new"
           className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
         >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
           Add New Item
-        </button>
+        </Link>
       </div>
 
-      <div className="mb-4 inline-flex rounded-lg border border-line bg-card p-0.5" role="tablist">
-        {(["pizza", "side"] as const).map((k) => (
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex flex-wrap gap-0.5 rounded-lg border border-line bg-card p-0.5" role="tablist">
           <button
-            key={k}
+            type="button"
             role="tab"
-            aria-selected={kind === k}
+            aria-selected={categoryId === null}
             onClick={() => {
-              setKind(k);
-              resetForm();
+              setCategoryId(null);
               setSearch("");
             }}
             className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-              kind === k ? "bg-brand text-on-brand" : "text-muted hover:text-fg"
+              categoryId === null ? "bg-brand text-on-brand" : "text-muted hover:text-fg"
             }`}
           >
-            {k === "pizza" ? "Pizzas" : "Side Dishes"}
+            All
           </button>
-        ))}
+          {activeCategories.map((c) => (
+            <button
+              key={c.category_id}
+              type="button"
+              role="tab"
+              aria-selected={categoryId === c.category_id}
+              onClick={() => {
+                setCategoryId(c.category_id);
+                setSearch("");
+              }}
+              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                categoryId === c.category_id ? "bg-brand text-on-brand" : "text-muted hover:text-fg"
+              }`}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+        <label className="flex items-center gap-2 text-sm text-muted">
+          <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
+          Show inactive
+        </label>
       </div>
 
       {error && (
         <div className="mb-4 rounded-md border border-danger bg-danger-subtle px-4 py-3 text-sm text-fg">
           {error}
         </div>
-      )}
-
-      {showForm && (
-        <form
-          onSubmit={submit}
-          className="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-line bg-card p-4 sm:grid-cols-2 lg:grid-cols-4"
-        >
-        <div className="lg:col-span-2">
-          <label className="mb-1 block text-xs font-medium text-muted">Name</label>
-          <input
-            required
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-muted">Category</label>
-          <select
-            required
-            value={form.category_id}
-            onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-            className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
-          >
-            <option value="" disabled>
-              Select…
-            </option>
-            {activeCategories.map((c) => (
-              <option key={c.category_id} value={c.category_id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-muted">Price (VND)</label>
-          <input
-            required
-            type="number"
-            min={0}
-            value={form.base_price_vnd}
-            onChange={(e) => setForm({ ...form, base_price_vnd: e.target.value })}
-            className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
-          />
-        </div>
-        <div className="flex items-center gap-3 sm:col-span-2 lg:col-span-4">
-          {editingId !== null && (
-            <label className="flex items-center gap-2 text-sm text-fg">
-              <input
-                type="checkbox"
-                checked={editActive}
-                onChange={(e) => setEditActive(e.target.checked)}
-              />
-              Active
-            </label>
-          )}
-          <button
-            type="submit"
-            disabled={busy || noCategories}
-            className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50"
-          >
-            {editingId === null ? `Add ${kind === "pizza" ? "pizza" : "side dish"}` : "Save changes"}
-          </button>
-          <button
-            type="button"
-            onClick={resetForm}
-            className="rounded-lg border border-line px-4 py-2 text-sm text-muted hover:bg-surface"
-          >
-            Cancel
-          </button>
-          {noCategories && (
-            <span className="text-sm text-warning">Add an active category first.</span>
-          )}
-        </div>
-        </form>
       )}
 
       <div className="mb-4">
@@ -292,10 +178,7 @@ export default function ItemsPage() {
           <thead className="bg-surface">
             <tr>
               {["Image", "Name", "Category", "Price", "Status", ""].map((h) => (
-                <th
-                  key={h}
-                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted"
-                >
+                <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">
                   {h}
                 </th>
               ))}
@@ -336,10 +219,7 @@ export default function ItemsPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 font-medium">
-                    <Link
-                      href={`/admin/items/${it.product_id}`}
-                      className="text-brand hover:underline"
-                    >
+                    <Link href={`/admin/items/${it.product_id}`} className="text-brand hover:underline">
                       {it.name}
                     </Link>
                   </td>
@@ -359,106 +239,13 @@ export default function ItemsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        type="button"
-                        onClick={() => startEdit(it)}
-                        aria-label={`Edit ${it.name}`}
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-hover hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-                      >
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          aria-hidden="true"
-                        >
-                          <path d="M12 20h9" />
-                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                        </svg>
-                      </button>
-                      <label
-                        aria-label={`Change image for ${it.name}`}
-                        className="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-hover hover:text-fg focus-within:outline-none focus-within:ring-2 focus-within:ring-brand/40"
-                      >
-                        {uploadingId === it.product_id ? (
-                          <span className="text-xs">…</span>
-                        ) : (
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden="true"
-                          >
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                            <circle cx="8.5" cy="8.5" r="1.5" />
-                            <path d="m21 15-5-5L5 21" />
-                          </svg>
-                        )}
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/webp"
-                          className="hidden"
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) void uploadImage(it.product_id, f);
-                            e.target.value = "";
-                          }}
-                        />
-                      </label>
-                      {confirmId === it.product_id ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => void remove(it.product_id)}
-                            disabled={busy}
-                            className="inline-flex h-11 items-center justify-center rounded-lg bg-danger-solid px-3 text-xs font-medium text-on-brand hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-                          >
-                            Confirm
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setConfirmId(null)}
-                            className="inline-flex h-11 items-center justify-center rounded-lg px-3 text-xs font-medium text-muted hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setConfirmId(it.product_id)}
-                          aria-label={`Delete ${it.name}`}
-                          className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-danger transition-colors hover:bg-danger-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-                        >
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden="true"
-                          >
-                            <path d="M3 6h18" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                            <line x1="10" y1="11" x2="10" y2="17" />
-                            <line x1="14" y1="11" x2="14" y2="17" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
+                    <ItemRowActions
+                      item={it}
+                      busy={busy}
+                      onUpload={(f) => uploadImage(it.product_id, f)}
+                      onDelete={(hard) => remove(it.product_id, hard)}
+                      onRestore={() => restore(it.product_id)}
+                    />
                   </td>
                 </tr>
               ))}

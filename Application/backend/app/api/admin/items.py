@@ -10,7 +10,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, File, UploadFile
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.api import images as images_mod
@@ -19,7 +19,19 @@ from app.core.errors import APIError
 from app.domain import gallery
 from app.infra.auth import require_role
 from app.infra.db.deps import get_db
-from app.infra.db.models import Category, Combo, ComboItem, Product, ProductImage, User, UserRole
+from app.infra.db.models import (
+    Category,
+    Combo,
+    ComboItem,
+    Option,
+    OptionGroup,
+    OrderItem,
+    Product,
+    ProductImage,
+    ProductOption,
+    User,
+    UserRole,
+)
 
 router = APIRouter(prefix="/api/admin/items", tags=["admin-items"])
 require_admin = require_role(UserRole.ADMIN)
@@ -74,6 +86,19 @@ def _require_active_category(db: Session, category_id: int) -> None:
         )
 
 
+def _apply_category_preset(db: Session, product: Product) -> None:
+    """Seed per-dish option enablement from the category's own option groups
+    (a category's groups ARE its preset; a category with no groups is a no-op)."""
+    option_ids = db.scalars(
+        select(Option.option_id)
+        .join(OptionGroup, OptionGroup.group_id == Option.group_id)
+        .where(OptionGroup.category_id == product.category_id)
+    ).all()
+    for oid in option_ids:
+        db.add(ProductOption(product_id=product.product_id, option_id=oid))
+    db.flush()
+
+
 @router.get("", response_model=list[ItemOut])
 def list_items(
     kind: Literal["pizza", "side"] | None = None,
@@ -111,6 +136,7 @@ def create_item(
     )
     db.add(p)
     db.flush()
+    _apply_category_preset(db, p)
     return ItemOut.model_validate(p)
 
 
@@ -145,16 +171,22 @@ def patch_item(
         )
     if body.category_id is not None:
         _require_active_category(db, body.category_id)
+    old_category_id = p.category_id
     for field in ("category_id", "name", "base_price_vnd", "is_active"):
         val = getattr(body, field)
         if val is not None:
             setattr(p, field, val)
+    if body.category_id is not None and body.category_id != old_category_id:
+        db.execute(delete(ProductOption).where(ProductOption.product_id == product_id))
+        db.flush()
+        _apply_category_preset(db, p)
     return ItemOut.model_validate(p)
 
 
 @router.delete("/{product_id}", status_code=204)
 def delete_item(
     product_id: int,
+    hard: bool = False,
     db: Session = Depends(get_db, scope="function"),
     _a: User = Depends(require_admin),
 ) -> None:
@@ -173,7 +205,29 @@ def delete_item(
             status_code=409,
             details={"combos": [c.name for c in combos]},
         )
-    p.is_active = False
+    if not hard:
+        p.is_active = False
+        return
+    # Hard delete: only safe when no order history references the product
+    # (OrderItem.product_id is RESTRICT). Clean up product_options explicitly so
+    # the result is identical under SQLite (tests) and MySQL FK cascades.
+    if (
+        db.scalar(
+            select(OrderItem.order_item_id).where(OrderItem.product_id == product_id).limit(1)
+        )
+        is not None
+    ):
+        raise APIError(
+            code="CONFLICT",
+            message="Item appears in past orders and cannot be permanently deleted.",
+            status_code=409,
+        )
+    db.execute(delete(ProductOption).where(ProductOption.product_id == product_id))
+    # ORM cascade removes the product_images rows, but the blobs they point at are
+    # outside the DB — drop them first so a hard delete leaves no orphaned files.
+    for img in p.images:
+        images_mod.remove_blob(img.url)
+    db.delete(p)
 
 
 def _locked_product(db: Session, product_id: int) -> Product:
