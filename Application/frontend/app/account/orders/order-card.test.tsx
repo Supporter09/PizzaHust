@@ -169,4 +169,76 @@ describe("OrderCard", () => {
     expect(push).not.toHaveBeenCalled();
     await waitFor(() => expect(refresh).toHaveBeenCalled());
   });
+
+  it("detail fetch 404 shows order not found", async () => {
+    getMyOrder.mockRejectedValue(new ApiClientError("missing", 404));
+    render(<OrderCard summary={summary()} />);
+
+    fireEvent.click(screen.getByTestId("order-details-toggle"));
+
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("Order not found."),
+    );
+    expect(screen.queryByTestId("order-detail-panel")).toBeNull();
+  });
+
+  it("detail fetch generic failure shows load error", async () => {
+    getMyOrder.mockRejectedValue(new ApiClientError("boom", 500));
+    render(<OrderCard summary={summary()} />);
+
+    fireEvent.click(screen.getByTestId("order-details-toggle"));
+
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("Couldn't load order details."),
+    );
+  });
+
+  it("detail fetch non-ApiClientError shows load error", async () => {
+    getMyOrder.mockRejectedValue(new Error("network"));
+    render(<OrderCard summary={summary()} />);
+
+    fireEvent.click(screen.getByTestId("order-details-toggle"));
+
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("Couldn't load order details."),
+    );
+  });
+
+  it("reorder 401 redirects to login", async () => {
+    reorder.mockRejectedValue(new ApiClientError("unauth", 401));
+    render(<OrderCard summary={summary()} />);
+
+    fireEvent.click(screen.getByTestId("order-reorder"));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/login"));
+    expect(refresh).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("order-reorder-error")).toBeNull();
+  });
+
+  it("reorder 404 shows order not found", async () => {
+    reorder.mockRejectedValue(new ApiClientError("missing", 404));
+    render(<OrderCard summary={summary()} />);
+
+    fireEvent.click(screen.getByTestId("order-reorder"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("order-reorder-error")).toHaveTextContent("Order not found."),
+    );
+    expect(push).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("reorder generic failure shows try again message", async () => {
+    reorder.mockRejectedValue(new ApiClientError("boom", 500));
+    render(<OrderCard summary={summary()} />);
+
+    fireEvent.click(screen.getByTestId("order-reorder"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("order-reorder-error")).toHaveTextContent(
+        "Couldn't reorder — try again.",
+      ),
+    );
+    expect(push).not.toHaveBeenCalled();
+  });
 });
