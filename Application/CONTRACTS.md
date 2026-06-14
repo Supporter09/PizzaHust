@@ -115,7 +115,8 @@ Error codes (closed set, extend in this doc only):
 |---|---|---|
 | GET | `/api/orders/track/{code}` | Public, rate-limited. Returns minimal projection |
 | GET | `/api/orders/me` | Customer order history (auth required) |
-| GET | `/api/orders/me/{id}` | Customer order detail (auth required) |
+| GET | `/api/orders/me/{order_code}` | Customer order detail (auth required) |
+| POST | `/api/orders/me/{order_code}/reorder` | Best-effort rebuild into session cart; CSRF; `ReorderResultOut` |
 
 ### Auth & profile (U8, U9, U12, U13)
 
