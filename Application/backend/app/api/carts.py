@@ -364,24 +364,7 @@ def _line_in_session(cart: Cart, line_id: int) -> CartLine | None:
     return None
 
 
-@router.get("", response_model=CartOut)
-def get_cart(
-    request: Request,
-    response: Response,
-    db: Session = Depends(get_db, scope="function"),
-    settings: Settings = Depends(get_settings_dependency),
-) -> CartOut:
-    return _render_cart(db, request, response, settings)
-
-
-@router.post("/lines", response_model=CartOut, dependencies=[Depends(enforce_csrf)])
-def add_cart_line(
-    body: AddLineIn,
-    request: Request,
-    response: Response,
-    db: Session = Depends(get_db, scope="function"),
-    settings: Settings = Depends(get_settings_dependency),
-) -> CartOut:
+def append_line_to_cart(db: Session, cart: Cart, body: AddLineIn) -> None:
     note: str | None = None
     if isinstance(body, AddItemLineIn):
         resolve_item_line(db, body)
@@ -409,7 +392,6 @@ def add_cart_line(
         }
         quantity = body.quantity
 
-    cart = ensure_cart(db, request)
     stored = canonical_payload(raw)
     db.add(
         CartLine(
@@ -420,6 +402,28 @@ def add_cart_line(
         )
     )
     touch_and_gc(db, cart)
+
+
+@router.get("", response_model=CartOut)
+def get_cart(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db, scope="function"),
+    settings: Settings = Depends(get_settings_dependency),
+) -> CartOut:
+    return _render_cart(db, request, response, settings)
+
+
+@router.post("/lines", response_model=CartOut, dependencies=[Depends(enforce_csrf)])
+def add_cart_line(
+    body: AddLineIn,
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db, scope="function"),
+    settings: Settings = Depends(get_settings_dependency),
+) -> CartOut:
+    cart = ensure_cart(db, request)
+    append_line_to_cart(db, cart, body)
     db.commit()
     db.refresh(cart)
     return _render_cart(db, request, response, settings)
