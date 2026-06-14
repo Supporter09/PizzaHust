@@ -219,7 +219,7 @@ export function Ticket({
           onClick={accept}
           disabled={pending}
           aria-busy={pending}
-          className="min-h-11 w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-brand-fg disabled:opacity-60"
+          className="min-h-11 w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-on-brand disabled:opacity-60"
         >
           {pending ? "Accepting…" : "Accept Order"}
         </button>
@@ -247,7 +247,7 @@ export function Ticket({
                 onClick={pickup}
                 disabled={pending}
                 aria-busy={pending}
-                className="min-h-11 flex-1 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-brand-fg disabled:opacity-60"
+                className="min-h-11 flex-1 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-on-brand disabled:opacity-60"
               >
                 {pending ? "Confirming…" : "Yes, picked up"}
               </button>
