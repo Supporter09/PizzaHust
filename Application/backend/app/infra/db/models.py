@@ -338,6 +338,9 @@ class Order(Base):
         Index("ix_orders_current_status", "current_status"),
         Index("ix_orders_user_id", "user_id"),
         Index("ix_orders_order_code", "order_code", unique=True),
+        CheckConstraint(
+            "loyalty_points_earned >= 0", name="ck_orders_loyalty_points_earned_nonneg"
+        ),
     )
 
     order_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -369,6 +372,14 @@ class Order(Base):
     )
     promised_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False)
     delivery_reference: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Loyalty points credited to the user at placement. Stored so cancellation can
+    # reverse the exact amount even if the admin-configured accrual rate later changes.
+    loyalty_points_earned: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=False),
         nullable=False,
