@@ -31,7 +31,7 @@ def get_business_settings(db: Session) -> BusinessSettingsData:
             timezone=_DEFAULT_TIMEZONE,
             loyalty_accrual_rate=LOYALTY_ACCRUAL_RATE,
             loyalty_redeem_value_vnd=LOYALTY_REDEEM_VALUE_VND,
-            loyalty_max_redeem_pct=float(LOYALTY_MAX_REDEEM_PCT),
+            loyalty_max_redeem_pct=LOYALTY_MAX_REDEEM_PCT,
         )
     return BusinessSettingsData(
         timezone=row.timezone,
