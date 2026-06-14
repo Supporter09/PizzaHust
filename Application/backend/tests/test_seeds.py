@@ -1,8 +1,20 @@
 from __future__ import annotations
 
+from decimal import Decimal
+
 from sqlalchemy import func, select
 
-from app.infra.db.models import Category, Option, OptionGroup, Order, Product, ProductOption
+from app.domain.service_area import INNER_HANOI_WARDS, _fold
+from app.infra.db.models import (
+    BusinessSettings,
+    Category,
+    DeliveryWardFee,
+    Option,
+    OptionGroup,
+    Order,
+    Product,
+    ProductOption,
+)
 from app.infra.db.session import create_session_factory
 from app.seeds.run import main as run_seeds
 from tests.auth_test_utils import build_test_app
@@ -168,3 +180,52 @@ def test_option_groups_idempotent_no_duplicates_after_second_run():
         assert g_size is not None
         assert g_size.select_type == "single"
         assert g_size.required is True
+
+
+def test_seed_business_settings_singleton():
+    """Seed must create exactly one BusinessSettings row with the correct defaults."""
+    build_test_app("seed-biz-settings")
+    run_seeds()
+
+    with create_session_factory()() as db:
+        row = db.get(BusinessSettings, 1)
+        assert row is not None
+        assert row.id == 1
+        assert row.timezone == "Asia/Ho_Chi_Minh"
+        assert row.loyalty_accrual_rate == 10_000
+        assert row.loyalty_redeem_value_vnd == 1_000
+        assert row.loyalty_max_redeem_pct == Decimal("0.5")
+
+    # Second run must not error and must not change the row count (still 1).
+    run_seeds()
+
+    with create_session_factory()() as db:
+        count = db.scalar(select(func.count()).select_from(BusinessSettings))
+        assert count == 1
+
+
+def test_seed_delivery_ward_fees():
+    """Seed must create one DeliveryWardFee row per INNER_HANOI_WARDS entry."""
+    build_test_app("seed-ward-fees")
+    run_seeds()
+
+    expected_count = len(INNER_HANOI_WARDS)
+
+    with create_session_factory()() as db:
+        rows = db.scalars(select(DeliveryWardFee)).all()
+        assert len(rows) == expected_count
+
+        normalized_in_db = {r.ward_normalized for r in rows}
+        expected_normalized = {_fold(w) for w in INNER_HANOI_WARDS}
+        assert normalized_in_db == expected_normalized
+
+        for row in rows:
+            assert row.fee_vnd == 22_000
+            assert row.ward_normalized == _fold(row.ward_name)
+
+    # Second run must not duplicate rows.
+    run_seeds()
+
+    with create_session_factory()() as db:
+        count = db.scalar(select(func.count()).select_from(DeliveryWardFee))
+        assert count == expected_count
