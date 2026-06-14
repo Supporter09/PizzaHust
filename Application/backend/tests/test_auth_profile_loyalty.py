@@ -12,6 +12,23 @@ from app.seeds.run import main as run_seeds
 from tests.auth_test_utils import build_test_app
 
 
+def _order(user_id, code, points, status_, created):
+    from app.infra.db.models import Order
+
+    return Order(
+        user_id=user_id,
+        order_code=code,
+        recipient_name="Loy Alty",
+        recipient_phone="0908888888",
+        delivery_address="1 Test St",
+        total_amount_vnd=100_000,
+        promised_at=created,
+        current_status=status_,
+        loyalty_points_earned=points,
+        created_at=created,
+    )
+
+
 def test_auth_me_profile_and_loyalty_flow() -> None:
     app_instance = build_test_app("auth-profile")
 
@@ -132,7 +149,11 @@ def test_avatar_delete_is_idempotent(tmp_path, monkeypatch) -> None:
         async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
             await client.post(
                 "/api/auth/register",
-                json={"full_name": "Del Ete", "phone_number": "0906666666", "password": "strongpass123"},
+                json={
+                    "full_name": "Del Ete",
+                    "phone_number": "0906666666",
+                    "password": "strongpass123",
+                },
             )
             await client.post(
                 "/api/auth/login",
@@ -145,11 +166,19 @@ def test_avatar_delete_is_idempotent(tmp_path, monkeypatch) -> None:
                 files={"image": ("a.png", b"\x89PNGfake", "image/png")},
                 headers={"X-CSRF-Token": csrf},
             )
-            d1 = await client.request("DELETE", "/api/auth/me/avatar", headers={"X-CSRF-Token": csrf})
+            d1 = await client.request(
+                "DELETE",
+                "/api/auth/me/avatar",
+                headers={"X-CSRF-Token": csrf},
+            )
             assert d1.status_code == 200
             assert d1.json()["avatar_url"] is None
 
-            d2 = await client.request("DELETE", "/api/auth/me/avatar", headers={"X-CSRF-Token": csrf})
+            d2 = await client.request(
+                "DELETE",
+                "/api/auth/me/avatar",
+                headers={"X-CSRF-Token": csrf},
+            )
             assert d2.status_code == 200
             assert d2.json()["avatar_url"] is None
 
@@ -164,7 +193,11 @@ def test_change_password_keeps_session_and_validates() -> None:
         async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
             await client.post(
                 "/api/auth/register",
-                json={"full_name": "Pass Word", "phone_number": "0907777777", "password": "oldpass123"},
+                json={
+                    "full_name": "Pass Word",
+                    "phone_number": "0907777777",
+                    "password": "oldpass123",
+                },
             )
             await client.post(
                 "/api/auth/login",
@@ -219,3 +252,70 @@ def test_seed_creates_admin_and_kitchen_users() -> None:
         assert admin.role == UserRole.ADMIN
         assert kitchen is not None
         assert kitchen.role == UserRole.KITCHEN
+
+
+def test_loyalty_history_lists_earns_excludes_cancelled() -> None:
+    from datetime import datetime, timedelta
+
+    from app.infra.db.models import OrderStatus, User
+    from app.infra.db.session import create_session_factory
+
+    app_instance = build_test_app("loyalty-history")
+
+    async def scenario() -> None:
+        transport = httpx.ASGITransport(app=app_instance)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            await client.post(
+                "/api/auth/register",
+                json={
+                    "full_name": "Loy Alty",
+                    "phone_number": "0908888888",
+                    "password": "strongpass123",
+                },
+            )
+            await client.post(
+                "/api/auth/login",
+                json={"phone_number": "0908888888", "password": "strongpass123"},
+            )
+
+            empty = await client.get("/api/loyalty/me/history")
+            assert empty.status_code == 200
+            assert empty.json() == []
+
+            with create_session_factory()() as s:
+                uid = s.scalar(select(User.user_id).where(User.phone_number == "0908888888"))
+                base = datetime(2026, 4, 1)
+                s.add_all(
+                    [
+                        _order(
+                            uid,
+                            "PIZZ-AAAAAA",
+                            51,
+                            OrderStatus.DELIVERED,
+                            base + timedelta(days=2),
+                        ),
+                        _order(
+                            uid,
+                            "PIZZ-BBBBBB",
+                            25,
+                            OrderStatus.DELIVERED,
+                            base + timedelta(days=1),
+                        ),
+                        _order(
+                            uid,
+                            "PIZZ-CCCCCC",
+                            30,
+                            OrderStatus.CANCELLED,
+                            base + timedelta(days=3),
+                        ),
+                        _order(uid, "PIZZ-DDDDDD", 0, OrderStatus.DELIVERED, base),
+                    ]
+                )
+                s.commit()
+
+            hist = (await client.get("/api/loyalty/me/history")).json()
+            assert [r["label"] for r in hist] == ["Order PIZZ-AAAAAA", "Order PIZZ-BBBBBB"]
+            assert hist[0]["points_delta"] == 51
+            assert hist[0]["kind"] == "earn"
+
+    asyncio.run(scenario())
