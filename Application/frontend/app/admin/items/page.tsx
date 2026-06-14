@@ -8,13 +8,11 @@ import type { components } from "@/lib/api/types";
 import Breadcrumb from "@/components/admin/Breadcrumb";
 import SearchBar from "@/components/admin/SearchBar";
 import { ItemRowActions } from "@/components/admin/item-row-actions";
+import { imageSrc } from "@/lib/api/asset-url";
 
 type ItemOut = components["schemas"]["ItemOut"];
 type CategoryOut = components["schemas"]["CategoryOut"];
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api";
-const ASSET_ORIGIN = API_BASE.replace(/\/api\/?$/, "");
-const imageSrc = (url: string) => (url.startsWith("http") ? url : `${ASSET_ORIGIN}${url}`);
 const vnd = (n: number) => `${n.toLocaleString("vi-VN")}₫`;
 const msg = (e: unknown) => (e instanceof ApiClientError ? e.message : String(e));
 
