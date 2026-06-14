@@ -27,7 +27,14 @@ export function trackOrder(code: string): Promise<TrackOut> {
   return apiFetch<TrackOut>(`/orders/track/${encoded}`);
 }
 
-export function listMyOrders(params?: ListMyOrdersParams): Promise<MyOrderSummaryOut[]> {
+export function listMyOrders(
+  pageOrParams?: number | ListMyOrdersParams,
+  pageSize?: number,
+): Promise<MyOrderSummaryOut[]> {
+  const params: ListMyOrdersParams =
+    typeof pageOrParams === "number"
+      ? { page: pageOrParams, page_size: pageSize ?? 20 }
+      : (pageOrParams ?? {});
   const search = new URLSearchParams();
   if (params?.page !== undefined) {
     search.set("page", String(params.page));

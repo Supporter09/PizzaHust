@@ -13,6 +13,7 @@ import {
   type MyOrderDetailOut,
   type MyOrderLineOut,
   type MyOrderSummaryOut,
+  type ReorderResultOut,
 } from "@/lib/api/orders";
 import { formatVnd } from "@/lib/format";
 
@@ -94,7 +95,13 @@ function OrderDetailPanel({ detail }: { detail: MyOrderDetailOut }) {
   );
 }
 
-export function OrderCard({ summary }: { summary: MyOrderSummaryOut }) {
+export function OrderCard({
+  summary,
+  onReorderResult,
+}: {
+  summary: MyOrderSummaryOut;
+  onReorderResult?: (result: ReorderResultOut) => void;
+}) {
   const router = useRouter();
   const { refresh } = useCart();
   const [expanded, setExpanded] = useState(false);
@@ -135,6 +142,7 @@ export function OrderCard({ summary }: { summary: MyOrderSummaryOut }) {
     setReorderError(null);
     try {
       const result = await reorder(summary.order_code);
+      onReorderResult?.(result);
       await refresh();
       if (result.added_count > 0) {
         if (result.unavailable.length > 0) {
