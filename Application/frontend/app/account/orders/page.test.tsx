@@ -50,11 +50,30 @@ describe("OrdersPage", () => {
     });
   });
 
+  it("shows back link above the title per layout", async () => {
+    listMyOrders.mockResolvedValue([]);
+    render(<OrdersPage />);
+    await waitFor(() => expect(screen.getByTestId("orders-back-link")).toBeInTheDocument());
+    expect(screen.getByTestId("orders-back-link")).toHaveAttribute("href", "/account");
+    expect(screen.getByRole("heading", { name: /order history/i })).toBeInTheDocument();
+  });
+
   it("renders one card per order", async () => {
     listMyOrders.mockResolvedValue([row("PIZZ-A1"), row("PIZZ-A2")]);
     render(<OrdersPage />);
     await waitFor(() => expect(screen.getAllByTestId("order-history-card")).toHaveLength(2));
     expect(listMyOrders).toHaveBeenCalledWith(1, 20);
+  });
+
+  it("shows an error when the list request fails", async () => {
+    listMyOrders.mockRejectedValue(new Error("network"));
+    render(<OrdersPage />);
+    await waitFor(() =>
+      expect(screen.getByTestId("orders-list-error")).toHaveTextContent(
+        /couldn't load your orders/i,
+      ),
+    );
+    expect(screen.queryByTestId("orders-list-loading")).not.toBeInTheDocument();
   });
 
   it("Load more fetches and appends the next page", async () => {
