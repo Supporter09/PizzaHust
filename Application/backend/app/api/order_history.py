@@ -314,9 +314,7 @@ def _combo_selections(
             option_ids = _recover_option_ids(db, child.product_id, child)
             if option_ids is None and child.options:
                 return None
-            picks.append(
-                ComboPickIn(product_id=child.product_id, option_ids=option_ids or [])
-            )
+            picks.append(ComboPickIn(product_id=child.product_id, option_ids=option_ids or []))
         selections.append(ComboSelectionIn(combo_item_id=ci.combo_item_id, picks=picks))
 
     if remaining:
