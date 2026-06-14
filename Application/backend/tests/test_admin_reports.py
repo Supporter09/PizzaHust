@@ -228,3 +228,35 @@ def test_sales_export_declares_csv_in_contract() -> None:
 
     assert "application/json" in content
     assert "text/csv" in content
+
+
+def test_reports_bucket_orders_into_business_timezone_day() -> None:
+    # 19:57 UTC on 2026-06-13 is 02:57 +07 on 2026-06-14: the order belongs to the
+    # +07 calendar day 2026-06-14, not the UTC day 2026-06-13.
+    client = admin_client("reports-tz-window")
+    customer = _new_customer(full_name="TZ Customer", phone_number="0905555555")
+    _seed_order(
+        user_id=customer,
+        order_code="PIZZ-RPT-TZ1",
+        created_at=datetime(2026, 6, 13, 19, 57),
+        status=OrderStatus.DELIVERED,
+        total_amount_vnd=180_000,
+        item_name="Pepperoni",
+        item_quantity=2,
+        item_unit_price_vnd=90_000,
+    )
+
+    sales = client.get("/api/admin/reports/sales?from=2026-06-14&to=2026-06-14")
+    assert sales.status_code == 200, sales.text
+    sales_rows = sales.json()
+    assert len(sales_rows) == 1
+    assert sales_rows[0]["date"] == "2026-06-14"
+    assert sales_rows[0]["order_count"] == 1
+    assert sales_rows[0]["revenue_vnd"] == 180_000
+
+    overview = client.get("/api/admin/reports/overview?from=2026-06-14&to=2026-06-14")
+    assert overview.status_code == 200, overview.text
+    series = overview.json()["series"]
+    by_day = {point["date"]: point for point in series}
+    assert by_day["2026-06-14"]["order_count"] == 1
+    assert by_day["2026-06-14"]["revenue_vnd"] == 180_000

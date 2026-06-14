@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -10,6 +10,8 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.domain.order_state import OrderTransitionError, transition
+from app.infra import settings_service
+from app.infra import timezone as tzmod
 from app.infra.auth import require_role
 from app.infra.config import Settings, get_settings_dependency
 from app.infra.db.deps import get_db
@@ -85,15 +87,19 @@ class OrderCancelIn(BaseModel):
     reason: str | None = None
 
 
-def _date_window(from_date: date | None, to_date: date | None) -> tuple[datetime, datetime]:
-    start = from_date or to_date or datetime.now().date()
+def _date_window(
+    from_date: date | None, to_date: date | None, db: Session
+) -> tuple[datetime, datetime]:
+    # The browser sends a business-tz calendar day; convert it to naive-UTC bounds
+    # (timestamps are stored naive UTC) so orders placed in the 00:00–07:00 +07
+    # window bucket into the right day.
+    tz = settings_service.get_business_settings(db).timezone
+    today = tzmod.business_today(tz)
+    start = from_date or to_date or today
     end = to_date or from_date or start
     if start > end:
         raise HTTPException(status_code=400, detail="VALIDATION_FAILED")
-    return (
-        datetime.combine(start, time.min),
-        datetime.combine(end + timedelta(days=1), time.min),
-    )
+    return tzmod.day_bounds(start, end, tz)
 
 
 def _summary_payload(order: Order, item_count: int) -> dict[str, object]:
@@ -178,7 +184,7 @@ def list_orders(
     db: Session = Depends(get_db, scope="function"),
     _admin: User = Depends(require_admin),
 ) -> list[OrderSummaryOut]:
-    start_dt, end_dt = _date_window(from_date, to_date)
+    start_dt, end_dt = _date_window(from_date, to_date, db)
     item_count_expr = (
         select(func.count(OrderItem.order_item_id))
         .where(OrderItem.order_id == Order.order_id)

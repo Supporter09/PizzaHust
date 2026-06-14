@@ -5,14 +5,17 @@ from __future__ import annotations
 import csv
 import io
 from collections import Counter, defaultdict
-from datetime import date, datetime, time, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Literal
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app.infra import settings_service
+from app.infra import timezone as tzmod
 from app.infra.auth import require_role
 from app.infra.db.deps import get_db
 from app.infra.db.models import Order, OrderItem, OrderStatus, User, UserRole
@@ -58,13 +61,15 @@ class ReportOverviewOut(BaseModel):
     top_items: list[ReportTopItemOut]
 
 
-def _date_bounds(start: date, end: date) -> tuple[datetime, datetime]:
+def _date_bounds(start: date, end: date, tz: str) -> tuple[datetime, datetime]:
     if start > end:
         raise HTTPException(status_code=400, detail="VALIDATION_FAILED")
-    return (
-        datetime.combine(start, time.min),
-        datetime.combine(end + timedelta(days=1), time.min),
-    )
+    return tzmod.day_bounds(start, end, tz)
+
+
+def _business_day(value: datetime, tz: str) -> date:
+    """Naive-UTC timestamp -> the business-tz calendar day it falls on."""
+    return value.replace(tzinfo=UTC).astimezone(ZoneInfo(tz)).date()
 
 
 def _item_name(item: OrderItem) -> str:
@@ -75,8 +80,8 @@ def _item_name(item: OrderItem) -> str:
     return "Unknown item"
 
 
-def _bucket_key(value: datetime, group_by: Literal["day", "week"]) -> str:
-    day = value.date()
+def _bucket_key(value: datetime, group_by: Literal["day", "week"], tz: str) -> str:
+    day = _business_day(value, tz)
     if group_by == "week":
         day = day - timedelta(days=day.weekday())
     return day.isoformat()
@@ -94,7 +99,8 @@ def _date_iter(start: date, end: date) -> list[date]:
 def _sales_rows(
     db: Session, start: date, end: date, group_by: Literal["day", "week"]
 ) -> list[SalesReportRowOut]:
-    start_dt, end_dt = _date_bounds(start, end)
+    tz = settings_service.get_business_settings(db).timezone
+    start_dt, end_dt = _date_bounds(start, end, tz)
     orders = db.scalars(
         select(Order)
         .options(
@@ -113,7 +119,7 @@ def _sales_rows(
         lambda: {"order_count": 0, "revenue_vnd": 0, "items": Counter()}
     )
     for order in orders:
-        key = _bucket_key(order.created_at, group_by)
+        key = _bucket_key(order.created_at, group_by, tz)
         bucket = buckets[key]
         bucket["order_count"] = int(bucket["order_count"]) + 1
         bucket["revenue_vnd"] = int(bucket["revenue_vnd"]) + order.total_amount_vnd
@@ -142,7 +148,8 @@ def _sales_rows(
 
 
 def _overview_payload(db: Session, start: date, end: date) -> ReportOverviewOut:
-    start_dt, end_dt = _date_bounds(start, end)
+    tz = settings_service.get_business_settings(db).timezone
+    start_dt, end_dt = _date_bounds(start, end, tz)
     orders = db.scalars(
         select(Order)
         .options(
@@ -166,7 +173,7 @@ def _overview_payload(db: Session, start: date, end: date) -> ReportOverviewOut:
     )
 
     for order in orders:
-        key = order.created_at.date().isoformat()
+        key = _business_day(order.created_at, tz).isoformat()
         bucket = daily.setdefault(key, {"order_count": 0, "revenue_vnd": 0})
         bucket["order_count"] += 1
         bucket["revenue_vnd"] += order.total_amount_vnd

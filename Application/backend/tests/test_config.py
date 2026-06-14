@@ -35,3 +35,12 @@ def test_loyalty_config_exposes_canonical_rules() -> None:
         "redeem_value_vnd": LOYALTY_REDEEM_VALUE_VND,
         "max_redeem_pct": LOYALTY_MAX_REDEEM_PCT,
     }
+
+
+def test_business_config_defaults_to_hanoi_timezone() -> None:
+    client = TestClient(build_test_app("config-business"))
+
+    resp = client.get("/api/config/business")
+
+    assert resp.status_code == 200
+    assert resp.json() == {"timezone": "Asia/Ho_Chi_Minh"}
