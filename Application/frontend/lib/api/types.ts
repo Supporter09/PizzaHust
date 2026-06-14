@@ -943,6 +943,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/kitchen/orders/{order_id}/pickup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Pickup
+         * @description K4 — manual Confirm Pickup fallback: ReadyForDispatch → Delivering,
+         *     attributed to the kitchen actor. No delivery-port call (the courier scan T2
+         *     is the path that's unavailable). Mirrors the accept verb's shape.
+         */
+        post: operations["confirm_pickup_api_kitchen_orders__order_id__pickup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/loyalty/me": {
         parameters: {
             query?: never;
@@ -4570,6 +4592,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MarkReadyOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_pickup_api_kitchen_orders__order_id__pickup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

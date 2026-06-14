@@ -414,9 +414,9 @@
       "depends_on": [
         "K3"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "verify.sh green at 898a723 (K4 rebased onto main, K4-only), 2026-06-14T13:34:28Z (e2e 47 passed/4 skipped, incl. K4 confirm-pickup clearing the card). Manual kitchen fallback POST /api/kitchen/orders/{id}/pickup (note_source=KITCHEN, no port call), inline two-step confirm, role-guarded. Fidelity pass fixed a pre-existing light-mode legibility bug (filled brand buttons text-brand-fg→text-on-brand). Branch also carries one unrelated 1-line tz fix to the admin-orders dispatch test (seed naive-UTC created_at; was failing on +07 hosts after 17:00 local)."
     },
     {
       "id": "A11",

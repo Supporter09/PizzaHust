@@ -7,7 +7,7 @@ DispatchPending (retryable) and the request 502s.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 
@@ -50,9 +50,11 @@ def _new_order(status: OrderStatus, code: str) -> int:
             total_amount_vnd=250_000,
             promised_at=datetime(2026, 1, 1, 12, 0, 0),
             current_status=status,
-            # Explicit local timestamp: the DB server_default is UTC, which
-            # falls outside list_orders' local-today default window overnight.
-            created_at=datetime.now(),
+            # Naive UTC, matching the app's storage convention and list_orders'
+            # UTC date window. datetime.now() is naive *local*, so on a +07 host
+            # after 17:00 it lands past the UTC "today" window and the order is
+            # wrongly excluded from the default (today) listing.
+            created_at=datetime.now(UTC).replace(tzinfo=None),
         )
         db.add(order)
         db.commit()

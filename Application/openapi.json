@@ -7229,6 +7229,42 @@
         ]
       }
     },
+    "/api/kitchen/orders/{order_id}/pickup": {
+      "post": {
+        "description": "K4 \u2014 manual Confirm Pickup fallback: ReadyForDispatch \u2192 Delivering,\nattributed to the kitchen actor. No delivery-port call (the courier scan T2\nis the path that's unavailable). Mirrors the accept verb's shape.",
+        "operationId": "confirm_pickup_api_kitchen_orders__order_id__pickup_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "title": "Order Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm Pickup",
+        "tags": [
+          "kitchen-orders"
+        ]
+      }
+    },
     "/api/loyalty/me": {
       "get": {
         "operationId": "loyalty_me_api_loyalty_me_get",

@@ -4,6 +4,26 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 ---
 
+## 2026-06-14 — K4 Confirm Pickup (fallback)
+
+**Done**
+- `POST /api/kitchen/orders/{id}/pickup` (kitchen, 204) — row-locked `ReadyForDispatch→Delivering` via `transition()`, KITCHEN tracking note. No delivery-port call (pure local advance): manual fallback for when the courier's T2 pickup-scan webhook never arrives.
+- Confirm Pickup control on `ReadyForDispatch` cards — inline two-step confirm (Confirm Pickup → Yes, picked up / Cancel) guarding the irreversible transition; helper text. 409→refetch, 5xx→inline error. Kitchen card button set now complete: Accept (K2) / Mark Ready (K3) / Confirm Pickup (K4).
+- OpenAPI + TS types regenerated; CONTRACTS.md retitled K1–K4 (+ fixed stale `/kitchen/queue`→`/orders`); seed resets demo-order status on re-seed for a repeatable RFD e2e.
+
+**Fidelity / fixes**
+- `/matching-design-mockups` pass: card matches `kitchen-ready` mockup; inline confirm is a documented accepted deviation. Found+fixed a pre-existing light-mode legibility bug — filled brand buttons used `text-brand-fg` (red-on-red in light `:root`); switched K2 Accept + K4 Yes-picked-up to `text-on-brand` (`187f04d`). Only 2 such pairs existed, both in `ticket.tsx`.
+
+**Verified**
+- `./verify.sh` green at `898a723` (K4 rebased onto `main`, K4-only), `2026-06-14T13:34:28Z` — backend 412 passed/1 skipped, contract parity, frontend 94 vitest + build, smoke, e2e 47 passed/4 skipped (incl. "K4 — Confirm Pickup (fallback)").
+- Branch also carries `898a723`: an unrelated 1-line tz fix to `test_admin_orders_dispatch.py` (seed `created_at` naive-UTC) — was failing on +07 hosts after 17:00 local; orders domain code byte-identical to `main`.
+- The frontend image-URL fix this branch was originally cut on top of is NOT here — it lives on its own branch `fix/image-asset-origin` (its own PR); K4 was rebased onto `main` to stand alone.
+
+**Next**
+- `T1` Request Delivery Service (mock-first) or `T2` Synchronize Delivery Status (webhook) — the auto path this K4 fallback backstops.
+
+---
+
 ## 2026-06-14 — K2 Update Preparation Status + K3 Mark Ready for Dispatch (rebased onto #36)
 
 **Done**

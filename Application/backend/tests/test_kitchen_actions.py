@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+import pytest
 from sqlalchemy import select
 
-from app.infra.db.models import Order, OrderStatus, OrderTracking, TrackingNoteSource
+from app.infra.db.models import Order, OrderStatus, OrderTracking, TrackingNoteSource, UserRole
 from app.infra.db.session import create_session_factory
 from app.infra.delivery import get_delivery_port
 from app.infra.delivery.mock import DeliveryError
 from app.infra.delivery.port import DeliveryReference, OrderForDispatch
-from tests.kitchen_test_utils import anon_client, kitchen_client, make_order
+from tests.kitchen_test_utils import anon_client, kitchen_client, logged_in_client, make_order
 
 
 def _get_order(order_id: int) -> Order:
@@ -146,3 +147,64 @@ def test_mark_ready_missing_order_404() -> None:
     client.app.dependency_overrides[get_delivery_port] = lambda: _FakePort()
     resp = client.post("/api/kitchen/orders/999999/mark-ready")
     assert resp.status_code == 404
+
+
+# ---- K4: confirm pickup --------------------------------------------------
+
+
+def test_pickup_advances_ready_to_delivering() -> None:
+    client = kitchen_client("k4-pickup-ok")
+    order_id = make_order(status=OrderStatus.READY_FOR_DISPATCH)
+
+    resp = client.post(f"/api/kitchen/orders/{order_id}/pickup")
+
+    assert resp.status_code == 204, resp.text
+    order = _get_order(order_id)  # fresh session — proves the change committed
+    assert order.current_status == OrderStatus.DELIVERING
+    rows = _tracking(order_id)
+    assert rows[-1].status == OrderStatus.DELIVERING
+    assert rows[-1].note_source == TrackingNoteSource.KITCHEN
+    assert rows[-1].note == "Pickup confirmed by kitchen"
+    assert rows[-1].updated_by is not None  # kitchen.user_id wired, not None
+
+
+@pytest.mark.parametrize(
+    "wrong",
+    [
+        OrderStatus.RECEIVED,
+        OrderStatus.PREPARING,
+        OrderStatus.DELIVERING,
+        OrderStatus.DELIVERED,
+        OrderStatus.CANCELLED,
+    ],
+)
+def test_pickup_rejects_non_ready_status_409(wrong: OrderStatus) -> None:
+    client = kitchen_client(f"k4-pickup-wrong-{wrong.value}")
+    order_id = make_order(status=wrong)
+
+    resp = client.post(f"/api/kitchen/orders/{order_id}/pickup")
+
+    assert resp.status_code == 409, resp.text
+    assert _get_order(order_id).current_status == wrong
+    assert _tracking(order_id) == []
+
+
+def test_pickup_missing_order_404() -> None:
+    client = kitchen_client("k4-pickup-404")
+    resp = client.post("/api/kitchen/orders/999999/pickup")
+    assert resp.status_code == 404
+
+
+def test_pickup_requires_kitchen_role_401_anon() -> None:
+    client = anon_client("k4-pickup-anon")
+    order_id = make_order(status=OrderStatus.READY_FOR_DISPATCH)
+    resp = client.post(f"/api/kitchen/orders/{order_id}/pickup")
+    assert resp.status_code == 401
+
+
+@pytest.mark.parametrize("role", [UserRole.CUSTOMER, UserRole.ADMIN])
+def test_pickup_rejects_non_kitchen_role_403(role: UserRole) -> None:
+    client = logged_in_client(f"k4-pickup-{role.value}", role)
+    order_id = make_order(status=OrderStatus.READY_FOR_DISPATCH)
+    resp = client.post(f"/api/kitchen/orders/{order_id}/pickup")
+    assert resp.status_code == 403

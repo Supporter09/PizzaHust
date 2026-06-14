@@ -1,6 +1,9 @@
-# Superpowers brainstorming/planning artifacts — local only, never commit (repo is public)
-docs/superpowers/specs/
-docs/superpowers/plans/
+# Superpowers brainstorming/planning artifacts — local only, never commit (repo is public).
+# `**/` so they match at any depth: a bare `docs/...` pattern (mid-path slash) is
+# root-relative and would miss the Application/ subtree where these actually live.
+**/docs/superpowers/specs/
+**/docs/superpowers/plans/
+**/docs/superpowers/design-fidelity/
 
 # Local-only / generated artifacts
 /.deploy/

@@ -407,7 +407,10 @@ def _seed(db: Session, settings: Settings) -> None:
 
     # ── Demo orders ────────────────────────────────────────────────
     # Deterministic order codes keyed by (user_id, days_ago) so re-seeding is a
-    # no-op (no duplicate orders) — unlike a random/ULID code that re-randomizes.
+    # no-op for structure (no duplicate orders) — unlike a random/ULID code that
+    # re-randomizes. On re-seed, any existing demo order whose status was advanced
+    # by the kitchen e2e (K1–K4) is RESET back to its canonical declared value so
+    # each verify.sh run starts from a known state.
     demo_orders = [
         ("0901234567", 1, OrderStatus.DELIVERED, [(pizza_products[0], 1), (side_products[0], 1)]),
         ("0912345678", 2, OrderStatus.PREPARING, [(pizza_products[1], 2)]),
@@ -419,7 +422,12 @@ def _seed(db: Session, settings: Settings) -> None:
         if user is None:
             continue
         order_code = _seed_order_code(user.user_id, days_ago)
-        if db.scalar(select(Order).where(Order.order_code == order_code)):
+        existing = db.scalar(select(Order).where(Order.order_code == order_code))
+        if existing is not None:
+            # Reset the demo fixture to its canonical status so the kitchen e2e
+            # (K1–K4) is repeatable across verify.sh runs — these specs advance
+            # the seeded orders (Received→Preparing→ReadyForDispatch→Delivering).
+            existing.current_status = status
             continue
         items_total = sum(product.base_price_vnd * qty for product, qty in lines)
         created_at = now - timedelta(days=days_ago)
