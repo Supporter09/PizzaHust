@@ -5,7 +5,8 @@ from datetime import UTC, datetime
 from fastapi.testclient import TestClient
 from sqlalchemy import delete, select
 
-from app.infra.db.models import Order, OrderItem, ProductOption
+from app.api import images as images_mod
+from app.infra.db.models import Order, OrderItem, ProductImage, ProductOption
 from app.infra.db.session import create_session_factory
 from tests.admin_test_utils import (
     admin_client,
@@ -140,6 +141,24 @@ def test_hard_delete_removes_reference_free_item():
     assert client.get(f"/api/admin/items/{pid}").status_code == 404
     with create_session_factory()() as db:
         assert db.scalars(select(ProductOption).where(ProductOption.product_id == pid)).all() == []
+
+
+def test_hard_delete_removes_image_blobs(monkeypatch):
+    client = admin_client("items-hard-blobs")
+    cat = new_category("Pizza")
+    pid = _create_pizza(client, cat).json()["product_id"]
+    urls = ["/media/items/cover.webp", "/media/items/extra.webp"]
+    with create_session_factory()() as db:
+        for i, url in enumerate(urls):
+            db.add(ProductImage(product_id=pid, url=url, sort_order=i, is_cover=(i == 0)))
+        db.commit()
+
+    removed: list[str] = []
+    monkeypatch.setattr(images_mod, "remove_blob", removed.append)
+
+    r = client.delete(f"/api/admin/items/{pid}?hard=true")
+    assert r.status_code == 204, r.text
+    assert sorted(removed) == sorted(urls)
 
 
 def test_hard_delete_blocked_by_order_history():

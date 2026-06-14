@@ -223,7 +223,11 @@ def delete_item(
             status_code=409,
         )
     db.execute(delete(ProductOption).where(ProductOption.product_id == product_id))
-    db.delete(p)  # ORM cascade removes product_images
+    # ORM cascade removes the product_images rows, but the blobs they point at are
+    # outside the DB — drop them first so a hard delete leaves no orphaned files.
+    for img in p.images:
+        images_mod.remove_blob(img.url)
+    db.delete(p)
 
 
 def _locked_product(db: Session, product_id: int) -> Product:
