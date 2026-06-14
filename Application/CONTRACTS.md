@@ -463,10 +463,10 @@ Wrong or another user's code → `404 NOT_FOUND`.
 | `delivery_note` | string \| null | |
 | `promised_at` | datetime (ISO 8601 UTC) | |
 | `lines` | `MyOrderLineOut[]` | Top-level cart lines only; combo components nested under `children` |
-| `subtotal_vnd` | int | Sum of line totals before delivery |
-| `delivery_fee_vnd` | int | |
-| `savings_vnd` | int | Combo/loyalty savings attributed on the receipt |
-| `total_vnd` | int | Charged total |
+| `subtotal_vnd` | int | Sum of line totals before delivery (from persisted `unit_price_vnd` × qty per line, including combo children) |
+| `delivery_fee_vnd` | int | Persisted on the order |
+| `savings_vnd` | int | **Derived at read time:** `max(0, subtotal_vnd + delivery_fee_vnd - total_vnd)` from persisted order totals. Not a stored combo/loyalty breakdown. Loyalty earned/redeemed line items are **U13/U14** (not on this payload). |
+| `total_vnd` | int | Charged total (persisted) |
 | `timeline` | `TrackTimelineEntry[]` | Same shape as public track: `{ status, at }` |
 
 #### `MyOrderLineOut` (recursive)
@@ -474,7 +474,7 @@ Wrong or another user's code → `404 NOT_FOUND`.
 | Field | Type | Notes |
 |---|---|---|
 | `kind` | `"item"` \| `"combo"` | |
-| `display_name` | string | Product or combo name at order time |
+| `display_name` | string | Resolved at read time from the order line’s `product` / `combo` relation when the catalog row still exists; otherwise a fallback label (`"Item"` / `"Combo"`). Line economics use **historical** persisted `unit_price_vnd`; names are not snapshotted on the line. |
 | `quantity` | int | |
 | `line_total_vnd` | int | Includes nested `children` for combos |
 | `options` | string[] | Human labels, e.g. `"Size: M"` |
