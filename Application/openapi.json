@@ -191,6 +191,19 @@
         "title": "Body_upload_item_image_api_admin_items__product_id__image_post",
         "type": "object"
       },
+      "BusinessConfigOut": {
+        "properties": {
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timezone"
+        ],
+        "title": "BusinessConfigOut",
+        "type": "object"
+      },
       "CartLineNoteIn": {
         "properties": {
           "note": {
@@ -1727,20 +1740,23 @@
       },
       "DeliveryConfigOut": {
         "properties": {
-          "fee_vnd": {
-            "title": "Fee Vnd",
-            "type": "integer"
-          },
           "service_area": {
             "items": {
               "type": "string"
             },
             "title": "Service Area",
             "type": "array"
+          },
+          "ward_fees": {
+            "items": {
+              "$ref": "#/components/schemas/WardFeeOut"
+            },
+            "title": "Ward Fees",
+            "type": "array"
           }
         },
         "required": [
-          "fee_vnd",
+          "ward_fees",
           "service_area"
         ],
         "title": "DeliveryConfigOut",
@@ -3787,6 +3803,66 @@
         "title": "SalesReportRowOut",
         "type": "object"
       },
+      "SettingsIn": {
+        "properties": {
+          "loyalty_accrual_rate": {
+            "exclusiveMinimum": 0.0,
+            "title": "Loyalty Accrual Rate",
+            "type": "integer"
+          },
+          "loyalty_max_redeem_pct": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1.0,
+            "title": "Loyalty Max Redeem Pct",
+            "type": "number"
+          },
+          "loyalty_redeem_value_vnd": {
+            "exclusiveMinimum": 0.0,
+            "title": "Loyalty Redeem Value Vnd",
+            "type": "integer"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timezone",
+          "loyalty_accrual_rate",
+          "loyalty_redeem_value_vnd",
+          "loyalty_max_redeem_pct"
+        ],
+        "title": "SettingsIn",
+        "type": "object"
+      },
+      "SettingsOut": {
+        "properties": {
+          "loyalty_accrual_rate": {
+            "title": "Loyalty Accrual Rate",
+            "type": "integer"
+          },
+          "loyalty_max_redeem_pct": {
+            "title": "Loyalty Max Redeem Pct",
+            "type": "number"
+          },
+          "loyalty_redeem_value_vnd": {
+            "title": "Loyalty Redeem Value Vnd",
+            "type": "integer"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timezone",
+          "loyalty_accrual_rate",
+          "loyalty_redeem_value_vnd",
+          "loyalty_max_redeem_pct"
+        ],
+        "title": "SettingsOut",
+        "type": "object"
+      },
       "TopItemOut": {
         "properties": {
           "count": {
@@ -3961,6 +4037,77 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "WardFeeIn": {
+        "properties": {
+          "fee_vnd": {
+            "minimum": 0.0,
+            "title": "Fee Vnd",
+            "type": "integer"
+          },
+          "ward": {
+            "minLength": 1,
+            "title": "Ward",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ward",
+          "fee_vnd"
+        ],
+        "title": "WardFeeIn",
+        "type": "object"
+      },
+      "WardFeeOut": {
+        "properties": {
+          "fee_vnd": {
+            "title": "Fee Vnd",
+            "type": "integer"
+          },
+          "ward": {
+            "title": "Ward",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ward",
+          "fee_vnd"
+        ],
+        "title": "WardFeeOut",
+        "type": "object"
+      },
+      "WardFeesIn": {
+        "properties": {
+          "wards": {
+            "items": {
+              "$ref": "#/components/schemas/WardFeeIn"
+            },
+            "minItems": 1,
+            "title": "Wards",
+            "type": "array"
+          }
+        },
+        "required": [
+          "wards"
+        ],
+        "title": "WardFeesIn",
+        "type": "object"
+      },
+      "WardFeesOut": {
+        "properties": {
+          "wards": {
+            "items": {
+              "$ref": "#/components/schemas/WardFeeOut"
+            },
+            "title": "Wards",
+            "type": "array"
+          }
+        },
+        "required": [
+          "wards"
+        ],
+        "title": "WardFeesOut",
         "type": "object"
       }
     }
@@ -6204,6 +6351,126 @@
         ]
       }
     },
+    "/api/admin/settings": {
+      "get": {
+        "operationId": "get_settings_api_admin_settings_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Settings",
+        "tags": [
+          "admin-settings"
+        ]
+      },
+      "put": {
+        "operationId": "put_settings_api_admin_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Settings",
+        "tags": [
+          "admin-settings"
+        ]
+      }
+    },
+    "/api/admin/settings/ward-fees": {
+      "get": {
+        "operationId": "get_ward_fees_api_admin_settings_ward_fees_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WardFeesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Ward Fees",
+        "tags": [
+          "admin-settings"
+        ]
+      },
+      "put": {
+        "operationId": "put_ward_fees_api_admin_settings_ward_fees_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WardFeesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WardFeesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Ward Fees",
+        "tags": [
+          "admin-settings"
+        ]
+      }
+    },
     "/api/auth/login": {
       "post": {
         "operationId": "login_api_auth_login_post",
@@ -6726,6 +6993,27 @@
         "summary": "Get Combo Detail",
         "tags": [
           "combos"
+        ]
+      }
+    },
+    "/api/config/business": {
+      "get": {
+        "operationId": "business_config_api_config_business_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessConfigOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Business Config",
+        "tags": [
+          "config"
         ]
       }
     },

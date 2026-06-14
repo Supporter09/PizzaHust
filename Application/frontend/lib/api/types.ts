@@ -564,6 +564,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Settings */
+        get: operations["get_settings_api_admin_settings_get"];
+        /** Put Settings */
+        put: operations["put_settings_api_admin_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/settings/ward-fees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Ward Fees */
+        get: operations["get_ward_fees_api_admin_settings_ward_fees_get"];
+        /** Put Ward Fees */
+        put: operations["put_ward_fees_api_admin_settings_ward_fees_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/login": {
         parameters: {
             query?: never;
@@ -763,6 +799,23 @@ export interface paths {
         };
         /** Get Combo Detail */
         get: operations["get_combo_detail_api_combos__combo_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/config/business": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Business Config */
+        get: operations["business_config_api_config_business_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1011,6 +1064,11 @@ export interface components {
         Body_upload_item_image_api_admin_items__product_id__image_post: {
             /** Image */
             image: string;
+        };
+        /** BusinessConfigOut */
+        BusinessConfigOut: {
+            /** Timezone */
+            timezone: string;
         };
         /** CartLineNoteIn */
         CartLineNoteIn: {
@@ -1482,10 +1540,10 @@ export interface components {
         };
         /** DeliveryConfigOut */
         DeliveryConfigOut: {
-            /** Fee Vnd */
-            fee_vnd: number;
             /** Service Area */
             service_area: string[];
+            /** Ward Fees */
+            ward_fees: components["schemas"]["WardFeeOut"][];
         };
         /** GroupIn */
         GroupIn: {
@@ -2217,6 +2275,28 @@ export interface components {
             /** Top Items */
             top_items: components["schemas"]["TopItemOut"][];
         };
+        /** SettingsIn */
+        SettingsIn: {
+            /** Loyalty Accrual Rate */
+            loyalty_accrual_rate: number;
+            /** Loyalty Max Redeem Pct */
+            loyalty_max_redeem_pct: number;
+            /** Loyalty Redeem Value Vnd */
+            loyalty_redeem_value_vnd: number;
+            /** Timezone */
+            timezone: string;
+        };
+        /** SettingsOut */
+        SettingsOut: {
+            /** Loyalty Accrual Rate */
+            loyalty_accrual_rate: number;
+            /** Loyalty Max Redeem Pct */
+            loyalty_max_redeem_pct: number;
+            /** Loyalty Redeem Value Vnd */
+            loyalty_redeem_value_vnd: number;
+            /** Timezone */
+            timezone: string;
+        };
         /** TopItemOut */
         TopItemOut: {
             /** Count */
@@ -2280,6 +2360,30 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** WardFeeIn */
+        WardFeeIn: {
+            /** Fee Vnd */
+            fee_vnd: number;
+            /** Ward */
+            ward: string;
+        };
+        /** WardFeeOut */
+        WardFeeOut: {
+            /** Fee Vnd */
+            fee_vnd: number;
+            /** Ward */
+            ward: string;
+        };
+        /** WardFeesIn */
+        WardFeesIn: {
+            /** Wards */
+            wards: components["schemas"]["WardFeeIn"][];
+        };
+        /** WardFeesOut */
+        WardFeesOut: {
+            /** Wards */
+            wards: components["schemas"]["WardFeeOut"][];
         };
     };
     responses: never;
@@ -3725,6 +3829,112 @@ export interface operations {
             };
         };
     };
+    get_settings_api_admin_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+        };
+    };
+    put_settings_api_admin_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ward_fees_api_admin_settings_ward_fees_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WardFeesOut"];
+                };
+            };
+        };
+    };
+    put_ward_fees_api_admin_settings_ward_fees_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WardFeesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WardFeesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     login_api_auth_login_post: {
         parameters: {
             query?: never;
@@ -4136,6 +4346,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    business_config_api_config_business_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessConfigOut"];
                 };
             };
         };

@@ -48,8 +48,9 @@ Error codes (closed set, extend in this doc only):
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/api/config/delivery` | Returns `{ fee_vnd, service_area: ["Ba Dinh", ...] }` for the 51 post-2025 Hanoi wards |
-| GET | `/api/config/loyalty` | Returns `{ accrual_rate, redeem_value_vnd, max_redeem_pct }` |
+| GET | `/api/config/delivery` | Returns `{ ward_fees: [{ ward, fee_vnd }], service_area: ["Ba Dinh", ...] }` (per-ward delivery fee map; `service_area` is the ward names). Served from the settings store (admin-editable, A13); defaults to the 51 post-2025 Hanoi wards @ 22000 |
+| GET | `/api/config/loyalty` | Returns `{ accrual_rate, redeem_value_vnd, max_redeem_pct }`. Served from the settings store (admin-editable, A13) |
+| GET | `/api/config/business` | Returns `{ timezone }` (IANA business timezone; admin-editable, A13). Used by the admin "today" order/report windows |
 
 ### Catalog (U1, U2, U4)
 
@@ -163,6 +164,8 @@ All under `/api/admin/`, role=`admin` required.
 | POST | `/api/admin/customers/{id}/lock` | A6 lock account, body `{ "reason": string \| null }` |
 | POST | `/api/admin/customers/{id}/unlock` | A6 unlock account |
 | GET | `/api/admin/reports/sales` | A7, query params: `from`, `to` |
+| GET/PUT | `/api/admin/settings` | A13 — business settings. GET returns `{ timezone, loyalty_accrual_rate, loyalty_redeem_value_vnd, loyalty_max_redeem_pct }`. PUT replaces them (body same shape): `timezone` must be a valid IANA zone, loyalty rates `> 0`, `loyalty_max_redeem_pct` in `(0, 1]`; invalid → `VALIDATION_FAILED` (400) |
+| GET/PUT | `/api/admin/settings/ward-fees` | A13 — per-ward delivery fee map (= the service area). GET/PUT body `{ wards: [{ ward, fee_vnd }] }`; PUT replaces the whole set. `fee_vnd ≥ 0`, `wards` non-empty (empty → 400), duplicate folded ward name → `CONFLICT` (409) |
 
 #### A1–A4 Catalog management — scope
 
