@@ -9,6 +9,7 @@ from starlette.testclient import TestClient
 
 from app.infra.auth.passwords import hash_password
 from app.infra.db.models import (
+    Combo,
     Order,
     OrderItem,
     OrderItemOption,
@@ -66,7 +67,7 @@ def _seed_order(user_id: int | None, code: str, status: OrderStatus = OrderStatu
             order_id=order.order_id,
             product_id=product.product_id,
             quantity=1,
-            unit_price_vnd=155_000,
+            unit_price_vnd=195_000,
             notes=None,
         )
         db.add(item)
@@ -77,6 +78,57 @@ def _seed_order(user_id: int | None, code: str, status: OrderStatus = OrderStatu
                 group_name="Size",
                 option_name="Large",
                 price_delta_vnd=40_000,
+            )
+        )
+        db.commit()
+        return order.order_id
+
+
+def _seed_combo_order(user_id: int, code: str) -> int:
+    with create_session_factory()() as db:
+        combo = Combo(name="Family Feast", combo_price_vnd=200_000)
+        db.add(combo)
+        db.flush()
+        order = Order(
+            order_code=code,
+            user_id=user_id,
+            recipient_name="Hana Pham",
+            recipient_phone="0901111111",
+            delivery_address="1 Dai Co Viet, Hai Ba Trung",
+            delivery_ward="Bach Khoa",
+            total_amount_vnd=247_000,
+            delivery_fee_vnd=22_000,
+            promised_at=datetime(2026, 1, 1, 12, 0, 0),
+            current_status=OrderStatus.DELIVERED,
+        )
+        db.add(order)
+        db.flush()
+        parent = OrderItem(
+            order_id=order.order_id,
+            combo_id=combo.combo_id,
+            quantity=1,
+            unit_price_vnd=200_000,
+        )
+        db.add(parent)
+        db.flush()
+        product = db.scalar(select(Product).where(Product.is_active.is_(True)))
+        assert product is not None
+        db.add(
+            OrderItem(
+                order_id=order.order_id,
+                product_id=product.product_id,
+                parent_order_item_id=parent.order_item_id,
+                quantity=1,
+                unit_price_vnd=50_000,
+            )
+        )
+        db.add(
+            OrderItem(
+                order_id=order.order_id,
+                product_id=product.product_id,
+                parent_order_item_id=parent.order_item_id,
+                quantity=1,
+                unit_price_vnd=25_000,
             )
         )
         db.commit()
@@ -173,3 +225,27 @@ def test_detail_owner_only_and_full_breakdown() -> None:
 
     assert client.get("/api/orders/me/PIZZ-OTHER01").status_code == 404
     assert client.get("/api/orders/me/PIZZ-NOTREAL").status_code == 404
+
+
+def test_detail_combo_children_and_positive_savings() -> None:
+    app = build_test_app("u11-detail-combo")
+    from app.seeds.run import main as run_seeds
+
+    run_seeds()
+    uid = _make_customer()
+    _seed_combo_order(uid, "PIZZ-COMBO01")
+
+    client = _login(app)
+    body = client.get("/api/orders/me/PIZZ-COMBO01").json()
+
+    assert body["subtotal_vnd"] == 275_000
+    assert body["delivery_fee_vnd"] == 22_000
+    assert body["total_vnd"] == 247_000
+    assert body["savings_vnd"] == 50_000
+    assert len(body["lines"]) == 1
+    combo_line = body["lines"][0]
+    assert combo_line["kind"] == "combo"
+    assert combo_line["line_total_vnd"] == 275_000
+    assert len(combo_line["children"]) == 2
+    child_totals = sorted(c["line_total_vnd"] for c in combo_line["children"])
+    assert child_totals == [25_000, 50_000]

@@ -77,9 +77,19 @@ def _summary_line(item: OrderItem) -> str:
     return text
 
 
-def _line_total(item: OrderItem) -> int:
-    option_delta = sum(o.price_delta_vnd for o in item.options)
-    return (item.unit_price_vnd + option_delta) * item.quantity
+def _children_by_parent(order: Order) -> dict[int, list[OrderItem]]:
+    out: dict[int, list[OrderItem]] = {}
+    for it in order.items:
+        if it.parent_order_item_id is not None:
+            out.setdefault(it.parent_order_item_id, []).append(it)
+    return out
+
+
+def _line_total(item: OrderItem, children_by_parent: dict[int, list[OrderItem]]) -> int:
+    total = item.unit_price_vnd * item.quantity
+    for child in children_by_parent.get(item.order_item_id, []):
+        total += _line_total(child, children_by_parent)
+    return total
 
 
 def _option_labels(item: OrderItem) -> list[str]:
@@ -93,7 +103,7 @@ def _line_to_out(item: OrderItem, children_by_parent: dict[int, list[OrderItem]]
         kind=_line_kind(item),
         display_name=_display_name(item),
         quantity=item.quantity,
-        line_total_vnd=_line_total(item),
+        line_total_vnd=_line_total(item, children_by_parent),
         options=_option_labels(item),
         note=item.notes,
         children=[_line_to_out(c, children_by_parent) for c in kids],
@@ -124,8 +134,9 @@ def _load_owned_order(db: Session, user: User, order_code: str) -> Order:
 
 
 def _order_subtotal_and_savings(order: Order) -> tuple[int, int]:
+    children_by_parent = _children_by_parent(order)
     top = _top_level(order)
-    subtotal_vnd = sum(_line_total(it) for it in top)
+    subtotal_vnd = sum(_line_total(it, children_by_parent) for it in top)
     savings_vnd = max(0, subtotal_vnd + order.delivery_fee_vnd - order.total_amount_vnd)
     return subtotal_vnd, savings_vnd
 
@@ -171,10 +182,7 @@ def get_my_order_detail(
     db: Session = Depends(get_db, scope="function"),
 ) -> MyOrderDetailOut:
     order = _load_owned_order(db, user, order_code)
-    children_by_parent: dict[int, list[OrderItem]] = {}
-    for it in order.items:
-        if it.parent_order_item_id is not None:
-            children_by_parent.setdefault(it.parent_order_item_id, []).append(it)
+    children_by_parent = _children_by_parent(order)
 
     subtotal_vnd, savings_vnd = _order_subtotal_and_savings(order)
     timeline_rows = sorted(order.tracking, key=lambda t: t.created_at)
