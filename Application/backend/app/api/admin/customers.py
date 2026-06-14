@@ -10,11 +10,7 @@ from pydantic import BaseModel
 from sqlalchemy import asc, case, desc, func, or_, select
 from sqlalchemy.orm import Session
 
-from app.domain.loyalty import (
-    LOYALTY_ACCRUAL_RATE,
-    LOYALTY_MAX_REDEEM_PCT,
-    LOYALTY_REDEEM_VALUE_VND,
-)
+from app.infra import settings_service
 from app.infra.auth import require_role
 from app.infra.db.deps import get_db
 from app.infra.db.models import MembershipTier, Order, OrderStatus, User, UserRole
@@ -288,12 +284,13 @@ def get_customer(
         ).all()
     )
     stats, recent_orders, top_orders = _customer_stats_payload(orders)
-    current_balance_value_vnd = user.current_points * LOYALTY_REDEEM_VALUE_VND
+    s = settings_service.get_business_settings(db)
+    current_balance_value_vnd = user.current_points * s.loyalty_redeem_value_vnd
     benefits = [
         f"Current balance can offset up to {current_balance_value_vnd:,} VND.",
-        f"Earns 1 point per {LOYALTY_ACCRUAL_RATE:,} VND spent.",
-        f"Each point redeems {LOYALTY_REDEEM_VALUE_VND:,} VND with a max "
-        f"{int(LOYALTY_MAX_REDEEM_PCT * 100)}% cap per order.",
+        f"Earns 1 point per {s.loyalty_accrual_rate:,} VND spent.",
+        f"Each point redeems {s.loyalty_redeem_value_vnd:,} VND with a max "
+        f"{int(s.loyalty_max_redeem_pct * 100)}% cap per order.",
     ]
     return CustomerDetailOut.model_validate(
         {
@@ -304,9 +301,9 @@ def get_customer(
                 current_points=user.current_points,
                 total_points_earned=user.total_points_earned,
                 membership_tier=user.membership_tier.value,
-                accrual_rate_vnd=LOYALTY_ACCRUAL_RATE,
-                redeem_value_vnd=LOYALTY_REDEEM_VALUE_VND,
-                max_redeem_pct=LOYALTY_MAX_REDEEM_PCT,
+                accrual_rate_vnd=s.loyalty_accrual_rate,
+                redeem_value_vnd=s.loyalty_redeem_value_vnd,
+                max_redeem_pct=s.loyalty_max_redeem_pct,
                 current_balance_value_vnd=current_balance_value_vnd,
             ).model_dump(),
             "benefits": benefits,

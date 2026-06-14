@@ -26,6 +26,7 @@ from app.domain.combo_slots import pick_surcharge
 from app.domain.order_code import generate_order_code
 from app.domain.pricing import CartLine as PricingLine
 from app.domain.pricing import PricingError, compute_order_total
+from app.infra import settings_service
 from app.infra.auth.csrf import enforce_csrf
 from app.infra.auth.rate_limit import enforce_track_rate_limit
 from app.infra.auth.session_state import read_session
@@ -134,6 +135,8 @@ def quote_cart_for_placement(
         except APIError as exc:
             raise _attach_api_line_id(exc, row.line_id) from exc
     district = address.administrative_unit
+    ward_fees = settings_service.get_ward_fees(db)
+    s = settings_service.get_business_settings(db)
     try:
         quote = compute_order_total(
             lines=pricing_lines,
@@ -141,6 +144,9 @@ def quote_cart_for_placement(
             combo_discount_vnd=combo_discount,
             redeem_points=redeem_points,
             current_points=0,
+            ward_fees=ward_fees,
+            redeem_value_vnd=s.loyalty_redeem_value_vnd,
+            max_redeem_pct=s.loyalty_max_redeem_pct,
         )
     except PricingError as exc:
         status = 422 if exc.code in {"OUT_OF_SERVICE_AREA", "INSUFFICIENT_LOYALTY"} else 400

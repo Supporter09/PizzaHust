@@ -31,6 +31,7 @@ from app.domain.pricing import (
     compute_order_total,
     compute_unit_price,
 )
+from app.infra import settings_service
 from app.infra.db.combo_queries import slot_availability
 from app.infra.db.deps import get_db
 from app.infra.db.models import Combo, ComboItem, Option, OptionGroup, Product, ProductOption
@@ -309,6 +310,8 @@ def quote_cart(
         else:
             lines.append(resolve_item_line(db, line))
     district = payload.address.administrative_unit if payload.address else None
+    ward_fees = settings_service.get_ward_fees(db)
+    s = settings_service.get_business_settings(db)
     try:
         quote = compute_order_total(
             lines=lines,
@@ -316,6 +319,9 @@ def quote_cart(
             combo_discount_vnd=combo_discount,
             redeem_points=payload.redeem_points,
             current_points=0,
+            ward_fees=ward_fees,
+            redeem_value_vnd=s.loyalty_redeem_value_vnd,
+            max_redeem_pct=s.loyalty_max_redeem_pct,
         )
     except PricingError as exc:
         status = 422 if exc.code in {"OUT_OF_SERVICE_AREA", "INSUFFICIENT_LOYALTY"} else 400

@@ -63,3 +63,18 @@ def test_compute_redemption_rejects_more_than_balance() -> None:
         )
 
     assert exc_info.value.code == INSUFFICIENT_LOYALTY_CODE
+
+
+def test_redemption_uses_injected_rates() -> None:
+    redemption = compute_redemption(
+        requested_points=100,
+        current_points=100,
+        subtotal_after_combo_vnd=100_000,
+        redeem_value_vnd=1_000,
+        max_redeem_pct=0.3,
+    )
+    assert redemption.max_redeemable_points == 30  # 30% of 100000 / 1000
+
+
+def test_accrual_uses_injected_rate() -> None:
+    assert compute_accrual_points(100_000, accrual_rate=20_000) == 5

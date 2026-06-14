@@ -104,3 +104,28 @@ def test_compute_unit_price_rejects_negative_inputs():
         compute_unit_price(base_price_vnd=-1, option_deltas_vnd=[])
     with pytest.raises(PricingError):
         compute_unit_price(base_price_vnd=100_000, option_deltas_vnd=[10_000, -5_000])
+
+
+def test_order_total_uses_per_ward_fee() -> None:
+    q = compute_order_total(
+        lines=[CartLine(50_000, 1)],
+        address_district="Ha Dong",
+        ward_fees={"ha dong": 30_000},
+    )
+    assert q.delivery_fee_vnd == 30_000
+
+
+def test_order_total_out_of_area_when_ward_absent_with_map() -> None:
+    with pytest.raises(PricingError) as exc_info:
+        compute_order_total(
+            lines=[CartLine(50_000, 1)],
+            address_district="Nowhere",
+            ward_fees={},
+        )
+    assert exc_info.value.code == "OUT_OF_SERVICE_AREA"
+
+
+def test_order_total_default_path_unchanged_without_map() -> None:
+    # back-compat: no ward_fees -> existing is_inner_hanoi + flat DELIVERY_FEE_VND
+    q = compute_order_total(lines=[CartLine(50_000, 1)], address_district="Ba Dinh")
+    assert q.delivery_fee_vnd == 22_000

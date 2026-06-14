@@ -1,10 +1,15 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
-from app.domain.loyalty import LoyaltyError, compute_redemption
-from app.domain.service_area import is_inner_hanoi
+from app.domain.loyalty import (
+    LOYALTY_MAX_REDEEM_PCT,
+    LOYALTY_REDEEM_VALUE_VND,
+    LoyaltyError,
+    compute_redemption,
+)
+from app.domain.service_area import is_inner_hanoi, resolve_fee
 
 DELIVERY_FEE_VND = 22_000
 
@@ -53,14 +58,27 @@ def compute_order_total(
     combo_discount_vnd: int = 0,
     redeem_points: int = 0,
     current_points: int = 0,
+    ward_fees: Mapping[str, int] | None = None,
+    redeem_value_vnd: int = LOYALTY_REDEEM_VALUE_VND,
+    max_redeem_pct: float = LOYALTY_MAX_REDEEM_PCT,
 ) -> OrderQuote:
     if combo_discount_vnd < 0:
         raise PricingError("VALIDATION_FAILED", "Combo discount cannot be negative.")
     delivery_fee_vnd = 0
     if address_district is not None:
-        if not is_inner_hanoi(address_district):
-            raise PricingError("OUT_OF_SERVICE_AREA", "Delivery address is outside inner Hanoi.")
-        delivery_fee_vnd = DELIVERY_FEE_VND
+        if ward_fees is not None:
+            fee = resolve_fee(ward_fees, address_district)
+            if fee is None:
+                raise PricingError(
+                    "OUT_OF_SERVICE_AREA", "Delivery address is outside the service area."
+                )
+            delivery_fee_vnd = fee
+        else:
+            if not is_inner_hanoi(address_district):
+                raise PricingError(
+                    "OUT_OF_SERVICE_AREA", "Delivery address is outside inner Hanoi."
+                )
+            delivery_fee_vnd = DELIVERY_FEE_VND
 
     subtotal_vnd = sum(_line_subtotal(line) for line in lines)
     discount_combo_vnd = min(combo_discount_vnd, subtotal_vnd)
@@ -70,6 +88,8 @@ def compute_order_total(
             requested_points=redeem_points,
             current_points=current_points,
             subtotal_after_combo_vnd=subtotal_after_combo_vnd,
+            redeem_value_vnd=redeem_value_vnd,
+            max_redeem_pct=max_redeem_pct,
         )
     except LoyaltyError as exc:
         raise PricingError(exc.code, str(exc)) from exc
