@@ -173,7 +173,7 @@ export function OrderCard({
     } finally {
       setReorderPending(false);
     }
-  }, [refresh, router, summary.order_code]);
+  }, [onReorderResult, refresh, router, summary.order_code]);
 
   return (
     <article
