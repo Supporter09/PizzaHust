@@ -1,14 +1,18 @@
 """Kitchen queue priority scoring and stable preparing bucket.
 
-Revision ID: 0019_kitchen_queue_priority_scoring
+Revision ID: 0019_kitchen_queue_priority
 Revises: 0018_drop_product_is_pizza
+
+Note: revision id kept <= 32 chars to fit alembic_version.version_num
+(VARCHAR(32)); the original "..._scoring" id was 35 chars and could never be
+recorded. Renamed before it was ever applied to any DB.
 """
 
 from __future__ import annotations
 
 from alembic import op
 
-revision = "0019_kitchen_queue_priority_scoring"
+revision = "0019_kitchen_queue_priority"
 down_revision = "0018_drop_product_is_pizza"
 branch_labels = None
 depends_on = None
