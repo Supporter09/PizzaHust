@@ -639,13 +639,16 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 - T10 had one **must-fix** (caught + amended in `ac51fa1`): the accrual `<input>` allowed `0`/fractions (`min={0} step="any"`) but the backend field is `int gt=0` → corrected to `min={1} step={1}`, and the test fixture switched from an unrealistic `0.01` to integer `10000→12000`.
 
 **Verified**
-- **`./verify.sh` EXIT 0 at `86a8581` (2026-06-14T12:34Z)** — the **first clean exit-0 in the A11→A12→A13 lineage**. Backend **387 passed/1 skipped** (ruff, mypy domain, lint-imports, alembic-drift all clean); frontend tsc/eslint clean, **80 vitest**, `next build` ok (`/admin/settings` route present); OpenAPI↔types parity clean; smoke **1 passed/1 skipped**; Playwright **44 passed/4 skipped/0 FAILED**.
+- **`./verify.sh` EXIT 0 at `aa35680` (2026-06-14T12:50Z)** — the **first clean exit-0 in the A11→A12→A13 lineage** (re-run after the whole-branch-review fixes). Backend **389 passed/1 skipped** (ruff, mypy domain, lint-imports, alembic-drift all clean); frontend tsc/eslint clean, **80 vitest**, `next build` ok (`/admin/settings` route present); OpenAPI↔types parity clean; smoke **1 passed/1 skipped**; Playwright **44 passed/4 skipped/0 FAILED**. (An earlier clean run was recorded at `86a8581`/387 before the review fixes added two ward-trim tests.)
 - **The prior red gate is fixed:** `admin-orders.spec.ts:28` now **passes** (T4 tz window fix + seeded settings). Both A13 e2e specs pass (settings page renders; editing Ha Dong's ward fee → 30000 is reflected in `GET /api/config/delivery`). `cart.spec.ts:4` (the documented combo parallel-load flake) passed too.
 - **Contained-ripple proof:** domain stays pure and the existing cart/menu/pricing/kitchen/order backend tests pass **unmodified** via the empty-table fallback.
 
-**Known follow-ups** (out of scope, pre-existing — not introduced by A13)
+**Whole-branch review** (verdict **SHIP**, no Critical; migration prod-safe, security solid, quote↔placement fee parity confirmed, domain pure, `tzdata` present)
+- Fixed in `aa35680`: ward names are trimmed + blank-rejected in `WardFeeIn` (closes a direct-API whitespace-ward junk row), `available_timezones()` hoisted to module level (off the per-PUT validator path), and the seed passes `loyalty_max_redeem_pct` as a `float` not `str`.
+- Deferred (ship-as-is, low value/churn): promote `_fold` to a public name; `put_settings` echoes the request instead of re-reading; `models.py` is 528 lines (pre-existing, could split the two settings models out); reports `setdefault` is academic for the no-DST business zone.
+
+**Known follow-up** (out of scope, pre-existing — not introduced by A13)
 - Loyalty **accrual** is still not wired to order placement (`compute_accrual_points` has no production caller); the injectable `accrual_rate` param is ready for whenever accrual-on-order lands.
-- A whitespace-only ward name passes `min_length=1` but `_fold`s to an empty `ward_normalized` (degenerate; not reachable through the seeded UI). A strip-then-nonempty validator would close it if desired.
 
 **Next**
 - Whole-branch review, then `superpowers:finishing-a-development-branch`. This branch now carries **A11 + A12 + A13**; A13 finally gives a clean `verify.sh` exit 0, so the long-standing `admin-orders:28` blocker on merging this lineage to `main` is resolved.
