@@ -341,9 +341,9 @@
         "infra-005",
         "K3"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "verify.sh green at 769a754, 2026-06-15T15:11:50Z (backend 456 passed, smoke 2 passed, Playwright 51/4-skip/0-fail). T1 (K3 mark-ready -> DeliveryPort.create_delivery -> real mock booking) was already built in infra-005/K3/A5 and is unchanged; this formalizes it with an unparked end-to-end smoke (place COD -> kitchen accept+mark-ready books the mock -> poll public tracking to Delivered, asserting Delivering+Delivered in the timeline) and a Playwright e2e (track.spec.ts:40 — real checkout+dispatch, waits for order-status-badge=Delivered, 17.1s). No route/contract change."
     },
     {
       "id": "T2",
@@ -351,9 +351,9 @@
       "depends_on": [
         "T1"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Thanh",
-      "evidence": ""
+      "evidence": "verify.sh green at 769a754, 2026-06-15T15:11:50Z (backend 456 passed incl. test_unknown_reference_logs_warning). T2 (POST /api/webhooks/delivery: HMAC verify + idempotent via webhook_events + state-map + terminal-guard) was already built in infra-005/K4/U7; this adds structured no-op logging for the two silent branches — delivery_webhook_unknown_reference and delivery_webhook_illegal_transition (both still return 200, no provider retry) — with a structlog capture_logs unit test, and the smoke/e2e above prove the mock's HMAC-signed callbacks drive Received->...->Delivered. U14's row-locked reserved-points release on Delivery-Failed preserved. No route/contract change."
     },
     {
       "id": "A8",
