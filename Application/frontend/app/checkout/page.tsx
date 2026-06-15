@@ -11,7 +11,7 @@ import { checkoutQuote } from "@/lib/api/cart";
 import type { CartQuoteOut } from "@/lib/api/cart";
 import { getDeliveryConfig } from "@/lib/api/config";
 import { placeOrder } from "@/lib/api/orders";
-import { clampRedeemPoints, effectiveMaxRedeem } from "@/lib/checkout-redeem";
+import { effectiveMaxRedeem, parseRedeemEntry } from "@/lib/checkout-redeem";
 import { isValidVnPhone } from "@/lib/checkout-validation";
 import { formatVnd } from "@/lib/format";
 
@@ -37,6 +37,7 @@ export default function CheckoutPage() {
   const [deliveryNote, setDeliveryNote] = useState("");
   const [redeemInput, setRedeemInput] = useState("");
   const [redeemPoints, setRedeemPoints] = useState(0);
+  const [redeemError, setRedeemError] = useState<string | null>(null);
   const [quote, setQuote] = useState<CartQuoteOut | null>(null);
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [staleBanner, setStaleBanner] = useState(false);
@@ -68,12 +69,6 @@ export default function CheckoutPage() {
           redeem_points: points,
         });
         setQuote(q);
-        setRedeemPoints((prev) => {
-          const newMax = effectiveMaxRedeem(q.loyalty.balance, q.loyalty.max_redeemable);
-          const clamped = Math.min(prev, newMax);
-          if (clamped !== prev) setRedeemInput(clamped > 0 ? String(clamped) : "");
-          return clamped;
-        });
         setQuoteError(null);
         setStaleBanner(false);
       } catch (e) {
@@ -111,12 +106,18 @@ export default function CheckoutPage() {
   const showRedeem = Boolean(user) && balance > 0;
 
   const applyRedeem = useCallback(() => {
-    const next = clampRedeemPoints(Number.parseInt(redeemInput, 10), balance, maxRedeemable);
-    setRedeemPoints(next);
-    setRedeemInput(next > 0 ? String(next) : "");
+    const { points, error } = parseRedeemEntry(redeemInput, balance, maxRedeemable);
+    if (error) {
+      setRedeemError(error);
+      return;
+    }
+    setRedeemError(null);
+    setRedeemPoints(points);
+    setRedeemInput(points > 0 ? String(points) : "");
   }, [redeemInput, balance, maxRedeemable]);
 
   const useMaxRedeem = useCallback(() => {
+    setRedeemError(null);
     setRedeemPoints(maxRedeem);
     setRedeemInput(maxRedeem > 0 ? String(maxRedeem) : "");
   }, [maxRedeem]);
@@ -322,9 +323,11 @@ export default function CheckoutPage() {
 
           {showRedeem ? (
             <div className="mt-4 rounded-xl border border-line bg-surface p-4">
-              <div className="text-sm font-semibold text-fg">
-                Redeem loyalty points{" "}
-                <span className="font-normal text-muted">· {balance} available</span>
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-sm font-semibold text-fg">Redeem loyalty points</span>
+                <span className="shrink-0 text-xs font-medium text-muted tabular-nums">
+                  {balance} available
+                </span>
               </div>
               <div className="mt-3 flex gap-2">
                 <input
@@ -333,29 +336,37 @@ export default function CheckoutPage() {
                   max={maxRedeem}
                   inputMode="numeric"
                   value={redeemInput}
-                  onChange={(e) => setRedeemInput(e.target.value)}
+                  onChange={(e) => {
+                    setRedeemInput(e.target.value);
+                    setRedeemError(null);
+                  }}
                   placeholder="0"
                   aria-label="Points to redeem"
+                  aria-invalid={redeemError ? true : undefined}
                   className="h-11 min-w-0 flex-1 rounded-lg border border-line bg-card px-3 text-fg"
                 />
                 <button
                   type="button"
                   onClick={useMaxRedeem}
-                  className="h-11 shrink-0 rounded-lg border border-line px-3 text-sm font-semibold text-fg hover:bg-surface-active"
+                  className="h-11 shrink-0 rounded-lg border border-line px-4 text-sm font-semibold text-fg hover:bg-surface-active"
                 >
                   Use max
                 </button>
-                <button
-                  type="button"
-                  onClick={applyRedeem}
-                  className="h-11 shrink-0 rounded-lg border border-brand px-4 text-sm font-semibold text-brand hover:bg-brand/10"
-                >
-                  Apply
-                </button>
               </div>
-              <p className="mt-2 text-xs text-muted">
-                Up to {maxRedeem} pts here · max 50% of subtotal
-              </p>
+              <button
+                type="button"
+                onClick={applyRedeem}
+                className="mt-2 h-11 w-full rounded-lg border border-brand text-sm font-semibold text-brand hover:bg-brand/10"
+              >
+                Apply
+              </button>
+              {redeemError ? (
+                <p role="alert" className="mt-2 text-xs text-danger">
+                  {redeemError}
+                </p>
+              ) : redeemPoints > 0 ? (
+                <p className="mt-2 text-xs text-muted tabular-nums">{redeemPoints} pts applied</p>
+              ) : null}
             </div>
           ) : null}
 

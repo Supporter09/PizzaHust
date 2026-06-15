@@ -6,12 +6,34 @@ export function effectiveMaxRedeem(balance: number, maxRedeemable: number): numb
   return Math.max(0, Math.min(balance, maxRedeemable));
 }
 
-/** Floor-clamp a user-entered redeem amount to [0, effectiveMaxRedeem]. */
-export function clampRedeemPoints(
-  raw: number,
+export interface RedeemEntry {
+  /** Points to apply — 0 when the field is empty or invalid. */
+  points: number;
+  /** Why the entry was rejected, or null when it is acceptable. */
+  error: string | null;
+}
+
+/** Validate a user-entered redeem amount against the effective max.
+ *  Empty / non-positive / junk input means "no redemption" (0 points, no error).
+ *  An amount above the effective max is rejected with a message — never silently
+ *  clamped — so the customer is told the limit instead of having their entry quietly
+ *  changed. The server enforces the same limit as the authoritative backstop. */
+export function parseRedeemEntry(
+  raw: string,
   balance: number,
   maxRedeemable: number,
-): number {
-  if (!Number.isFinite(raw) || raw <= 0) return 0;
-  return Math.min(Math.floor(raw), effectiveMaxRedeem(balance, maxRedeemable));
+): RedeemEntry {
+  const max = effectiveMaxRedeem(balance, maxRedeemable);
+  const value = Number.parseInt(raw, 10);
+  if (!Number.isFinite(value) || value <= 0) {
+    return { points: 0, error: null };
+  }
+  const points = Math.floor(value);
+  if (points > max) {
+    return {
+      points: 0,
+      error: `You can redeem at most ${max} ${max === 1 ? "point" : "points"} on this order.`,
+    };
+  }
+  return { points, error: null };
 }
