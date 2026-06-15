@@ -22,7 +22,8 @@ from app.infra.db.models import Order, OrderItem, User, UserRole
 
 router = APIRouter(prefix="/api/kitchen/orders", tags=["kitchen-orders"])
 
-require_kitchen = require_role(UserRole.KITCHEN)
+# Admins oversee operations, so they share the kitchen staff's access to the queue.
+require_kitchen = require_role(UserRole.KITCHEN, UserRole.ADMIN)
 
 
 class KitchenItemOptionOut(BaseModel):

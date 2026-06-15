@@ -35,7 +35,8 @@ from app.infra.delivery.port import DeliveryError, DeliveryPort, OrderForDispatc
 
 router = APIRouter(prefix="/api/kitchen/orders", tags=["kitchen-orders"])
 
-require_kitchen = require_role(UserRole.KITCHEN)
+# Admins oversee operations, so they share the kitchen staff's access to queue actions.
+require_kitchen = require_role(UserRole.KITCHEN, UserRole.ADMIN)
 
 
 class MarkReadyOut(BaseModel):

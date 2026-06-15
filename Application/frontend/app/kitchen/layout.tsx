@@ -10,10 +10,11 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export default function KitchenLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, loading, logout } = useAuth();
-  const authorized = !loading && user?.role === "kitchen";
+  // Kitchen staff run the queue; admins share access for operational oversight.
+  const authorized = !loading && (user?.role === "kitchen" || user?.role === "admin");
 
   useEffect(() => {
-    if (!loading && user?.role !== "kitchen") {
+    if (!loading && user?.role !== "kitchen" && user?.role !== "admin") {
       router.replace("/login");
     }
   }, [loading, user, router]);

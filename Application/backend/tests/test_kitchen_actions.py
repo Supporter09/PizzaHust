@@ -10,6 +10,7 @@ from app.infra.db.session import create_session_factory
 from app.infra.delivery import get_delivery_port
 from app.infra.delivery.mock import DeliveryError
 from app.infra.delivery.port import DeliveryReference, OrderForDispatch
+from tests.admin_test_utils import admin_client
 from tests.kitchen_test_utils import anon_client, kitchen_client, logged_in_client, make_order
 
 
@@ -216,9 +217,20 @@ def test_pickup_requires_kitchen_role_401_anon() -> None:
     assert resp.status_code == 401
 
 
-@pytest.mark.parametrize("role", [UserRole.CUSTOMER, UserRole.ADMIN])
+@pytest.mark.parametrize("role", [UserRole.CUSTOMER])
 def test_pickup_rejects_non_kitchen_role_403(role: UserRole) -> None:
     client = logged_in_client(f"k4-pickup-{role.value}", role)
     order_id = make_order(status=OrderStatus.READY_FOR_DISPATCH)
     resp = client.post(f"/api/kitchen/orders/{order_id}/pickup")
     assert resp.status_code == 403
+
+
+def test_pickup_allows_admin_role() -> None:
+    # Admins share kitchen access for operational oversight; the tracking row is
+    # attributed to the real admin user (admin_client persists one).
+    client = admin_client("k4-pickup-admin")
+    order_id = make_order(status=OrderStatus.READY_FOR_DISPATCH)
+    resp = client.post(f"/api/kitchen/orders/{order_id}/pickup")
+    assert resp.status_code == 204, resp.text
+    assert _get_order(order_id).current_status == OrderStatus.DELIVERING
+    assert _tracking(order_id)[-1].updated_by is not None
