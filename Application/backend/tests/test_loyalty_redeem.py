@@ -191,3 +191,22 @@ def test_cancel_releases_reserved_points():
         order = db.get(Order, order_id)
         assert order.loyalty_points_redeemed == 0
         assert order.loyalty_points_earned == 0
+
+
+def test_history_includes_redeem_row():
+    app = build_test_app("u14-history")
+    pid, m = _catalog(app)
+    client = _register_login(app)
+    _set_points(50)
+    _add_line(client, pid, m)
+    assert _place(client, 20).status_code == 201
+
+    r = client.get("/api/loyalty/me/history")
+    assert r.status_code == 200, r.text
+    rows = r.json()
+    redeem = [row for row in rows if row["kind"] == "redeem"]
+    earn = [row for row in rows if row["kind"] == "earn"]
+    assert len(redeem) == 1
+    assert redeem[0]["points_delta"] == -20
+    assert len(earn) == 1
+    assert earn[0]["points_delta"] == 29
