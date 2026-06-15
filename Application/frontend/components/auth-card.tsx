@@ -143,7 +143,7 @@ export function AuthCard({ tab }: AuthCardProps) {
         </div>
 
         <div
-          className="mb-6 grid grid-cols-2 gap-1 rounded-full bg-surface-hover p-1"
+          className="mb-6 grid grid-cols-2 gap-1 rounded-full bg-surface-hover p-1 dark:bg-surface-active"
           role="tablist"
         >
           <button
