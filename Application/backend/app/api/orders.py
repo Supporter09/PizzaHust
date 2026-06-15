@@ -319,7 +319,7 @@ def place_order(
     current_points = 0
     user: User | None = None
     if session.user_id is not None:
-        user = db.get(User, session.user_id)
+        user = db.get(User, session.user_id, with_for_update=True)
         if user is not None:
             current_points = user.current_points
 

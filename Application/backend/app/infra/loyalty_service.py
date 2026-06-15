@@ -19,7 +19,7 @@ def release_reserved_points(db: Session, order: Order) -> None:
     if locked.user_id is None or not locked.loyalty_points_redeemed:
         return
     amount = locked.loyalty_points_redeemed
-    user = db.get(User, locked.user_id)
+    user = db.get(User, locked.user_id, with_for_update=True)
     if user is not None:
         user.current_points += amount
     locked.loyalty_points_redeemed = 0

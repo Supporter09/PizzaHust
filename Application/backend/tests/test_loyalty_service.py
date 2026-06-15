@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from app.infra.auth import hash_password
 from app.infra.db.models import Order, OrderStatus, User, UserRole
 from app.infra.db.session import create_session_factory
@@ -8,8 +10,6 @@ from tests.auth_test_utils import build_test_app
 
 
 def _seed_user_and_order(redeemed: int, *, with_user: bool = True) -> tuple[int | None, int]:
-    from datetime import datetime
-
     with create_session_factory()() as db:
         uid = None
         if with_user:
