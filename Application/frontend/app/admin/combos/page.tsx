@@ -4,9 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import Breadcrumb from "@/components/admin/Breadcrumb";
-import { CoverFallback } from "@/components/cover-fallback";
+import { ComboCardMedia } from "@/components/admin/combo-card-media";
 import { ApiClientError } from "@/lib/api/client";
-import { resolveImageUrl } from "@/lib/image-url";
 import { deleteCombo, listCombos, type AdminCombo } from "@/lib/api/admin-combos";
 import { formatComboComponent } from "@/lib/format-combo-component";
 import { formatVnd } from "@/lib/format";
@@ -88,16 +87,7 @@ export default function AdminCombosPage() {
             className="flex flex-col overflow-hidden rounded-xl border border-line bg-card"
           >
             <div className="relative">
-              {c.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={resolveImageUrl(c.image_url)}
-                  alt=""
-                  className="aspect-[16/9] w-full object-cover"
-                />
-              ) : (
-                <CoverFallback label={c.name} className="aspect-[16/9] w-full" />
-              )}
+              <ComboCardMedia url={c.image_url} label={c.name} />
               <span
                 className={`absolute right-2 top-2 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLE[c.status] ?? ""}`}
               >
