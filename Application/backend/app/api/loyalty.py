@@ -26,7 +26,7 @@ class LoyaltyHistoryRow(BaseModel):
     label: str
     date: datetime
     points_delta: int
-    kind: Literal["earn"]
+    kind: Literal["earn", "redeem"]
 
 
 @router.get("/me", response_model=LoyaltyMeResponse)
@@ -47,21 +47,29 @@ async def loyalty_history(
     user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> list[LoyaltyHistoryRow]:
-    rows = db.scalars(
+    orders = db.scalars(
         select(Order)
-        .where(
-            Order.user_id == user.user_id,
-            Order.loyalty_points_earned > 0,
-            Order.current_status != OrderStatus.CANCELLED,
-        )
+        .where(Order.user_id == user.user_id)
         .order_by(Order.created_at.desc(), Order.order_id.desc())
     ).all()
-    return [
-        LoyaltyHistoryRow(
-            label=f"Order {o.order_code}",
-            date=o.created_at,
-            points_delta=o.loyalty_points_earned,
-            kind="earn",
-        )
-        for o in rows
-    ]
+    rows: list[LoyaltyHistoryRow] = []
+    for o in orders:
+        if o.loyalty_points_earned > 0 and o.current_status != OrderStatus.CANCELLED:
+            rows.append(
+                LoyaltyHistoryRow(
+                    label=f"Order {o.order_code}",
+                    date=o.created_at,
+                    points_delta=o.loyalty_points_earned,
+                    kind="earn",
+                )
+            )
+        if o.loyalty_points_redeemed > 0:
+            rows.append(
+                LoyaltyHistoryRow(
+                    label=f"Redeemed on {o.order_code}",
+                    date=o.created_at,
+                    points_delta=-o.loyalty_points_redeemed,
+                    kind="redeem",
+                )
+            )
+    return rows

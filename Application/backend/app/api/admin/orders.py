@@ -26,6 +26,7 @@ from app.infra.db.models import (
 )
 from app.infra.delivery import get_delivery_port
 from app.infra.delivery.port import DeliveryError, DeliveryPort, OrderForDispatch
+from app.infra.loyalty_service import release_reserved_points
 
 router = APIRouter(prefix="/api/admin/orders", tags=["admin-orders"])
 
@@ -244,7 +245,7 @@ def cancel_order(
     db: Session = Depends(get_db, scope="function"),
     admin: User = Depends(require_admin),
 ) -> None:
-    order: Order | None = db.get(Order, order_id)
+    order: Order | None = db.get(Order, order_id, with_for_update=True)
     if order is None:
         raise HTTPException(status_code=404, detail="NOT_FOUND")
     try:
@@ -259,13 +260,16 @@ def cancel_order(
     # nothing. The state machine forbids re-cancelling, so this runs at most once;
     # zeroing the stored amount is belt-and-suspenders against double reversal.
     if order.user_id is not None and order.loyalty_points_earned:
-        user = db.get(User, order.user_id)
+        user = db.get(User, order.user_id, with_for_update=True)
         if user is not None:
             user.current_points = max(0, user.current_points - order.loyalty_points_earned)
             user.total_points_earned = max(
                 0, user.total_points_earned - order.loyalty_points_earned
             )
         order.loyalty_points_earned = 0
+
+    db.flush()
+    release_reserved_points(db, order)
 
     db.add(
         OrderTracking(

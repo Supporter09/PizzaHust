@@ -2046,9 +2046,9 @@ export interface components {
             date: string;
             /**
              * Kind
-             * @constant
+             * @enum {string}
              */
-            kind: "earn";
+            kind: "earn" | "redeem";
             /** Label */
             label: string;
             /** Points Delta */

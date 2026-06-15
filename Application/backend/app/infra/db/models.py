@@ -345,6 +345,9 @@ class Order(Base):
         CheckConstraint(
             "loyalty_points_earned >= 0", name="ck_orders_loyalty_points_earned_nonneg"
         ),
+        CheckConstraint(
+            "loyalty_points_redeemed >= 0", name="ck_orders_loyalty_points_redeemed_nonneg"
+        ),
     )
 
     order_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -379,6 +382,12 @@ class Order(Base):
     # Loyalty points credited to the user at placement. Stored so cancellation can
     # reverse the exact amount even if the admin-configured accrual rate later changes.
     loyalty_points_earned: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
+    loyalty_points_redeemed: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
         default=0,

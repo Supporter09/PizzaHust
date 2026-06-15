@@ -48,7 +48,12 @@ def compute_redemption(
 
     max_discount_vnd = int(subtotal_after_combo_vnd * max_redeem_pct)
     max_redeemable_points = max_discount_vnd // redeem_value_vnd
-    redeemed_points = min(requested_points, max_redeemable_points)
+    if requested_points > max_redeemable_points:
+        raise LoyaltyError(
+            INSUFFICIENT_LOYALTY_CODE,
+            "Redeemed points exceed the maximum allowed for this order.",
+        )
+    redeemed_points = requested_points
     return LoyaltyRedemption(
         redeemed_points=redeemed_points,
         discount_vnd=redeemed_points * redeem_value_vnd,

@@ -51,17 +51,17 @@ def test_compute_order_total_applies_pipeline_order() -> None:
     )
 
 
-def test_compute_order_total_caps_loyalty_to_half_after_combo_subtotal() -> None:
-    quote = compute_order_total(
-        lines=[CartLine(unit_price_vnd=100_000, quantity=1)],
-        address_district="Hoàn Kiếm",
-        redeem_points=100,
-        current_points=100,
-    )
+def test_compute_order_total_over_cap_raises() -> None:
+    # redeem_points=100 > max_redeemable=50 (50% of 100_000 / 1_000) → must raise
+    with pytest.raises(PricingError) as exc_info:
+        compute_order_total(
+            lines=[CartLine(unit_price_vnd=100_000, quantity=1)],
+            address_district="Hoàn Kiếm",
+            redeem_points=100,
+            current_points=100,
+        )
 
-    assert quote.discount_loyalty_vnd == 50_000
-    assert quote.loyalty_redeemed == 50
-    assert quote.total_vnd == 72_000
+    assert exc_info.value.code == "INSUFFICIENT_LOYALTY"
 
 
 def test_compute_order_total_rejects_out_of_service_area() -> None:

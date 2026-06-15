@@ -739,3 +739,20 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 **Reviewed** (adversarial, **APPROVED**, no Critical/Important behavioral defects): transaction atomicity, reversal idempotency, clamp correctness, rate-change safety, guest/deleted-user guards, migration prod-safety all confirmed. Two test-coverage gaps it flagged were then closed (stored-amount-zeroed assertion + a multi-order cancel test).
 
 **Verified:** `./verify.sh` **EXIT 0** at `013f644`: backend **393 passed/1 skipped** (4 new accrual tests; ruff, mypy domain, lint-imports, alembic-drift clean), migration 0016 down/up roundtrip clean on dev MySQL, OpenAPI↔types parity clean (the new column isn't exposed in any DTO), 80 vitest, smoke 1/1-skip, Playwright 44/4-skip/0-fail.
+
+---
+
+## 2026-06-15 — U14 Redeem Points for Discount (`feat/u14-redeem-points`)
+
+**Done** (commits `1dcabcf..c54414c`)
+- **Reservation lifecycle:** `orders.loyalty_points_redeemed` (migration `0022`, CHECK ≥ 0). Placement debits redeemed points and stores them, netting accrual in the same tx (`earned − redeemed`). `release_reserved_points` (`infra/loyalty_service.py`, idempotent, guest-safe) returns them to the balance on admin **Cancel** and the **Delivery-Failed** webhook; release + earned-reversal run under a row lock.
+- **Quote:** `checkout_quote` threads the customer's real `current_points` through `quote_session_cart`/`quote_cart_for_placement` → `compute_redemption`. Stateless `/cart/quote` untouched.
+- **History:** `/api/loyalty/me/history` emits `kind:"redeem"` rows (negative delta); contracts regenerated.
+- **Checkout UI:** redeem panel (balance, input, Use max, Apply) + breakdown (Subtotal → discounts → Delivery → Total) + `Place Order — <total>`; pure `lib/checkout-redeem.ts`; e2e `checkout-redeem.spec.ts`.
+
+**Reviewed:** two-stage (spec + code-quality) per task via subagents; minor notes applied.
+
+**Deviations (user-directed, override plan's clamp):** over-redeem **errors** — FE inline "at most N points" + blocked Apply, and `compute_redemption` raises **422 INSUFFICIENT_LOYALTY** for over-balance AND over-cap (no clamp). Removed the "max 50% of subtotal" note; redesigned the panel layout. Fidelity: `docs/superpowers/design-fidelity/U14-FIDELITY.md` (local).
+**Deviations (scope):** accrual credited at **placement** (not Delivered); only Cancel / Delivery-Failed reverse earned + release reserved.
+
+**Verified:** `./verify.sh` **EXIT 0** at `c54414c`, `2026-06-15T13:47:38Z` — backend pytest + frontend tsc/eslint/vitest/build + OpenAPI↔types parity green, smoke 1/1-skip, Playwright **50 passed/4 skipped/0 failed** (incl. `checkout-redeem`).
