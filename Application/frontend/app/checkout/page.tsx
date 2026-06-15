@@ -68,6 +68,12 @@ export default function CheckoutPage() {
           redeem_points: points,
         });
         setQuote(q);
+        setRedeemPoints((prev) => {
+          const newMax = effectiveMaxRedeem(q.loyalty.balance, q.loyalty.max_redeemable);
+          const clamped = Math.min(prev, newMax);
+          if (clamped !== prev) setRedeemInput(clamped > 0 ? String(clamped) : "");
+          return clamped;
+        });
         setQuoteError(null);
         setStaleBanner(false);
       } catch (e) {
