@@ -226,9 +226,9 @@
         "U6",
         "U13"
       ],
-      "status": "todo",
+      "status": "done",
       "owner": "Hung",
-      "evidence": ""
+      "evidence": "verify.sh green at c54414c, 2026-06-15T13:47:38Z — Playwright e2e 50 passed/4 skipped (incl. U14 checkout-redeem), smoke 1 passed/1 skipped; backend pytest + frontend tsc/eslint/vitest/build + OpenAPI↔types parity all green"
     },
     {
       "id": "A1",
