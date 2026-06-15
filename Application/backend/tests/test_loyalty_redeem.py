@@ -104,7 +104,9 @@ def test_checkout_quote_applies_real_balance():
     assert body["total_vnd"] == 310_000 - 20_000 + 22_000
 
 
-def test_checkout_quote_caps_at_half_subtotal():
+def test_checkout_quote_over_cap_is_rejected():
+    # 1_000 points requested, but max redeemable is 155 (50% of 310_000 / 1_000).
+    # Over-cap must be a hard 422, not a silent clamp.
     app = build_test_app("u14-cap")
     pid, m = _catalog(app)
     client = _register_login(app)
@@ -112,11 +114,8 @@ def test_checkout_quote_caps_at_half_subtotal():
     _add_line(client, pid, m)
 
     r = _checkout_quote(client, 1_000)
-    assert r.status_code == 200, r.text
-    body = r.json()
-    assert body["loyalty"]["max_redeemable"] == 155
-    assert body["loyalty"]["redeemed"] == 155
-    assert body["discount_loyalty_vnd"] == 155_000
+    assert r.status_code == 422, r.text
+    assert r.json()["error"]["code"] == "INSUFFICIENT_LOYALTY"
 
 
 def test_checkout_quote_over_balance_422():

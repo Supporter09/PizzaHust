@@ -30,16 +30,16 @@ def test_compute_accrual_points_floor_divides_subtotal(
     assert compute_accrual_points(subtotal_after_discount) == points
 
 
-def test_compute_redemption_caps_discount_at_half_subtotal() -> None:
-    redemption = compute_redemption(
-        requested_points=100,
-        current_points=100,
-        subtotal_after_combo_vnd=80_000,
-    )
+def test_compute_redemption_over_cap_raises() -> None:
+    # requested_points=100 > max_redeemable=40 (50% of 80_000 / 1_000) → must raise
+    with pytest.raises(LoyaltyError) as exc_info:
+        compute_redemption(
+            requested_points=100,
+            current_points=100,
+            subtotal_after_combo_vnd=80_000,
+        )
 
-    assert redemption.redeemed_points == 40
-    assert redemption.discount_vnd == 40_000
-    assert redemption.max_redeemable_points == 40
+    assert exc_info.value.code == INSUFFICIENT_LOYALTY_CODE
 
 
 def test_compute_redemption_uses_requested_points_when_under_cap() -> None:
@@ -66,14 +66,16 @@ def test_compute_redemption_rejects_more_than_balance() -> None:
 
 
 def test_redemption_uses_injected_rates() -> None:
-    redemption = compute_redemption(
-        requested_points=100,
-        current_points=100,
-        subtotal_after_combo_vnd=100_000,
-        redeem_value_vnd=1_000,
-        max_redeem_pct=0.3,
-    )
-    assert redemption.max_redeemable_points == 30  # 30% of 100000 / 1000
+    # requested_points=100 > max_redeemable=30 (30% of 100_000 / 1_000) → must raise
+    with pytest.raises(LoyaltyError) as exc_info:
+        compute_redemption(
+            requested_points=100,
+            current_points=100,
+            subtotal_after_combo_vnd=100_000,
+            redeem_value_vnd=1_000,
+            max_redeem_pct=0.3,
+        )
+    assert exc_info.value.code == INSUFFICIENT_LOYALTY_CODE
 
 
 def test_accrual_uses_injected_rate() -> None:
