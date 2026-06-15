@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { CoverFallback } from "@/components/cover-fallback";
+import { QuickAddButton } from "@/components/menu/quick-add-button";
 import { formatVnd } from "@/lib/format";
 import { resolveImageUrl } from "@/lib/image-url";
 
@@ -44,16 +45,8 @@ export function PizzaCard({ productId, name, basePriceVnd, hasPriceOptions, imag
             {formatVnd(basePriceVnd)}
           </p>
         </div>
-        {/* Quick-add is gated on the cart (U5/U6, unbuilt) — present but disabled. */}
-        <button
-          type="button"
-          disabled
-          aria-label={`Add ${name} — cart coming soon`}
-          title="Cart coming soon"
-          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-2xl leading-none text-on-brand opacity-50"
-        >
-          <span aria-hidden="true">+</span>
-        </button>
+        {/* No-option items add in one click; items with options open the detail page. */}
+        <QuickAddButton productId={productId} name={name} hasPriceOptions={hasPriceOptions} />
       </div>
     </article>
   );
