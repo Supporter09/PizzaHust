@@ -255,17 +255,14 @@ def cancel_order(
         raise HTTPException(status_code=409, detail="CONFLICT") from None
     order.current_status = new_status
 
-    # Reverse loyalty points credited at placement so a cancelled order earns
-    # nothing. The state machine forbids re-cancelling, so this runs at most once;
-    # zeroing the stored amount is belt-and-suspenders against double reversal.
-    if order.user_id is not None and order.loyalty_points_earned:
+    # Release reserved points and discard any pending earn record because the
+    # order never reached Delivered.
+    if order.user_id is not None and order.loyalty_points_redeemed:
         user = db.get(User, order.user_id)
         if user is not None:
-            user.current_points = max(0, user.current_points - order.loyalty_points_earned)
-            user.total_points_earned = max(
-                0, user.total_points_earned - order.loyalty_points_earned
-            )
-        order.loyalty_points_earned = 0
+            user.current_points += order.loyalty_points_redeemed
+        order.loyalty_points_redeemed = 0
+    order.loyalty_points_earned = 0
 
     db.add(
         OrderTracking(

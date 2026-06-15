@@ -15,7 +15,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from app.infra.db.models import Order, OrderStatus, OrderTracking
+from app.infra.db.models import Order, OrderStatus, OrderTracking, User
 from app.infra.db.session import create_session_factory
 from tests.auth_test_utils import build_test_app
 
@@ -36,7 +36,13 @@ def _post_event(client: TestClient, payload: dict, *, signature: str | None = No
     )
 
 
-def _new_order(reference: str | None, status: OrderStatus) -> int:
+def _new_order(
+    reference: str | None,
+    status: OrderStatus,
+    *,
+    user_id: int | None = None,
+    earned: int = 0,
+) -> int:
     with create_session_factory()() as db:
         order = Order(
             # Contract format: PIZZ- + 6 Crockford base32 chars (no I/L/O/U). Each
@@ -49,6 +55,8 @@ def _new_order(reference: str | None, status: OrderStatus) -> int:
             promised_at=datetime(2026, 1, 1, 12, 0, 0),
             current_status=status,
             delivery_reference=reference,
+            user_id=user_id,
+            loyalty_points_earned=earned,
         )
         db.add(order)
         db.commit()
@@ -73,7 +81,17 @@ def test_valid_event_advances_order_and_records_tracking(
 ) -> None:
     monkeypatch.setenv("DELIVERY_WEBHOOK_SECRET", SECRET)
     app = build_test_app("wh-ok")
-    order_id = _new_order("mock-ok1", OrderStatus.DELIVERING)
+    with create_session_factory()() as db:
+        user = User(
+            full_name="Webhook User",
+            phone_number="0901234567",
+            password_hash="hash",
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        user_id = user.user_id
+    order_id = _new_order("mock-ok1", OrderStatus.DELIVERING, user_id=user_id, earned=31)
     client = TestClient(app)
 
     resp = _post_event(client, {"reference": "mock-ok1", "state": "Delivered"})
@@ -81,6 +99,11 @@ def test_valid_event_advances_order_and_records_tracking(
     assert resp.status_code == 204
     assert _order_status(order_id) == OrderStatus.DELIVERED
     assert _tracking_count(order_id) == 1
+    with create_session_factory()() as db:
+        user = db.get(User, user_id)
+        assert user is not None
+        assert user.current_points == 31
+        assert user.total_points_earned == 31
 
 
 def test_bad_signature_rejected(monkeypatch: pytest.MonkeyPatch) -> None:

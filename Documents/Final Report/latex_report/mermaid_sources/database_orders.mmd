@@ -1,0 +1,89 @@
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "primaryColor": "#f8fafc", "primaryTextColor": "#111827", "primaryBorderColor": "#64748b", "lineColor": "#475569", "tertiaryColor": "#ffffff", "fontFamily": "Arial"}}}%%
+erDiagram
+    USERS {
+        int user_id PK
+        varchar phone_number UK
+        varchar email
+        boolean is_locked
+        varchar role
+    }
+
+    WEBHOOK_EVENTS {
+        int id PK
+        varchar event_id UK
+        datetime received_at
+    }
+
+    ORDERS {
+        int order_id PK
+        varchar order_code UK
+        int user_id FK
+        varchar current_status
+        varchar delivery_reference
+        int loyalty_points_earned
+        datetime promised_at
+        datetime created_at
+    }
+
+    ORDER_ITEMS {
+        int order_item_id PK
+        int order_id FK
+        int product_id FK
+        int combo_id FK
+        int parent_order_item_id FK
+        int quantity
+        int unit_price_vnd
+        varchar notes
+    }
+
+    ORDER_ITEM_OPTIONS {
+        int id PK
+        int order_item_id FK
+        varchar group_name
+        varchar option_name
+        int price_delta_vnd
+    }
+
+    ORDER_TRACKING {
+        int tracking_id PK
+        int order_id FK
+        int updated_by FK
+        varchar status
+        varchar note_source
+        varchar note
+        datetime created_at
+    }
+
+    PRODUCTS {
+        int product_id PK
+        varchar name
+    }
+
+    COMBOS {
+        int combo_id PK
+        varchar name
+    }
+
+    CARTS {
+        int cart_id PK
+        int user_id FK
+    }
+
+    CART_LINES {
+        int line_id PK
+        int cart_id FK
+        json payload
+        int quantity
+        varchar note
+    }
+
+    USERS o|--o{ ORDERS : places
+    ORDERS ||--o{ ORDER_ITEMS : contains
+    PRODUCTS o|--o{ ORDER_ITEMS : product
+    COMBOS o|--o{ ORDER_ITEMS : combo
+    ORDER_ITEMS ||--o{ ORDER_ITEMS : parent_child
+    ORDER_ITEMS ||--o{ ORDER_ITEM_OPTIONS : snapshots
+    ORDERS ||--o{ ORDER_TRACKING : records
+    USERS o|--o{ ORDER_TRACKING : updates
+    USERS o|--o| CARTS : owns
+    CARTS ||--o{ CART_LINES : contains

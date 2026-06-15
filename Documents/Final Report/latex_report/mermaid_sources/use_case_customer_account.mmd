@@ -1,0 +1,31 @@
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "primaryColor": "#f8fafc", "primaryTextColor": "#111827", "primaryBorderColor": "#64748b", "lineColor": "#475569", "secondaryColor": "#ffffff", "tertiaryColor": "#ffffff", "fontFamily": "Arial"}}}%%
+flowchart LR
+    subgraph Actors["Actors"]
+        direction TB
+        Guest["Guest"]
+        Customer["Customer"]
+        Customer -. inherits .-> Guest
+    end
+
+    subgraph Cases["Account functions"]
+        direction TB
+        Register["U8 Register"]
+        Login["U9 Log in"]
+        Profile["U12 Profile"]
+        Loyalty["U13 Loyalty summary"]
+        History["U11 Order history"]
+        Redeem["U14 Redeem points"]
+        Register ~~~ Login ~~~ Profile ~~~ Loyalty ~~~ History ~~~ Redeem
+    end
+
+    Guest --> Register
+    Customer --> Login
+    Customer --> Profile
+    Customer --> Loyalty
+    Customer --> History
+    Customer --> Redeem
+
+    classDef actor fill:#e2e8f0,stroke:#334155,color:#0f172a;
+    classDef case fill:#f8fafc,stroke:#334155,color:#0f172a;
+    class Guest,Customer actor;
+    class Register,Login,Profile,Loyalty,History,Redeem case;

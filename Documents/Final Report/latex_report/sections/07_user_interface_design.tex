@@ -1,0 +1,115 @@
+\section{User Interface Design}
+
+\subsection{UI design goals}
+
+The user interface of PizzaHUST is designed to support two very different usage contexts within one web system:
+
+\begin{itemize}
+    \item customer-facing interaction, where the priorities are discoverability, smooth ordering flow, and straightforward checkout;
+    \item staff-facing operation, where the priorities are efficient management, status visibility, and operational control.
+\end{itemize}
+
+As a result, the UI design is not only about appearance. It must also express the business structure of the system clearly enough that guests, customers, administrators, and kitchen staff can each recognize the subset of the system relevant to them.
+
+\subsection{Prototype set and design process}
+
+The repository contains a substantial design handoff bundle in the \texttt{Design/} directory. At the time of this report, that bundle includes 28 static HTML prototype screens together with shared CSS, screenshots, and a written design brief. These prototypes are the primary source for intended visual behavior and interaction structure; they are \emph{not} production code.
+
+The report focuses on the designed interface set represented by the mockups and the screenshots that accompany the major report use cases.
+
+\subsection{Information architecture and navigation}
+
+The information architecture of PizzaHUST is divided into four major navigation zones:
+
+\begin{itemize}
+    \item \textbf{Public storefront:} home, menu, item detail, combos, cart, checkout, and tracking;
+    \item \textbf{Customer account area:} login, registration, account overview, and order-history-related views;
+    \item \textbf{Administrative area:} items, categories, combos, customers, orders, reports, settings, and import;
+    \item \textbf{Kitchen area:} queue-oriented operational view for preparing and handing off orders.
+\end{itemize}
+
+Public-facing routes use shared site chrome with top navigation, footer, theme control, and account/cart entry points. Administrative routes switch to a more tool-oriented layout with a dedicated side navigation structure. Kitchen-facing routes emphasize queue clarity and action availability rather than marketing or browsing concerns.
+
+The screenshot set below documents the UI for the core report scope. By request, the integration-only T1/T2 flow is excluded from the UI section because it does not have a dedicated user-facing screen.
+
+\newcommand{\uifig}[3]{%
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.94\textwidth,height=0.62\textheight,keepaspectratio]{\detokenize{latex_report/UI Design/#1}}
+    \caption{#2}
+    \label{#3}
+\end{figure}
+}
+
+\subsection{Customer storefront screens}
+
+\uifig{Menu_U1.png}{Customer menu discovery screen for U1 Browse Menus}{fig:ui-u1-menu}
+\uifig{Item_Detail_U2.png}{Customer item detail screen for U2 View Item Details}{fig:ui-u2-item-detail}
+\uifig{Customize_Pizza_U3.png}{Pizza customization screen for U3 Customize Pizza}{fig:ui-u3-customize-pizza}
+\uifig{Combos_U4.png}{Combo promotion listing for U4 View Combo Promotions}{fig:ui-u4-combos}
+\uifig{Combos_Details_U4.1.png}{Combo detail and slot customization screen for U15 Customize Combo}{fig:ui-u15-combo-detail}
+\uifig{Cart_U5.png}{Shopping cart screen for U5 Manage Cart}{fig:ui-u5-cart}
+\uifig{Place_COD_U6.png}{Checkout screen for U6 Place COD Order}{fig:ui-u6-checkout}
+\uifig{Track_Order_U7.png}{Order tracking screen for U7 Track Order}{fig:ui-u7-track}
+\FloatBarrier
+
+\subsection{Customer account screens}
+
+\uifig{Register_U8.png}{Registration form for U8 Register}{fig:ui-u8-register}
+\uifig{Log_In_U9.png}{Login form for U9 Log In}{fig:ui-u9-login}
+\uifig{Order_History_U11.png}{Order history screen for U11 View Order History}{fig:ui-u11-order-history}
+\uifig{Manage_Profile_U12.png}{Profile management screen for U12 Manage Profile}{fig:ui-u12-profile}
+\uifig{Loyalty_Point_U13.png}{Loyalty balance and activity screen for U13 View Loyalty Points}{fig:ui-u13-loyalty}
+\uifig{Redeem_Loyalty_point_U14.png}{Checkout loyalty redemption screen for U14 Redeem Points for Discount}{fig:ui-u14-redeem}
+\FloatBarrier
+
+\subsection{Administrative screens}
+
+\uifig{Pizza_Catalog_A1.png}{Pizza catalog management screen for A1 Manage Pizza Catalog}{fig:ui-a1-catalog}
+\uifig{A2_Manage_Pizza_Option.png}{Pizza option management screen for A2 Manage Pizza Options and Side Dishes}{fig:ui-a2-options}
+\uifig{A2_Manage_Side_Dishes.png}{Side-dish management screen for A2 Manage Pizza Options and Side Dishes}{fig:ui-a2-sides}
+\uifig{A3_Menu_Categories_Overview.png}{Category management overview for A3 Manage Menu Categories}{fig:ui-a3-categories-overview}
+\uifig{A3_Menu_Categories_Detailed.png}{Category management detail for A3 Manage Menu Categories}{fig:ui-a3-categories-detail}
+\uifig{A4_Combo_Campain_Overview.png}{Combo campaign overview for A4 Manage Combo Campaigns}{fig:ui-a4-combos-overview}
+\uifig{A4_Combo_Campain_Detailed.png}{Combo campaign detail for A4 Manage Combo Campaigns}{fig:ui-a4-combos-detail}
+\uifig{A5_Order_Delivery_monitor.png}{Order and delivery monitoring screen for A5 Monitor Orders and Delivery Exceptions}{fig:ui-a5-orders}
+\uifig{A6_Customer_Acc_Management.png}{Customer account management screen for A6 Manage Customer Accounts}{fig:ui-a6-customers}
+\uifig{A7_Sale_Order_Report.png}{Sales and order reporting screen for A7 View Sales and Order Reports}{fig:ui-a7-reports}
+\FloatBarrier
+
+\subsection{Kitchen screens}
+
+\uifig{K1_Incoming_Orders.png}{Kitchen queue screen for K1 View Incoming Orders}{fig:ui-k1-queue}
+\uifig{K2_Accept_Order.png}{Kitchen accept-order action screen for K2 Update Preparation Status}{fig:ui-k2-accept}
+\uifig{K3_Mark_Ready_For_Dispatch.png}{Kitchen mark-ready screen for K3 Mark Order Ready for Dispatch}{fig:ui-k3-ready}
+\FloatBarrier
+
+\subsection{Visual system}
+
+The design language of PizzaHUST combines an ordering-oriented storefront aesthetic with more functional operational layouts for staff views. The production frontend currently uses:
+
+\begin{itemize}
+    \item local Poppins font assets for consistent typography;
+    \item token-based light and dark themes;
+    \item reusable navigation and content shells;
+    \item card-based presentation for menu, combo, and administrative summary surfaces;
+    \item action-oriented controls for kitchen and admin workflows.
+\end{itemize}
+
+The storefront is optimized around browsing, visual comparison, and ordering progression, while the administrative and kitchen interfaces prioritize table/list clarity, status visibility, and action placement. This difference is important because a single design language would not serve all actor groups equally well.
+
+\subsection{Responsive behavior and accessibility considerations}
+
+PizzaHUST is explicitly designed as a responsive web application rather than a desktop-only staff tool or a mobile-only consumer app. The production code uses responsive Tailwind utility classes to adapt page layout and interaction density across viewport sizes.
+
+The current codebase also shows accessibility intent in several areas:
+
+\begin{itemize}
+    \item labels and accessible naming for controls;
+    \item focus visibility and state indication;
+    \item \texttt{aria-live} usage for dynamic feedback in quote or quantity-related interactions;
+    \item semantic selection behavior such as radio-style option controls and pressed-state indicators;
+    \item accessible mobile navigation handling.
+\end{itemize}
+
+However, the report should state clearly that no formal accessibility audit artifact was found in the repository. The interface should therefore be described as having \emph{accessibility-aware implementation intent}, not as a fully audited accessible product.

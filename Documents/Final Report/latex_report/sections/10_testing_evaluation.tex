@@ -1,0 +1,155 @@
+\section{Testing and Evaluation}
+
+\subsection{Test strategy}
+
+PizzaHUST uses a layered testing and verification strategy rather than relying on a single test style. This is appropriate because the project includes:
+
+\begin{itemize}
+    \item business-rule-heavy backend logic;
+    \item a browser-based frontend with staff and customer views;
+    \item schema evolution through migrations;
+    \item generated API contracts;
+    \item a realistic external integration boundary through the delivery mock.
+\end{itemize}
+
+As a result, quality assurance is distributed across static checks, backend tests, frontend unit tests, browser tests, schema and contract drift checks, and smoke-style end-to-end verification.
+
+\begingroup
+\small
+\setlength{\LTpre}{0.4em}
+\setlength{\LTpost}{0.8em}
+\captionof{table}{Testing and quality-assurance layers}\label{tab:test-artifacts}
+\begin{tabular}{L{0.20\linewidth} L{0.34\linewidth} L{0.38\linewidth}}
+\toprule
+\textbf{Layer} & \textbf{Tool or mechanism} & \textbf{Main purpose} \\
+\midrule
+Static backend quality & Ruff, Ruff format, mypy, import-linter & Enforce code quality, type discipline, and boundary rules. \\
+Backend unit and integration tests & pytest and httpx-based tests & Verify domain logic, API behavior, persistence rules, and integration behavior. \\
+Schema and contract drift checks & Alembic check and OpenAPI comparison & Detect mismatch between code, schema, and published API contract. \\
+Static frontend quality & TypeScript, ESLint, Next.js build & Protect type correctness, lint quality, and production buildability. \\
+Frontend unit tests & Vitest & Verify helper functions, API wrappers, component logic, and selected route behavior. \\
+Browser workflow tests & Playwright & Validate important user-facing paths through real browser interaction. \\
+Smoke end-to-end verification & Compose + pytest smoke flow & Validate the intended cross-service business flow in a realistic local runtime stack. \\
+\bottomrule
+\end{tabular}
+\endgroup
+
+\subsection{Verification workflow}
+
+The strongest testing artifact in the repository is the verification script \texttt{Application/verify.sh}. It acts as the practical definition-of-done gate by executing the quality layers in a fixed sequence:
+
+\begin{enumerate}
+    \item backend linting and formatting checks;
+    \item backend type and import-boundary checks;
+    \item backend test suite;
+    \item migration drift verification;
+    \item OpenAPI export and drift comparison;
+    \item frontend type generation and drift verification;
+    \item frontend linting, unit tests, and production build;
+    \item smoke-style backend end-to-end test flow;
+    \item Playwright browser workflow tests.
+\end{enumerate}
+
+This workflow is valuable because it ties source quality, contract accuracy, schema consistency, and browser-facing behavior into one repeatable verification pipeline rather than treating them as separate ad hoc checks.
+
+\subsection{Current test inventory}
+
+At the time of this report revision, the repository contains the following visible test inventory:
+
+\begin{itemize}
+    \item 60 backend test files matching \texttt{test\_*.py};
+    \item 24 frontend unit/component test files matching \texttt{*.test.ts} or \texttt{*.test.tsx};
+    \item 24 Playwright browser specification files matching \texttt{*.spec.ts};
+    \item 29 route-page files in the frontend application;
+    \item 63 documented API paths in the current OpenAPI contract.
+\end{itemize}
+
+These counts are useful as scale indicators, although they do not by themselves prove quality. The more important point is the spread of verification across major functional areas.
+
+\subsection{Representative subsystem coverage}
+
+\subsubsection{Backend domain and API coverage}
+
+The backend tests cover major business-rule areas such as:
+
+\begin{itemize}
+    \item pricing and quote logic;
+    \item option validation;
+    \item combo and combo-slot behavior;
+    \item authentication and security-related behavior;
+    \item catalog and administrative operations;
+    \item delivery adapter and webhook handling;
+    \item order-state transitions;
+    \item reporting and settings behavior.
+\end{itemize}
+
+This is especially important because much of PizzaHUST's correctness depends on domain behavior rather than only on surface rendering.
+
+\subsubsection{Frontend and browser coverage}
+
+Frontend unit tests and Playwright tests cover a broad range of user-visible behavior, including:
+
+\begin{itemize}
+    \item menu browsing and item detail flows;
+    \item cart and checkout;
+    \item login and registration;
+    \item combo customization;
+    \item tracking;
+    \item administrator catalog and operations pages;
+    \item kitchen-facing UI behavior;
+    \item theme and selected shared UI logic.
+\end{itemize}
+
+This gives the project meaningful verification at both the logic-helper level and the browser-workflow level.
+
+\subsubsection{Integration and workflow coverage}
+
+The smoke and integration layers are important because PizzaHUST is not just a collection of isolated pages. Order placement, kitchen progression, dispatch handoff, and delivery synchronization are cross-component workflows. The inclusion of delivery-mock integration, webhook handling, and smoke-style end-to-end flows significantly improves confidence in the operational parts of the system.
+
+\subsection{Evaluation against project goals}
+
+\begingroup
+\small
+\setlength{\LTpre}{0.4em}
+\setlength{\LTpost}{0.8em}
+\captionof{table}{Evaluation of the current implementation and verification approach}\label{tab:project-evaluation}
+\begin{tabular}{L{0.23\linewidth} L{0.70\linewidth}}
+\toprule
+\textbf{Evaluation area} & \textbf{Assessment} \\
+\midrule
+Functional correctness & Strongest in catalog browsing, customization, cart/ordering, administrative operations, and delivery-related workflows due to combined backend, frontend, and browser coverage. \\
+Architecture quality & Supported by import-boundary enforcement, contract generation, migration checks, and the modular monolith structure. \\
+Reliability & Strengthened by explicit order-state rules, delivery idempotency, exception-handling paths, and smoke-style workflow verification. \\
+Security & Supported by session authentication, role guards, CSRF handling, rate limiting, and HMAC-protected webhook processing. \\
+Maintainability & Improved by layered backend structure, generated API types, migration history, and centralized verification workflow. \\
+Usability confidence & Supported by responsive implementation and browser tests, though not by a formal UX study. \\
+Deployment confidence & Supported at local/demo level through Compose and verification automation, with clear workflow coverage and repeatable checks. \\
+\bottomrule
+\end{tabular}
+\endgroup
+
+\subsection{Limitations and remaining risks}
+
+The testing and evaluation section must also state the current evaluation boundaries clearly:
+
+\begin{itemize}
+    \item no formal accessibility audit report was found in the repository;
+    \item no production-scale performance benchmark was found;
+    \item local Compose-based verification is strong evidence for development readiness, but it is not the same as long-term production validation.
+\end{itemize}
+
+These limitations do not negate the quality of the project, but they define the boundary of what the report can honestly claim.
+
+\subsection{Overall evaluation}
+
+PizzaHUST demonstrates substantial software-engineering value across requirements refinement, UI prototyping, modular implementation, schema evolution, contract discipline, and workflow-heavy backend logic. Its most convincing technical strengths are:
+
+\begin{itemize}
+    \item authoritative backend pricing and validation;
+    \item strong admin/catalog operational support;
+    \item explicit order-state workflow control;
+    \item realistic mock-first external integration;
+    \item a verification pipeline that combines static quality, contract checks, backend tests, frontend tests, and browser flows.
+\end{itemize}
+
+The project should therefore be evaluated as a strong academic software-engineering system with meaningful real implementation depth and complete use-case coverage, backed by layered verification across backend, frontend, browser, and smoke-test levels.

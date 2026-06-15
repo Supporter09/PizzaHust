@@ -1,0 +1,98 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}System Requirements and Problem Analysis}{1}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Problem context and business motivation}{1}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Stakeholder analysis}{1}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Scope definition}{2}{subsection.1.3}%
+\contentsline {subsubsection}{\numberline {1.3.1}In-scope system goals}{2}{subsubsection.1.3.1}%
+\contentsline {subsubsection}{\numberline {1.3.2}Out-of-scope items}{3}{subsubsection.1.3.2}%
+\contentsline {subsection}{\numberline {1.4}Requirement engineering approach}{3}{subsection.1.4}%
+\contentsline {subsection}{\numberline {1.5}Functional requirements}{4}{subsection.1.5}%
+\contentsline {subsection}{\numberline {1.6}Non-functional requirements}{5}{subsection.1.6}%
+\contentsline {section}{\numberline {2}Use-Case Analysis}{6}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Actor model}{6}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Use-case overview}{6}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Use-case relationships}{6}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Detailed use case analysis}{8}{subsection.2.4}%
+\contentsline {section}{\numberline {3}User Stories}{25}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Role of user stories in the project}{25}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Story organization by epic}{25}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Customer-facing stories}{25}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Staff-facing and integration stories}{26}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Traceability from stories to use cases}{28}{subsection.3.5}%
+\contentsline {section}{\numberline {4}System Architecture}{29}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Architectural style}{29}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Architecture rationale}{29}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Technology stack}{29}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Runtime topology}{30}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Backend boundary model}{30}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Security architecture}{32}{subsection.4.6}%
+\contentsline {subsubsection}{\numberline {4.6.1}User authentication and authorization}{32}{subsubsection.4.6.1}%
+\contentsline {subsubsection}{\numberline {4.6.2}Delivery-integration security}{32}{subsubsection.4.6.2}%
+\contentsline {subsubsection}{\numberline {4.6.3}Request-level observability}{32}{subsubsection.4.6.3}%
+\contentsline {section}{\numberline {5}Component Architecture and Design}{33}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Design view and component boundaries}{33}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Frontend component architecture}{34}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Backend component architecture}{35}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Data and integration support components}{35}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Component interaction scenarios}{36}{subsection.5.5}%
+\contentsline {subsubsection}{\numberline {5.5.1}Pizza quotation flow}{36}{subsubsection.5.5.1}%
+\contentsline {subsubsection}{\numberline {5.5.2}Combo customization flow}{36}{subsubsection.5.5.2}%
+\contentsline {subsubsection}{\numberline {5.5.3}Administrative combo editing flow}{36}{subsubsection.5.5.3}%
+\contentsline {subsubsection}{\numberline {5.5.4}Delivery callback flow}{36}{subsubsection.5.5.4}%
+\contentsline {subsection}{\numberline {5.6}Design rationale}{36}{subsection.5.6}%
+\contentsline {section}{\numberline {6}Database Design}{38}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Database design goals}{38}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Conceptual ERD and evolved implementation schema}{38}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Entity groups and relationships}{38}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Relationship overview}{39}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Key integrity and business rules}{40}{subsection.6.5}%
+\contentsline {subsubsection}{\numberline {6.5.1}Guest and registered-customer ordering}{40}{subsubsection.6.5.1}%
+\contentsline {subsubsection}{\numberline {6.5.2}Customization and option control}{40}{subsubsection.6.5.2}%
+\contentsline {subsubsection}{\numberline {6.5.3}Combo modeling and choice slots}{44}{subsubsection.6.5.3}%
+\contentsline {subsubsection}{\numberline {6.5.4}Snapshot preservation in order history}{44}{subsubsection.6.5.4}%
+\contentsline {subsubsection}{\numberline {6.5.5}Order-state and tracking history}{44}{subsubsection.6.5.5}%
+\contentsline {subsubsection}{\numberline {6.5.6}Kitchen read model}{44}{subsubsection.6.5.6}%
+\contentsline {section}{\numberline {7}User Interface Design}{45}{section.7}%
+\contentsline {subsection}{\numberline {7.1}UI design goals}{45}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Prototype set and design process}{45}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Information architecture and navigation}{45}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Customer storefront screens}{46}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.5}Customer account screens}{51}{subsection.7.5}%
+\contentsline {subsection}{\numberline {7.6}Administrative screens}{55}{subsection.7.6}%
+\contentsline {subsection}{\numberline {7.7}Kitchen screens}{61}{subsection.7.7}%
+\contentsline {subsection}{\numberline {7.8}Visual system}{62}{subsection.7.8}%
+\contentsline {subsection}{\numberline {7.9}Responsive behavior and accessibility considerations}{62}{subsection.7.9}%
+\contentsline {section}{\numberline {8}Component Implementation}{64}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Implementation strategy}{64}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Implemented vertical slices}{64}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}Representative business-rule implementation}{64}{subsection.8.3}%
+\contentsline {subsubsection}{\numberline {8.3.1}Server-authoritative pricing}{64}{subsubsection.8.3.1}%
+\contentsline {subsubsection}{\numberline {8.3.2}Generic option validation}{65}{subsubsection.8.3.2}%
+\contentsline {subsubsection}{\numberline {8.3.3}Combo choice-slot handling}{65}{subsubsection.8.3.3}%
+\contentsline {subsubsection}{\numberline {8.3.4}Order-state transitions}{65}{subsubsection.8.3.4}%
+\contentsline {subsection}{\numberline {8.4}Integration implementation}{65}{subsection.8.4}%
+\contentsline {subsubsection}{\numberline {8.4.1}Delivery-port abstraction}{65}{subsubsection.8.4.1}%
+\contentsline {subsubsection}{\numberline {8.4.2}Mock-first delivery workflow}{65}{subsubsection.8.4.2}%
+\contentsline {subsubsection}{\numberline {8.4.3}Operational fallback behavior}{65}{subsubsection.8.4.3}%
+\contentsline {subsection}{\numberline {8.5}Implementation coverage}{66}{subsection.8.5}%
+\contentsline {section}{\numberline {9}API Design and Implementation}{67}{section.9}%
+\contentsline {subsection}{\numberline {9.1}API style and conventions}{67}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Authentication and security model}{67}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Error model}{67}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}API surface by module}{68}{subsection.9.4}%
+\contentsline {subsection}{\numberline {9.5}Representative endpoint behavior}{68}{subsection.9.5}%
+\contentsline {subsection}{\numberline {9.6}Representative request/response patterns}{69}{subsection.9.6}%
+\contentsline {subsection}{\numberline {9.7}Contract generation and drift control}{70}{subsection.9.7}%
+\contentsline {subsection}{\numberline {9.8}Interaction-flow diagrams}{70}{subsection.9.8}%
+\contentsline {subsection}{\numberline {9.9}API coverage}{70}{subsection.9.9}%
+\contentsline {section}{\numberline {10}Testing and Evaluation}{73}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Test strategy}{73}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}Verification workflow}{73}{subsection.10.2}%
+\contentsline {subsection}{\numberline {10.3}Current test inventory}{74}{subsection.10.3}%
+\contentsline {subsection}{\numberline {10.4}Representative subsystem coverage}{74}{subsection.10.4}%
+\contentsline {subsubsection}{\numberline {10.4.1}Backend domain and API coverage}{74}{subsubsection.10.4.1}%
+\contentsline {subsubsection}{\numberline {10.4.2}Frontend and browser coverage}{75}{subsubsection.10.4.2}%
+\contentsline {subsubsection}{\numberline {10.4.3}Integration and workflow coverage}{75}{subsubsection.10.4.3}%
+\contentsline {subsection}{\numberline {10.5}Evaluation against project goals}{75}{subsection.10.5}%
+\contentsline {subsection}{\numberline {10.6}Limitations and remaining risks}{76}{subsection.10.6}%
+\contentsline {subsection}{\numberline {10.7}Overall evaluation}{76}{subsection.10.7}%

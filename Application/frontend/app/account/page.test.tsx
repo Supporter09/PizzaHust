@@ -32,7 +32,12 @@ describe("AccountPage dashboard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     countMyOrders.mockResolvedValue({ count: 2 });
-    getLoyaltyMe.mockResolvedValue({ current_points: 150, total_points_earned: 200, redeemable_value_vnd: 150000 });
+    getLoyaltyMe.mockResolvedValue({
+      current_points: 150,
+      pending_points: 20,
+      total_points_earned: 200,
+      redeemable_value_vnd: 150000,
+    });
   });
   afterEach(cleanup);
 

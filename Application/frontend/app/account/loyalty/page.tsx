@@ -51,6 +51,9 @@ export default function LoyaltyPage() {
         <p className="mt-1 text-5xl font-extrabold leading-none">{balance?.current_points ?? "—"}</p>
         <p className="text-sm opacity-90">Points</p>
         {balance ? (
+          <p className="mt-2 text-sm opacity-90">Pending reservations: {balance.pending_points} pts</p>
+        ) : null}
+        {balance ? (
           <span className="mt-4 inline-block rounded-full border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold">
             = {vnd(balance.redeemable_value_vnd)} in savings
           </span>
@@ -63,11 +66,15 @@ export default function LoyaltyPage() {
           <div className="mt-4 grid gap-6 sm:grid-cols-2">
             <div>
               <h3 className="text-sm font-semibold text-fg">Earn Points</h3>
-              <p className="text-sm text-muted">Earn 1 point for every {vnd(config.accrual_rate)} spent on orders.</p>
+              <p className="text-sm text-muted">
+                Earn 1 point for every {vnd(config.accrual_rate)} spent on orders after discounts.
+              </p>
             </div>
             <div>
               <h3 className="text-sm font-semibold text-fg">Redeem Points</h3>
-              <p className="text-sm text-muted">1 point = {vnd(config.redeem_value_vnd)} off your order.</p>
+              <p className="text-sm text-muted">
+                1 point = {vnd(config.redeem_value_vnd)} off your order, capped at {Math.round(config.max_redeem_pct * 100)}% of the subtotal after combo discounts.
+              </p>
             </div>
           </div>
         </div>
@@ -88,10 +95,13 @@ export default function LoyaltyPage() {
                 <div>
                   <p className="font-semibold text-fg">{row.label}</p>
                   <p className="text-xs text-muted">
-                    {new Date(row.date).toLocaleDateString("en-US", { timeZone: "UTC" })}
+                  {new Date(row.date).toLocaleDateString("en-US", { timeZone: "UTC" })}
                   </p>
                 </div>
-                <span className="font-bold text-success">+{row.points_delta} pts</span>
+                <span className={`font-bold ${row.kind === "redeem" ? "text-danger" : "text-success"}`}>
+                  {row.kind === "redeem" ? "-" : "+"}
+                  {Math.abs(row.points_delta)} pts
+                </span>
               </li>
             ))}
           </ul>

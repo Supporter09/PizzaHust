@@ -25,6 +25,7 @@ from app.infra.db.models import (
     OrderStatus,
     OrderTracking,
     TrackingNoteSource,
+    User,
     WebhookEvent,
 )
 
@@ -96,6 +97,25 @@ async def delivery_webhook(
         return
 
     order.current_status = new_status
+
+    if (
+        new_status == OrderStatus.DELIVERED
+        and order.user_id is not None
+        and order.loyalty_points_earned
+    ):
+        user = db.get(User, order.user_id)
+        if user is not None:
+            user.current_points += order.loyalty_points_earned
+            user.total_points_earned += order.loyalty_points_earned
+        order.loyalty_points_redeemed = 0
+    elif new_status == OrderStatus.DELIVERY_FAILED and order.user_id is not None:
+        if order.loyalty_points_redeemed:
+            user = db.get(User, order.user_id)
+            if user is not None:
+                user.current_points += order.loyalty_points_redeemed
+            order.loyalty_points_redeemed = 0
+        order.loyalty_points_earned = 0
+
     db.add(
         OrderTracking(
             order_id=order.order_id,

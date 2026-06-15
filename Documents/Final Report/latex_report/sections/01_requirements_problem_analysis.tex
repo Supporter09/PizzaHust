@@ -1,0 +1,151 @@
+\section{System Requirements and Problem Analysis}
+
+\subsection{Problem context and business motivation}
+
+PizzaHUST originates from the business situation described in the original project topic and feasibility materials: a pizza store wants to move from a manual and fragmented operating model to a unified web-based ordering and store-management system. In the original setting, customers mainly order in person or by phone, while the store owner and staff coordinate menu management, combo promotions, order handling, kitchen preparation, delivery handoff, and basic revenue monitoring through separate activities. This creates several practical problems: order information can be recorded inconsistently, customers have limited visibility into order progress, and staff must spend additional time coordinating between ordering, kitchen, and delivery activities.
+
+The proposed system addresses this problem by providing one web platform that connects customer ordering, kitchen preparation, administrative management, and third-party delivery synchronization. From the customer side, the system supports menu browsing, pizza customization, combo viewing, cart management, cash-on-delivery checkout, and order tracking. From the store side, it supports catalog administration, combo scheduling, customer management, order monitoring, kitchen queue handling, and basic sales reporting.
+
+The goal of the project is therefore not only to digitize ordering, but to improve the coherence of the entire order lifecycle, from menu presentation to delivery completion. This problem framing is derived from the original analysis artifacts rather than from measured production traffic or a formal field study. The report should therefore be read as a structured software-engineering response to the client's stated needs, not as a market-research document.
+
+\subsection{Stakeholder analysis}
+
+The project affects several stakeholder groups with different concerns. Table~\ref{tab:stakeholder-analysis} summarizes the main stakeholders and their expectations.
+
+\begingroup
+\small
+\setlength{\LTpre}{0.4em}
+\setlength{\LTpost}{0.8em}
+\captionof{table}{Stakeholder analysis}\label{tab:stakeholder-analysis}
+\begin{tabular}{L{0.22\linewidth} L{0.24\linewidth} L{0.45\linewidth}}
+\toprule
+\textbf{Stakeholder} & \textbf{Role in the system} & \textbf{Main expectations} \\
+\midrule
+Store owner / client & Business sponsor and primary decision maker & Wants a practical web system for ordering, menu management, promotions, order handling, delivery coordination, and sales visibility. \\
+Admin staff & Internal operational users & Need efficient interfaces to manage pizzas, side dishes, categories, combos, customers, and orders. \\
+Kitchen staff & Internal fulfillment users & Need a clear queue of incoming orders, actionable preparation states, and reliable dispatch handoff support. \\
+Guest customers & External end users without accounts & Need simple browsing, product customization, COD checkout, and tracking by order code. \\
+Registered customers & External end users with accounts & Need the same ordering capabilities as guests plus login, profile, order history, and loyalty features. \\
+Third-party delivery provider & External supporting system & Expects structured delivery requests and provides delivery-state updates through API-based integration. \\
+Development team & Design and implementation team & Need a scope that is realistic for an academic timeline and a structure that supports parallel frontend, backend, database, and testing work. \\
+Deployment / computing operators & Technical support role & Need a deployable, maintainable application stack with manageable runtime and infrastructure complexity. \\
+\bottomrule
+\end{tabular}
+\endgroup
+
+This stakeholder view is important because PizzaHUST is not only a customer-facing storefront. It is also an operational system for internal users and an integration point for an external delivery service. That distinction explains why the report must cover both functional user flows and architectural concerns.
+
+\subsection{Scope definition}
+
+\subsubsection{In-scope system goals}
+
+According to the original requirement artifacts, the first version of PizzaHUST is a web-based system for a single pizza store. Its intended scope includes:
+
+\begin{itemize}
+    \item online menu browsing for guests and registered customers;
+    \item pizza customization by size, crust type, and optional toppings;
+    \item support for side dishes and multiple menu categories;
+    \item combo campaigns shown to customers according to promotion periods;
+    \item cart handling and cash-on-delivery checkout;
+    \item order tracking for customers;
+    \item customer registration and login;
+    \item customer profile, order history, and loyalty-related functions;
+    \item administrative management for menu items, categories, combos, customers, orders, and reports;
+    \item kitchen-side processing of incoming orders;
+    \item integration with a third-party delivery service.
+\end{itemize}
+
+These goals define the \emph{designed full scope} used throughout this report.
+
+\subsubsection{Out-of-scope items}
+
+The original artifacts and later feasibility refinement both indicate that several ideas are intentionally excluded from the MVP:
+
+\begin{itemize}
+    \item online payment gateway integration;
+    \item a dedicated internal delivery-staff portal;
+    \item native mobile applications;
+    \item multi-branch or multi-tenant operation;
+    \item advanced business intelligence dashboards;
+    \item AI-based menu recommendation as a required MVP feature.
+\end{itemize}
+
+These exclusions are important because they keep the project feasible within the academic timeline and justify the choice of a simpler architecture.
+
+\subsection{Requirement engineering approach}
+
+PizzaHUST follows an iterative refinement approach rather than a purely heavyweight specification-first process or a purely code-first agile approach. The original project materials already define a limited timeframe of approximately 14 weeks and emphasize progressive clarification with the client. This makes a middleweight process appropriate: overall scope, system architecture, and key business entities are defined early, while detailed requirements, UI flows, API contracts, and implementation decisions are refined incrementally.
+
+This process choice explains several characteristics of the project:
+
+\begin{itemize}
+    \item the core business scope is fixed early around ordering, catalog management, kitchen operation, and delivery handoff;
+    \item architecture and data design are specified before all interfaces are fully implemented;
+    \item later design refinements extend the original requirement model while staying within the same business domain;
+    \item implementation status does not necessarily cover every designed feature by the time of reporting.
+\end{itemize}
+
+For this reason, the report distinguishes carefully between \emph{original requirement scope}, \emph{designed full system scope}, and \emph{current implementation status}.
+
+\subsection{Functional requirements}
+
+The functional requirements below are grouped by subsystem so they can be traced later to use cases, architecture modules, APIs, database entities, and tests.
+
+\begingroup
+\footnotesize
+\setlength{\LTpre}{0.4em}
+\setlength{\LTpost}{0.8em}
+\captionof{table}{Functional requirements grouped by subsystem}\label{tab:functional-requirements}
+\begin{tabular}{L{0.14\linewidth} L{0.56\linewidth} L{0.14\linewidth} L{0.09\linewidth}}
+\toprule
+\textbf{ID} & \textbf{Requirement} & \textbf{Primary actors} & \textbf{Scope status} \\
+\midrule
+FR-CAT-01 & The system shall allow a Guest or Customer to browse active menu categories and menu items. & Guest, Customer & Designed full scope \\
+FR-CAT-02 & The system shall display item details including base price, category, and available customization choices. & Guest, Customer & Designed full scope \\
+FR-ORD-01 & The system shall allow a Guest or Customer to customize a pizza by selecting size, crust type, and optional toppings. & Guest, Customer & Designed full scope \\
+FR-ORD-02 & The system shall allow a Guest or Customer to view available combo promotions during their configured campaign windows. & Guest, Customer & Designed full scope \\
+FR-ORD-03 & The system shall allow a Guest or Customer to add items and combos to a cart and revise quantities before checkout. & Guest, Customer & Designed full scope \\
+FR-ORD-04 & The system shall support order placement with cash on delivery. & Guest, Customer & Designed full scope \\
+FR-ORD-05 & The system shall apply delivery-fee rules for supported inner-Hanoi addresses and reject unsupported delivery areas. & Guest, Customer & Designed full scope \\
+FR-TRK-01 & The system shall provide order tracking information to customers. & Guest, Customer & Designed full scope \\
+FR-AUTH-01 & The system shall allow new customers to register accounts. & Guest & Designed full scope \\
+FR-AUTH-02 & The system shall allow registered customers to log in and maintain an authenticated session. & Customer & Designed full scope \\
+FR-LOY-01 & The system shall provide customer-related account functions such as profile management, order history, and loyalty information. & Customer & Designed full scope \\
+FR-ADM-01 & The system shall allow administrative users to manage pizzas, side dishes, categories, and combo campaigns. & Admin / Store Owner & Designed full scope \\
+FR-ADM-02 & The system shall allow administrative users to monitor orders and manage customer accounts. & Admin / Store Owner & Designed full scope \\
+FR-ADM-03 & The system shall provide basic sales and order reporting for store operations. & Admin / Store Owner & Designed full scope \\
+FR-KIT-01 & The system shall provide kitchen staff with an incoming-order queue and preparation-state actions. & Kitchen Staff & Designed full scope \\
+FR-KIT-02 & The system shall support handoff from kitchen preparation to delivery dispatch. & Kitchen Staff & Designed full scope \\
+FR-DLV-01 & The system shall integrate with a third-party delivery service to request delivery and synchronize delivery status. & Kitchen Staff, Third-Party Delivery & Designed full scope \\
+\bottomrule
+\end{tabular}
+\endgroup
+
+These requirements reflect the intended system behavior at analysis level. Some later refinements, such as richer option models or more detailed combo customization behavior, elaborate these requirements rather than replace them.
+
+\subsection{Non-functional requirements}
+
+The project also has important non-functional requirements. Where possible, these are stated in verifiable form.
+
+\begingroup
+\small
+\setlength{\LTpre}{0.4em}
+\setlength{\LTpost}{0.8em}
+\captionof{table}{Non-functional requirements}\label{tab:nonfunctional-requirements}
+\begin{tabular}{L{0.22\linewidth} L{0.68\linewidth}}
+\toprule
+\textbf{Quality area} & \textbf{Requirement} \\
+\midrule
+Usability & The system shall provide a responsive web interface usable on common desktop and mobile browser viewports. \\
+Performance & The designed implementation targets local p95 page-load time below 2 seconds and local p95 API response time below 500 ms for the demo environment. \\
+Operational scope & The system shall support a small academic-demo workload rather than large-scale commercial traffic; current targets assume up to roughly 50 concurrent demo users. \\
+Security & The system shall protect authenticated operations through session-based authentication, access control, and anti-forgery protection. \\
+Reliability & The system shall enforce valid order-state transitions and preserve a consistent order lifecycle. \\
+Maintainability & The solution shall remain maintainable for a small student team through modular separation of frontend, backend, domain rules, persistence, and integration logic. \\
+Interoperability & The system shall communicate with an external delivery provider through a defined API interface and structured status updates. \\
+Deployment constraint & The solution shall remain feasible for containerized deployment with moderate infrastructure cost suitable for an academic MVP. \\
+\bottomrule
+\end{tabular}
+\endgroup
+
+Some non-functional values, especially performance targets and operational capacity, are design targets rather than formally benchmarked production measurements. They are included because they influence architectural and testing decisions later in the report.

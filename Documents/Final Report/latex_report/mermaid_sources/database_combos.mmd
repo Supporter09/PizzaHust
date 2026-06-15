@@ -1,0 +1,47 @@
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "primaryColor": "#f8fafc", "primaryTextColor": "#111827", "primaryBorderColor": "#64748b", "lineColor": "#475569", "tertiaryColor": "#ffffff", "fontFamily": "Arial"}}}%%
+erDiagram
+    CATEGORIES {
+        int category_id PK
+        varchar name
+        boolean is_active
+    }
+
+    PRODUCTS {
+        int product_id PK
+        int category_id FK
+        varchar name
+        int base_price_vnd
+        boolean is_active
+    }
+
+    COMBOS {
+        int combo_id PK
+        varchar name
+        int combo_price_vnd
+        int target_group
+        varchar image_url
+        datetime validity_start
+        datetime validity_end
+    }
+
+    COMBO_IMAGES {
+        int image_id PK
+        int combo_id FK
+        varchar url
+        int sort_order
+        boolean is_cover
+    }
+
+    COMBO_ITEMS {
+        int combo_item_id PK
+        int combo_id FK
+        int product_id FK
+        int category_id FK
+        int quantity
+    }
+
+    CATEGORIES ||--o{ PRODUCTS : contains
+    COMBOS ||--o{ COMBO_IMAGES : has
+    COMBOS ||--o{ COMBO_ITEMS : contains
+    PRODUCTS o|--o{ COMBO_ITEMS : fixed_component
+    CATEGORIES o|--o{ COMBO_ITEMS : choice_slot

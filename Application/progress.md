@@ -4,6 +4,21 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 ---
 
+## 2026-06-15 — U14 Redeem Points + T1/T2 delivery settlement
+
+**Done**
+- Backend: checkout/order quote now threads the authenticated balance, reserves redeemed points per order, refunds them on cancel/failed delivery, and credits earned points only on `Delivered`.
+- Frontend: checkout exposes redeem points input and loyalty summary; loyalty page shows pending reservations; generated API types updated for `pending_points`.
+- Delivery flow: mock delivery provider and delivery webhook now carry the happy path all the way to delivered; order status changes update loyalty correctly.
+
+**Verified**
+- `docker compose build --no-cache backend` and `docker compose up --build -d` completed successfully.
+- `docker compose exec -T backend python -m pytest tests/test_loyalty_accrual.py tests/test_delivery_webhook.py tests/test_auth_profile_loyalty.py tests/test_admin_orders_dispatch.py -q` → `29 passed`.
+- `./node_modules/.bin/vitest run app/account/page.test.tsx app/account/loyalty/page.test.tsx app/checkout/page.test.tsx app/account/edit/page.test.tsx` → `4 passed`.
+
+**Next**
+- Final report consistency check after any remaining doc wording sync.
+
 ## 2026-06-15 — U12 Manage Profile + U13 View Loyalty Points
 
 **Done**

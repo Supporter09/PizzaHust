@@ -2046,9 +2046,9 @@ export interface components {
             date: string;
             /**
              * Kind
-             * @constant
+             * @enum {string}
              */
-            kind: "earn";
+            kind: "earn" | "redeem";
             /** Label */
             label: string;
             /** Points Delta */
@@ -2058,6 +2058,8 @@ export interface components {
         LoyaltyMeResponse: {
             /** Current Points */
             current_points: number;
+            /** Pending Points */
+            pending_points: number;
             /** Redeemable Value Vnd */
             redeemable_value_vnd: number;
             /** Total Points Earned */

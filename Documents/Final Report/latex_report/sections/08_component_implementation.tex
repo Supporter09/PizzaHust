@@ -1,0 +1,77 @@
+\section{Component Implementation}
+
+\subsection{Implementation strategy}
+
+PizzaHUST has been implemented as a set of vertical slices that connect frontend routes, backend APIs, domain rules, persistence structures, and verification artifacts. This is a more meaningful way to present implementation than listing files in isolation, because the system's value comes from complete workflows rather than from disconnected modules.
+
+At the same time, the implementation section must remain grounded in the current repository state. The report therefore focuses on the strongest implemented slices first and describes the complete system coverage as it exists now.
+
+\subsection{Implemented vertical slices}
+
+\begingroup
+\footnotesize
+\setlength{\LTpre}{0.4em}
+\setlength{\LTpost}{0.8em}
+\captionof{table}{Current implementation vertical slices}\label{tab:application-slices}
+\begin{tabular}{L{0.15\linewidth} L{0.22\linewidth} L{0.27\linewidth} L{0.26\linewidth}}
+\toprule
+\textbf{Vertical slice} & \textbf{Frontend entry points} & \textbf{Backend and domain focus} & \textbf{Persistence / verification anchor} \\
+\midrule
+Public catalog & Home, menu, item pages & category and item APIs, read models & products/categories schema, menu tests \\
+Pizza customization and quote & Item detail customizer & cart quote API, pricing domain, option validation & option tables, pricing/quote tests \\
+Combo browsing and customization & Combo list and combo detail pages & combo APIs, combo-slot rules, surcharge logic & combos/combo\_items schema, combo tests \\
+Cart and order placement & Cart, checkout, order confirmation & cart state, order creation, order-code generation & carts/orders/order\_items schema, checkout/order tests \\
+Authentication and session flow & Login, register, account surfaces & auth routes, password hashing, session state, CSRF & user model, auth tests \\
+Administrative catalog & Admin items, categories, combos, import & admin CRUD routers, validation logic & catalog migrations, admin tests \\
+Administrative operations & Admin orders, customers, reports, settings & operational APIs, customer controls, reporting logic & order/user/reporting persistence, admin ops tests \\
+Kitchen and delivery coordination & Kitchen page, tracking-related progression & kitchen actions, delivery port, webhook sync & order tracking, webhook events, kitchen/delivery tests \\
+\bottomrule
+\end{tabular}
+\endgroup
+
+\subsection{Representative business-rule implementation}
+
+\subsubsection{Server-authoritative pricing}
+
+Pricing is intentionally implemented on the backend rather than in the browser. The quotation pipeline resolves the selected item or combo structure against current database state, validates the chosen options, applies combo discount logic, adds delivery-fee rules where appropriate, and computes the final total in integer VND. This approach prevents pricing drift between UI logic and business logic and makes the quote path testable at backend level.
+
+\subsubsection{Generic option validation}
+
+The generic options model is one of the clearest examples of reusable business logic. Option groups can be single-select or multi-select and may also be required. Validation ensures that selected options are actually enabled for the product, that required groups are satisfied, and that single-select groups do not contain conflicting choices. This logic is reused both for direct product ordering and for product picks nested inside combos.
+
+\subsubsection{Combo choice-slot handling}
+
+Combo implementation goes beyond static bundle storage. When a combo contains a category-scoped slot, the implementation determines the reference product price for that category and calculates a surcharge only when the selected product exceeds that reference baseline. This allows customizable combos while preserving deterministic pricing logic.
+
+\subsubsection{Order-state transitions}
+
+The order-state implementation is centralized in the domain layer. Only explicitly allowed transitions are valid, including cancellation, courier-handoff fallback, delivery completion, and delivery failure. By concentrating this logic in one place, the system avoids duplicating state-machine rules across admin actions, kitchen actions, and webhook processing.
+
+\subsection{Integration implementation}
+
+\subsubsection{Delivery-port abstraction}
+
+Delivery integration is implemented through a provider-neutral port abstraction. The business workflow does not call raw HTTP directly from every order-related action; instead, delivery requests are routed through a delivery interface and adapter layer. This keeps the ordering workflow cleaner and makes it possible to substitute mock and real provider implementations.
+
+\subsubsection{Mock-first delivery workflow}
+
+The current repository uses a dedicated delivery-mock service as the practical integration target for development and verification. The mock accepts dispatch requests, stores lightweight job state, advances through delivery events, and sends signed callbacks back to the main backend. This gives the project a realistic integration path even without depending on a live commercial courier API.
+
+\subsubsection{Operational fallback behavior}
+
+The implementation also includes operational fallback logic. If the normal dispatch path fails or if pickup confirmation from the courier side does not arrive as expected, the system can preserve consistency through exception states or manual continuation paths rather than silently leaving the order in an ambiguous condition. This is a strong implementation choice for a workflow-heavy application.
+
+\subsection{Implementation coverage}
+
+The current repository demonstrates strong implementation coverage across:
+
+\begin{itemize}
+    \item menu browsing and item detail;
+    \item pizza customization and authoritative quotation;
+    \item combo browsing and core combo customization behavior;
+    \item cart handling and COD order placement;
+    \item authentication infrastructure;
+    \item administrative catalog management;
+    \item administrative operational views;
+    \item kitchen state actions and delivery callback synchronization.
+\end{itemize}

@@ -1,0 +1,24 @@
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "primaryColor": "#f8fafc", "primaryTextColor": "#111827", "primaryBorderColor": "#64748b", "lineColor": "#475569", "actorBkg": "#ffffff", "actorBorder": "#64748b", "actorTextColor": "#111827", "signalColor": "#334155", "signalTextColor": "#111827", "noteBkgColor": "#fff7ed", "noteBorderColor": "#c2410c", "noteTextColor": "#7c2d12", "fontFamily": "Arial"}}}%%
+sequenceDiagram
+    actor User
+    participant Web
+    participant API
+    actor Kitchen
+    participant Mock
+
+    User-->>Web: Checkout
+    Web-->>API: POST /api/orders
+    API-->>API: Save order
+    API-->>Web: Order code
+
+    Kitchen-->>API: GET kitchen queue
+    Kitchen-->>API: Accept order
+    Kitchen-->>API: Mark ready
+    API-->>Mock: POST /deliveries
+
+    Note over API,Mock: Callback path implemented
+    Mock->>API: POST delivery webhook
+    API->>API: Update state/history
+
+    Web-->>API: GET order tracking
+    API-->>Web: Status timeline

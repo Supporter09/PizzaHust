@@ -1,0 +1,15 @@
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "primaryColor": "#f8fafc", "primaryTextColor": "#111827", "primaryBorderColor": "#64748b", "lineColor": "#475569", "secondaryColor": "#ffffff", "tertiaryColor": "#ffffff", "fontFamily": "Arial"}}}%%
+flowchart TB
+    Users["Web users"]
+    Frontend["Next.js frontend"]
+    Backend["FastAPI backend"]
+    MySQL[("MySQL 8.4")]
+    Mock["Delivery mock"]
+    Users --> Frontend
+    Frontend -->|"REST /api"| Backend
+    Backend -->|"SQLAlchemy"| MySQL
+    Backend -->|"DeliveryPort"| Mock
+    Mock -->|"HMAC webhook"| Backend
+
+    classDef runtime fill:#f8fafc,stroke:#334155,color:#0f172a;
+    class Users,Frontend,Backend,MySQL,Mock runtime;

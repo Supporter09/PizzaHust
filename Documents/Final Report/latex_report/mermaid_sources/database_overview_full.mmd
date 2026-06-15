@@ -1,0 +1,204 @@
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "primaryColor": "#f8fafc", "primaryTextColor": "#111827", "primaryBorderColor": "#64748b", "lineColor": "#475569", "tertiaryColor": "#ffffff", "fontFamily": "Arial"}}}%%
+erDiagram
+    USERS {
+        int user_id PK
+        varchar email
+        varchar phone_number UK
+        boolean is_locked
+        varchar role
+        int current_points
+        int total_points_earned
+        varchar membership_tier
+    }
+
+    CATEGORIES {
+        int category_id PK
+        varchar name
+        boolean is_active
+        int sort_order
+    }
+
+    PRODUCTS {
+        int product_id PK
+        int category_id FK
+        varchar name
+        int base_price_vnd
+        varchar image_url
+        boolean is_active
+    }
+
+    PRODUCT_IMAGES {
+        int image_id PK
+        int product_id FK
+        varchar url
+        int sort_order
+        boolean is_cover
+    }
+
+    OPTION_GROUPS {
+        int group_id PK
+        int category_id FK
+        varchar name
+        varchar select_type
+        boolean required
+        int sort_order
+    }
+
+    OPTIONS {
+        int option_id PK
+        int group_id FK
+        varchar name
+        varchar description
+        int price_delta_vnd
+        int sort_order
+    }
+
+    PRODUCT_OPTIONS {
+        int product_id PK, FK
+        int option_id PK, FK
+    }
+
+    COMBOS {
+        int combo_id PK
+        varchar name
+        int combo_price_vnd
+        int target_group
+        varchar image_url
+        datetime validity_start
+        datetime validity_end
+    }
+
+    COMBO_IMAGES {
+        int image_id PK
+        int combo_id FK
+        varchar url
+        int sort_order
+        boolean is_cover
+    }
+
+    COMBO_ITEMS {
+        int combo_item_id PK
+        int combo_id FK
+        int product_id FK
+        int category_id FK
+        int quantity
+    }
+
+    CARTS {
+        int cart_id PK
+        int user_id FK
+        datetime created_at
+        datetime touched_at
+    }
+
+    CART_LINES {
+        int line_id PK
+        int cart_id FK
+        json payload
+        int quantity
+        varchar note
+    }
+
+    ORDERS {
+        int order_id PK
+        varchar order_code UK
+        int user_id FK
+        varchar recipient_name
+        varchar recipient_phone
+        varchar delivery_address
+        varchar delivery_ward
+        varchar delivery_note
+        int total_amount_vnd
+        int delivery_fee_vnd
+        varchar payment_method
+        varchar current_status
+        varchar delivery_reference
+        int loyalty_points_earned
+        datetime promised_at
+        datetime created_at
+    }
+
+    ORDER_ITEMS {
+        int order_item_id PK
+        int order_id FK
+        int product_id FK
+        int combo_id FK
+        int parent_order_item_id FK
+        int quantity
+        int unit_price_vnd
+        varchar notes
+    }
+
+    ORDER_ITEM_OPTIONS {
+        int id PK
+        int order_item_id FK
+        varchar group_name
+        varchar option_name
+        int price_delta_vnd
+    }
+
+    ORDER_TRACKING {
+        int tracking_id PK
+        int order_id FK
+        int updated_by FK
+        varchar status
+        varchar note_source
+        varchar note
+        datetime created_at
+    }
+
+    WEBHOOK_EVENTS {
+        int id PK
+        varchar event_id UK
+        datetime received_at
+    }
+
+    BUSINESS_SETTINGS {
+        int id PK
+        varchar timezone
+        int loyalty_accrual_rate
+        int loyalty_redeem_value_vnd
+        numeric loyalty_max_redeem_pct
+    }
+
+    DELIVERY_WARD_FEES {
+        int id PK
+        varchar ward_name
+        varchar ward_normalized
+        int fee_vnd
+    }
+
+    KITCHEN_QUEUE_VIEW {
+        int order_id
+        varchar order_code
+        varchar current_status
+        datetime created_at
+        datetime promised_at
+        int priority_score
+    }
+
+    CATEGORIES ||--o{ PRODUCTS : contains
+    CATEGORIES ||--o{ OPTION_GROUPS : scopes
+    PRODUCTS ||--o{ PRODUCT_IMAGES : has
+    OPTION_GROUPS ||--o{ OPTIONS : contains
+    PRODUCTS ||--o{ PRODUCT_OPTIONS : enables
+    OPTIONS ||--o{ PRODUCT_OPTIONS : assigned
+
+    COMBOS ||--o{ COMBO_IMAGES : has
+    COMBOS ||--o{ COMBO_ITEMS : contains
+    PRODUCTS o|--o{ COMBO_ITEMS : fixed_component
+    CATEGORIES o|--o{ COMBO_ITEMS : choice_slot
+
+    USERS o|--o| CARTS : owns
+    CARTS ||--o{ CART_LINES : contains
+
+    USERS o|--o{ ORDERS : places
+    ORDERS ||--o{ ORDER_ITEMS : contains
+    ORDER_ITEMS ||--o{ ORDER_ITEMS : parent_child
+    PRODUCTS o|--o{ ORDER_ITEMS : product
+    COMBOS o|--o{ ORDER_ITEMS : combo
+    ORDER_ITEMS ||--o{ ORDER_ITEM_OPTIONS : snapshots
+    ORDERS ||--o{ ORDER_TRACKING : records
+    USERS o|--o{ ORDER_TRACKING : updates
+
+    ORDERS o|--o{ KITCHEN_QUEUE_VIEW : projected_into

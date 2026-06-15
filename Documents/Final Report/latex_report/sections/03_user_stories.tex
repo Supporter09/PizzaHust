@@ -1,0 +1,124 @@
+\section{User Stories}
+
+\subsection{Role of user stories in the project}
+
+Use cases describe interaction structure at analysis level, but they are not the most practical unit for incremental implementation planning. User stories complement the use-case model by expressing development goals from the actor's point of view in a concise form: \emph{As a <role>, I want <goal>, so that <benefit>}. In PizzaHUST, user stories help translate the designed full scope into smaller, testable pieces of work that can be implemented and verified iteratively.
+
+For that reason, the stories below are organized by business epic rather than listed as a single flat backlog. Each story also retains a link to the related use-case ID so that the report can preserve traceability between requirement analysis, design, implementation, and testing.
+
+\subsection{Story organization by epic}
+
+The PizzaHUST backlog is organized into the following epics:
+
+\begin{itemize}
+    \item storefront browsing and product customization;
+    \item cart, checkout, and order tracking;
+    \item authentication, account, and loyalty;
+    \item administrative catalog and promotions;
+    \item administrative operations and reporting;
+    \item kitchen operations and delivery coordination.
+\end{itemize}
+
+This epic structure mirrors the system decomposition used later in the architecture and component sections.
+
+\subsection{Customer-facing stories}
+
+\begingroup
+\footnotesize
+\setlength{\LTpre}{0.4em}
+\setlength{\LTpost}{0.8em}
+\begin{longtable}{L{0.10\linewidth} L{0.39\linewidth} L{0.28\linewidth} L{0.12\linewidth}}
+\caption{Customer-facing user stories}\label{tab:customer-user-stories}\\
+\toprule
+\textbf{ID} & \textbf{User story} & \textbf{Acceptance criteria summary} & \textbf{Status} \\
+\midrule
+\endfirsthead
+\caption[]{Customer-facing user stories (continued)}\\
+\toprule
+\textbf{ID} & \textbf{User story} & \textbf{Acceptance criteria summary} & \textbf{Status} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
+US-U1 & As a guest, I want to browse active menu categories and items so that I can discover what the store offers. & Active categories and items are shown; unavailable items are not presented as orderable. & Completed \\
+US-U2 & As a guest, I want to view item details so that I can decide whether the product fits my needs before ordering. & Item detail view includes name, price context, and relevant customization information. & Completed \\
+US-U3 & As a guest, I want to customize a pizza so that I can choose size, crust, and optional toppings before purchase. & Valid selections produce an authoritative quote; invalid combinations are rejected clearly. & Completed \\
+US-U4 & As a guest, I want to view combo promotions so that I can compare bundle offers with regular ordering. & Active combos are visible during valid campaign periods. & Completed \\
+US-U15 & As a guest, I want to customize combo contents where customer choice is allowed so that the combo matches my preferences. & Eligible selections are constrained by combo definition; invalid slot choices are rejected. & Completed \\
+US-U5 & As a guest, I want to manage a cart so that I can review and revise my intended purchase before checkout. & Cart lines can be added, updated, or removed while keeping totals consistent. & Completed \\
+US-U6 & As a guest, I want to place a COD order so that I can complete a purchase without online payment. & Valid checkout data creates an order code; unsupported addresses or invalid cart state block submission. & Completed \\
+US-U7 & As a guest, I want to track my order by code so that I can see order progress after checkout. & Valid order codes return current status and timeline information. & Completed \\
+US-U8 & As a guest, I want to register an account so that I can access customer-specific features later. & Valid registration data creates an account; invalid or duplicate data is rejected. & Completed \\
+US-U9 & As a customer, I want to log in so that I can access profile and account-based features securely. & Correct credentials create a session; invalid credentials are rejected safely. & Completed \\
+US-U11 & As a customer, I want to view my order history so that I can review previous purchases. & Only the customer's own orders are visible; historical data is preserved. & Completed \\
+US-U12 & As a customer, I want to manage my profile so that my account information remains current for future orders. & Profile updates validate allowed fields and preserve account integrity. & Completed \\
+US-U13 & As a customer, I want to view my loyalty information so that I can understand my current rewards balance. & Loyalty summary is visible only to the authenticated customer. & Completed \\
+US-U14 & As a customer, I want to redeem loyalty points during checkout so that I can reduce my order cost. & Redemption follows business caps and available balance rules. & Completed \\
+US-U16 & As a customer, I want to add order-related notes so that the store or courier can follow special handling instructions. & Dish notes and delivery notes are stored in the correct context and do not corrupt pricing or order creation. & Completed \\
+\end{longtable}
+\endgroup
+
+\subsection{Staff-facing and integration stories}
+
+\begingroup
+\footnotesize
+\setlength{\LTpre}{0.4em}
+\setlength{\LTpost}{0.8em}
+\begin{longtable}{L{0.10\linewidth} L{0.39\linewidth} L{0.28\linewidth} L{0.12\linewidth}}
+\caption{Staff-facing and integration user stories}\label{tab:staff-user-stories}\\
+\toprule
+\textbf{ID} & \textbf{User story} & \textbf{Acceptance criteria summary} & \textbf{Status} \\
+\midrule
+\endfirsthead
+\caption[]{Staff-facing and integration user stories (continued)}\\
+\toprule
+\textbf{ID} & \textbf{User story} & \textbf{Acceptance criteria summary} & \textbf{Status} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
+US-A1 & As an administrator, I want to manage pizza items so that the public menu reflects current offerings. & Item creation and modification preserve valid catalog data. & Completed \\
+US-A2 & As an administrator, I want to manage options and side dishes so that customizable products can be maintained centrally. & Option rules remain valid and assignable to products. & Completed \\
+US-A3 & As an administrator, I want to manage menu categories so that products remain organized for customers and staff. & Categories can be created and updated without breaking item organization. & Completed \\
+US-A4 & As an administrator, I want to manage combo campaigns so that the store can run timed promotions. & Validity windows and combo definitions are validated before publication. & Completed \\
+US-A5 & As an administrator, I want to monitor orders and dispatch exceptions so that operational problems can be identified and resolved. & Orders remain filterable and retryable only when business rules allow intervention. & Completed \\
+US-A6 & As an administrator, I want to manage customer accounts so that I can inspect and control access when needed. & Customer search and account lock/unlock actions respect authorization and data integrity. & Completed \\
+US-A7 & As an administrator, I want to view basic sales and order reports so that I can monitor store performance. & Report outputs provide summary information over selected time ranges. & Completed \\
+US-K1 & As kitchen staff, I want to view incoming orders so that I know what must be prepared next. & Incoming work is visible in a form suitable for kitchen operation. & Completed \\
+US-K2 & As kitchen staff, I want to update preparation status so that the order lifecycle reflects actual kitchen progress. & Only valid status transitions are accepted. & Completed \\
+US-K3 & As kitchen staff, I want to mark orders ready for dispatch so that prepared orders can move to delivery handoff. & Dispatch handoff respects state-transition rules and integration outcomes. & Completed \\
+US-K4 & As kitchen staff, I want a pickup-confirmation fallback so that dispatch can continue when provider confirmation is unavailable. & Manual fallback is allowed only in valid order states and preserves workflow consistency. & Completed \\
+US-T1 & As the delivery service, I want to receive structured delivery requests so that I can accept dispatch work from PizzaHUST. & Delivery requests contain the required information for provider-side handling. & Completed \\
+US-T2 & As the delivery service, I want to send signed status callbacks so that PizzaHUST can synchronize delivery progress safely. & Only valid authenticated callbacks can update delivery-related state. & Completed \\
+\end{longtable}
+\endgroup
+
+\subsection{Traceability from stories to use cases}
+
+User stories are most useful when they remain traceable to analysis and implementation artifacts. Table~\ref{tab:story-traceability} shows representative links between stories, use cases, system elements, and verification targets.
+
+\begingroup
+\footnotesize
+\setlength{\LTpre}{0.4em}
+\setlength{\LTpost}{0.8em}
+\captionof{table}{Traceability examples from user stories to design and implementation}\label{tab:story-traceability}
+\begin{tabular}{L{0.11\linewidth} L{0.16\linewidth} L{0.23\linewidth} L{0.18\linewidth} L{0.22\linewidth}}
+\toprule
+\textbf{Story} & \textbf{Use case} & \textbf{Implementation focus} & \textbf{UI/API anchor} & \textbf{Verification anchor} \\
+\midrule
+US-U3 & U3 Customize Pizza & Pricing and option validation & item detail UI and quote API & backend pricing/option tests and frontend item-flow tests \\
+US-U6 & U6 Place COD Order & Checkout and order creation & checkout flow and order API & order-placement tests and smoke flow \\
+US-U7 & U7 Track Order & Tracking projection and visibility rules & tracking UI and track API & tracking tests \\
+US-A4 & A4 Manage Combo Campaigns & combo CRUD and validity logic & admin combo pages and combo APIs & admin combo tests \\
+US-A5 & A5 Monitor Orders and Delivery Exceptions & order-state exception handling & admin orders view and retry-dispatch API & admin order-dispatch tests \\
+US-K3 & K3 Mark Order Ready for Dispatch & preparation-to-dispatch transition & kitchen action UI/API & kitchen-action tests \\
+US-T2 & T2 Synchronize Delivery Status & webhook validation and state sync & delivery webhook endpoint & delivery webhook tests \\
+\bottomrule
+\end{tabular}
+\endgroup
+
+All user stories listed above are part of the completed full scope of PizzaHUST, and the table is retained for traceability to use cases, implementation anchors, and tests.

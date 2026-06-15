@@ -1,0 +1,26 @@
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "primaryColor": "#f8fafc", "primaryTextColor": "#111827", "primaryBorderColor": "#64748b", "lineColor": "#475569", "secondaryColor": "#ffffff", "tertiaryColor": "#ffffff", "fontFamily": "Arial"}}}%%
+flowchart TB
+    User["Web user"]
+
+    subgraph Frontend["Next.js frontend"]
+        Routes["App routes"]
+        UI["UI components"]
+        State["Auth/local state"]
+        Client["API client/types"]
+
+        Routes --> UI
+        Routes --> State
+        UI --> Client
+        State --> Client
+    end
+
+    API["FastAPI"]
+
+    User --> Routes
+    Client -->|"REST"| API
+
+    classDef external fill:#e2e8f0,stroke:#334155,color:#0f172a;
+    classDef component fill:#f8fafc,stroke:#334155,color:#0f172a;
+    class User,API external;
+    class Routes,UI,State,Client component;
+

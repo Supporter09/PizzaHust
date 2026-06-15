@@ -27,10 +27,10 @@ from app.domain.pricing import CartLine as PricingLine
 from app.domain.pricing import PricingError, compute_order_total
 from app.infra import settings_service
 from app.infra.auth.csrf import enforce_csrf
-from app.infra.auth.session_state import ensure_csrf_token
+from app.infra.auth.session_state import ensure_csrf_token, read_session
 from app.infra.config import Settings, get_settings_dependency
 from app.infra.db.deps import get_db
-from app.infra.db.models import Cart, CartLine, Combo, ComboItem, Option, OptionGroup, Product
+from app.infra.db.models import Cart, CartLine, Combo, ComboItem, Option, OptionGroup, Product, User
 
 router = APIRouter(prefix="/api/cart", tags=["cart"])
 
@@ -102,6 +102,14 @@ def _zeroed_quote() -> CartQuoteOut:
         total_vnd=0,
         loyalty=loyalty,
     )
+
+
+def _current_points(db: Session, request: Request) -> int:
+    session = read_session(request)
+    if session.user_id is None:
+        return 0
+    user = db.get(User, session.user_id)
+    return 0 if user is None else user.current_points
 
 
 def _option_descriptor(db: Session, product_id: int, option_ids: list[int]) -> str | None:
@@ -194,6 +202,7 @@ def quote_session_cart(
     cart: Cart | None,
     address: QuoteAddressIn | None,
     redeem_points: int,
+    current_points: int,
 ) -> CartQuoteOut:
     if cart is None or not cart.lines:
         raise APIError(
@@ -232,7 +241,7 @@ def quote_session_cart(
             address_district=district,
             combo_discount_vnd=combo_discount,
             redeem_points=redeem_points,
-            current_points=0,
+            current_points=current_points,
             ward_fees=ward_fees,
             redeem_value_vnd=s.loyalty_redeem_value_vnd,
             max_redeem_pct=s.loyalty_max_redeem_pct,
@@ -328,7 +337,7 @@ def _render_cart(
                     address_district=None,
                     combo_discount_vnd=combo_discount,
                     redeem_points=0,
-                    current_points=0,
+                    current_points=_current_points(db, request),
                     ward_fees=ward_fees,
                     redeem_value_vnd=s.loyalty_redeem_value_vnd,
                     max_redeem_pct=s.loyalty_max_redeem_pct,
@@ -522,4 +531,10 @@ def checkout_quote(
     db: Session = Depends(get_db, scope="function"),
 ) -> CartQuoteOut:
     cart = load_cart(db, request)
-    return quote_session_cart(db, cart, body.address, body.redeem_points)
+    return quote_session_cart(
+        db,
+        cart,
+        body.address,
+        body.redeem_points,
+        _current_points(db, request),
+    )

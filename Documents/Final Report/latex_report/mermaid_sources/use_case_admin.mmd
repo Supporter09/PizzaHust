@@ -1,0 +1,31 @@
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "primaryColor": "#f8fafc", "primaryTextColor": "#111827", "primaryBorderColor": "#64748b", "lineColor": "#475569", "secondaryColor": "#ffffff", "tertiaryColor": "#ffffff", "fontFamily": "Arial"}}}%%
+flowchart LR
+    Admin["Admin"]
+
+    subgraph Cases["Admin functions"]
+        direction TB
+        Catalog["A1 Catalog"]
+        Options["A2/A8 Options"]
+        Categories["A3 Categories"]
+        Combos["A4/A10 Combos"]
+        Orders["A5 Orders"]
+        Customers["A6 Customers"]
+        Reports["A7 Reports"]
+        Images["A9 Multi-image"]
+        Catalog ~~~ Options ~~~ Categories ~~~ Combos
+        Combos ~~~ Orders ~~~ Customers ~~~ Reports ~~~ Images
+    end
+
+    Admin --> Catalog
+    Admin --> Options
+    Admin --> Categories
+    Admin --> Combos
+    Admin --> Orders
+    Admin --> Customers
+    Admin --> Reports
+    Admin --> Images
+
+    classDef actor fill:#e2e8f0,stroke:#334155,color:#0f172a;
+    classDef case fill:#f8fafc,stroke:#334155,color:#0f172a;
+    class Admin actor;
+    class Catalog,Options,Categories,Combos,Orders,Customers,Reports,Images case;

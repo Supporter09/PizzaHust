@@ -1,0 +1,25 @@
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "primaryColor": "#f8fafc", "primaryTextColor": "#111827", "primaryBorderColor": "#64748b", "lineColor": "#475569", "secondaryColor": "#ffffff", "tertiaryColor": "#ffffff", "fontFamily": "Arial"}}}%%
+flowchart TB
+    Shopper["Guest or Customer"]
+
+    Browse["U1 Browse menu"]
+    Detail["U2 Item detail"]
+    ItemQuote["U3 Customize item"]
+    Combos["U4 View combos"]
+    ComboQuote["U15 Customize combo"]
+    Cart["U5 Cart"]
+    Order["U6 COD order"]
+    Track["U7 Track order"]
+
+    Shopper --> Browse
+    Shopper --> Combos
+    Browse --> Detail --> ItemQuote
+    Combos --> ComboQuote
+    ItemQuote --> Cart
+    ComboQuote --> Cart
+    Cart --> Order --> Track
+
+    classDef actor fill:#e2e8f0,stroke:#334155,color:#0f172a;
+    classDef case fill:#f8fafc,stroke:#334155,color:#0f172a;
+    class Shopper actor;
+    class Browse,Detail,ItemQuote,Combos,ComboQuote,Cart,Order,Track case;

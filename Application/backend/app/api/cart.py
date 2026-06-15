@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
@@ -32,9 +32,10 @@ from app.domain.pricing import (
     compute_unit_price,
 )
 from app.infra import settings_service
+from app.infra.auth.session_state import read_session
 from app.infra.db.combo_queries import slot_availability
 from app.infra.db.deps import get_db
-from app.infra.db.models import Combo, ComboItem, Option, OptionGroup, Product, ProductOption
+from app.infra.db.models import Combo, ComboItem, Option, OptionGroup, Product, ProductOption, User
 
 router = APIRouter(prefix="/api/cart", tags=["cart"])
 
@@ -102,6 +103,14 @@ class CartQuoteOut(BaseModel):
 
 def _bad(message: str) -> APIError:
     return APIError(code="VALIDATION_FAILED", message=message, status_code=400)
+
+
+def _current_points(db: Session, request: Request) -> int:
+    session = read_session(request)
+    if session.user_id is None:
+        return 0
+    user = db.get(User, session.user_id)
+    return 0 if user is None else user.current_points
 
 
 def _selection_error(err) -> APIError:
@@ -298,7 +307,9 @@ def resolve_combo_line(db: Session, line: ComboQuoteLineIn) -> tuple[CartLine, i
 
 @router.post("/quote", response_model=CartQuoteOut)
 def quote_cart(
-    payload: CartQuoteIn, db: Session = Depends(get_db, scope="function")
+    payload: CartQuoteIn,
+    request: Request,
+    db: Session = Depends(get_db, scope="function"),
 ) -> CartQuoteOut:
     lines: list[CartLine] = []
     combo_discount = 0
@@ -318,7 +329,7 @@ def quote_cart(
             address_district=district,
             combo_discount_vnd=combo_discount,
             redeem_points=payload.redeem_points,
-            current_points=0,
+            current_points=_current_points(db, request),
             ward_fees=ward_fees,
             redeem_value_vnd=s.loyalty_redeem_value_vnd,
             max_redeem_pct=s.loyalty_max_redeem_pct,

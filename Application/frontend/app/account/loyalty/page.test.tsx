@@ -18,7 +18,12 @@ vi.mock("@/components/auth-provider", () => ({
 describe("LoyaltyPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    getLoyaltyMe.mockResolvedValue({ current_points: 150, total_points_earned: 200, redeemable_value_vnd: 150000 });
+    getLoyaltyMe.mockResolvedValue({
+      current_points: 150,
+      pending_points: 20,
+      total_points_earned: 200,
+      redeemable_value_vnd: 150000,
+    });
     getLoyaltyConfig.mockResolvedValue({ accrual_rate: 10000, redeem_value_vnd: 1000, max_redeem_pct: 0.5 });
   });
   afterEach(cleanup);
@@ -30,6 +35,7 @@ describe("LoyaltyPage", () => {
     render(<LoyaltyPage />);
     await waitFor(() => {
       expect(screen.getByText("150")).toBeInTheDocument();
+      expect(screen.getByText(/pending reservations/i)).toBeInTheDocument();
       expect(screen.getByText("Order PIZZ-AAAAAA")).toBeInTheDocument();
       expect(screen.getByText(/\+51/)).toBeInTheDocument();
     });

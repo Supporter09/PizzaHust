@@ -1,0 +1,142 @@
+% !TEX program = pdflatex
+\documentclass[12pt]{article}
+
+\usepackage{iftex}
+\ifPDFTeX
+    \usepackage[utf8]{inputenc}
+    \usepackage[T1]{fontenc}
+    \usepackage{lmodern}
+\else
+    \usepackage{fontspec}
+    \setmainfont{TeX Gyre Termes}
+\fi
+
+\usepackage[english]{babel}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{pdflscape}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{placeins}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{needspace}
+\usepackage{etoolbox}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{url}
+\usepackage{xurl}
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\usetikzlibrary{calc,positioning,arrows.meta,shadows}
+
+\addto\captionsenglish{%
+    \renewcommand{\contentsname}{Table of Contents}%
+    \renewcommand{\figurename}{Figure}%
+    \renewcommand{\tablename}{Table}%
+}
+
+\captionsetup{
+    font=small,
+    labelfont=bf,
+    justification=raggedright,
+    singlelinecheck=false,
+    skip=6pt,
+    hypcap=false
+}
+
+\hypersetup{
+    pdftitle={PizzaHUST Software Engineering Report},
+    pdfsubject={Software Engineering course report},
+    colorlinks=true,
+    linkcolor=blue!45!black,
+    urlcolor=blue!55!black
+}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible
+}
+
+\titleformat{\section}{\Large\bfseries\color{blue!45!black}}{\thesection}{0.75em}{}
+\titleformat{\subsection}{\large\bfseries\color{blue!35!black}}{\thesubsection}{0.65em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{0.55em}{}
+\titlespacing*{\section}{0pt}{1.6ex plus 0.4ex minus 0.2ex}{1.0ex plus 0.2ex}
+\titlespacing*{\subsection}{0pt}{1.4ex plus 0.3ex minus 0.2ex}{0.7ex plus 0.2ex}
+\titlespacing*{\subsubsection}{0pt}{1.0ex plus 0.2ex minus 0.1ex}{0.5ex plus 0.1ex}
+
+
+\setlist{topsep=0.35em,itemsep=0.2em,parsep=0pt,leftmargin=*}
+\setlength{\textfloatsep}{1.0em plus 0.2em minus 0.2em}
+\setlength{\floatsep}{0.9em plus 0.2em minus 0.2em}
+\setlength{\intextsep}{0.9em plus 0.2em minus 0.2em}
+\setlength{\headheight}{14.5pt}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash\hspace{0pt}}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash\hspace{0pt}}X}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{PizzaHUST Software Engineering Report}
+\fancyhead[R]{\nouppercase{\leftmark}}
+\fancyfoot[C]{\thepage}
+
+\let\prismoldtexttt\texttt
+\renewcommand{\texttt}[1]{\begingroup\ttfamily\hyphenchar\font=`\/ #1\endgroup}
+\newcommand{\pathcode}[1]{\begingroup\urlstyle{tt}\nolinkurl{#1}\endgroup}
+
+\begin{document}
+\raggedbottom
+
+\hypersetup{pageanchor=false}
+\input{"Cover page.tex"}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\emergencystretch=3em
+\hbadness=10000
+\vbadness=10000
+
+\pagenumbering{roman}
+\pdfbookmark[1]{Table of Contents}{toc}
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+\hypersetup{pageanchor=true}
+
+\input{latex_report/sections/01_requirements_problem_analysis}
+\clearpage
+\input{latex_report/sections/02_use_case_analysis}
+\clearpage
+\input{latex_report/sections/03_user_stories}
+\clearpage
+\input{latex_report/sections/04_system_architecture}
+\clearpage
+\input{latex_report/sections/05_component_architecture_design}
+\clearpage
+\input{latex_report/sections/06_database_design}
+\clearpage
+\input{latex_report/sections/07_user_interface_design}
+\clearpage
+\input{latex_report/sections/08_component_implementation}
+\clearpage
+\input{latex_report/sections/09_api_design_implementation}
+\clearpage
+\input{latex_report/sections/10_testing_evaluation}
+
+\end{document}

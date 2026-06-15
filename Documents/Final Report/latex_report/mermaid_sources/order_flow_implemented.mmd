@@ -1,0 +1,33 @@
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "primaryColor": "#f8fafc", "primaryTextColor": "#111827", "primaryBorderColor": "#64748b", "lineColor": "#475569", "actorBkg": "#ffffff", "actorBorder": "#64748b", "actorTextColor": "#111827", "signalColor": "#334155", "signalTextColor": "#111827", "noteBkgColor": "#f8fafc", "noteBorderColor": "#94a3b8", "noteTextColor": "#111827", "fontFamily": "Arial"}}}%%
+sequenceDiagram
+    actor User
+    participant Web
+    participant API
+    participant DB
+
+    User->>Web: Open catalog
+    Web->>API: GET categories/items
+    API->>DB: Load catalog
+    DB-->>API: Catalog data
+    API-->>Web: Active catalog
+
+    alt Item quote
+        User->>Web: Choose item/options
+        Web->>API: GET item detail
+        API->>DB: Load enabled options
+        DB-->>API: Item detail
+        API-->>Web: Item and options
+        Web->>API: POST cart/quote
+    else Combo quote
+        User->>Web: Choose combo/picks
+        Web->>API: GET combo detail
+        API->>DB: Load combo choices
+        DB-->>API: Combo detail
+        API-->>Web: Slots and products
+        Web->>API: POST cart/quote
+    end
+
+    API->>DB: Resolve current prices
+    DB-->>API: Price data
+    API-->>Web: Quote
+

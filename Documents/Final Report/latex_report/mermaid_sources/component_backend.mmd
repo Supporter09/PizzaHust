@@ -1,0 +1,36 @@
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "primaryColor": "#f8fafc", "primaryTextColor": "#111827", "primaryBorderColor": "#64748b", "lineColor": "#475569", "secondaryColor": "#ffffff", "tertiaryColor": "#ffffff", "fontFamily": "Arial"}}}%%
+flowchart LR
+    Web["Frontend"]
+
+    subgraph Backend["FastAPI backend"]
+        direction TB
+        API["API routers"]
+        Domain["Domain rules"]
+        Auth["Auth/CSRF/roles"]
+        DB["DB models/migrations"]
+        Delivery["Delivery adapter"]
+        Seeds["Seed data"]
+
+        API --> Domain
+        API --> Auth
+        API --> DB
+        API --> Delivery
+        Seeds --> DB
+        Domain ~~~ Auth ~~~ DB ~~~ Delivery
+    end
+
+    subgraph Runtime["Runtime services"]
+        direction TB
+        MySQL[("MySQL")]
+        Mock["Delivery mock"]
+    end
+
+    Web -->|"REST"| API
+    DB --> MySQL
+    Delivery --> Mock
+    Mock -->|"HMAC webhook"| API
+
+    classDef external fill:#e2e8f0,stroke:#334155,color:#0f172a;
+    classDef component fill:#f8fafc,stroke:#334155,color:#0f172a;
+    class Web,MySQL,Mock external;
+    class API,Domain,Auth,DB,Delivery,Seeds component;

@@ -376,9 +376,18 @@ class Order(Base):
     )
     promised_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False)
     delivery_reference: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    # Loyalty points credited to the user at placement. Stored so cancellation can
-    # reverse the exact amount even if the admin-configured accrual rate later changes.
+    # Loyalty points to credit when the order reaches Delivered. Stored so the
+    # delivered-side settlement can use the exact placement-time quote even if the
+    # admin-configured accrual rate later changes.
     loyalty_points_earned: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
+    # Loyalty points reserved at placement and released if the order is cancelled
+    # or the delivery fails.
+    loyalty_points_redeemed: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
         default=0,

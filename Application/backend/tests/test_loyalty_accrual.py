@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
+
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from app.infra.db.models import Order, User
+from app.infra.db.models import Order, OrderStatus, User
 from app.infra.db.session import create_session_factory
 from tests.admin_test_utils import (
     enable_option,
@@ -66,7 +69,23 @@ def _user(phone="0912345678") -> User:
         return user
 
 
-def test_logged_in_placement_accrues_points() -> None:
+def _set_user_points(phone: str, points: int) -> None:
+    with create_session_factory()() as db:
+        user = db.scalar(select(User).where(User.phone_number == phone))
+        assert user is not None
+        user.current_points = points
+        db.add(user)
+        db.commit()
+
+
+def _sign(body: bytes, secret: str = "test-webhook-secret") -> str:
+    return hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+
+
+def test_logged_in_placement_records_pending_points_until_delivery(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DELIVERY_WEBHOOK_SECRET", "test-webhook-secret")
     app = build_test_app("accrual-earn")
     pid, m = _catalog(app)
     client = _register_login(app)
@@ -76,13 +95,32 @@ def test_logged_in_placement_accrues_points() -> None:
     assert r.status_code == 201, r.text
 
     user = _user()
-    assert user.current_points == EXPECTED_POINTS
-    assert user.total_points_earned == EXPECTED_POINTS
+    assert user.current_points == 0
+    assert user.total_points_earned == 0
 
     with create_session_factory()() as db:
         order = db.scalar(select(Order).where(Order.user_id == user.user_id))
         assert order is not None
         assert order.loyalty_points_earned == EXPECTED_POINTS
+
+        order.current_status = OrderStatus.DELIVERING
+        order.delivery_reference = "mock-accrual-1"
+        db.add(order)
+        db.commit()
+
+    webhook = client.post(
+        "/api/webhooks/delivery",
+        content=b'{"reference":"mock-accrual-1","state":"Delivered"}',
+        headers={
+            "Content-Type": "application/json",
+            "X-Signature": _sign(b'{"reference":"mock-accrual-1","state":"Delivered"}'),
+        },
+    )
+    assert webhook.status_code == 204, webhook.text
+
+    delivered = _user()
+    assert delivered.current_points == EXPECTED_POINTS
+    assert delivered.total_points_earned == EXPECTED_POINTS
 
 
 def test_guest_placement_accrues_nothing() -> None:
@@ -101,15 +139,27 @@ def test_guest_placement_accrues_nothing() -> None:
         assert order.loyalty_points_earned == 0
 
 
-def test_cancel_reverses_accrued_points() -> None:
+def test_cancel_releases_reserved_points() -> None:
     app = build_test_app("accrual-cancel")
     pid, m = _catalog(app)
     client = _register_login(app)
+    _set_user_points("0912345678", 100)
     _add_line(client, pid, m)
-    assert _place(client).status_code == 201
+    csrf = client.get("/api/cart").json()["csrf_token"]
+    resp = client.post(
+        "/api/orders",
+        json={**RECIPIENT, "address": ADDRESS, "redeem_points": 40},
+        headers={"X-CSRF-Token": csrf},
+    )
+    assert resp.status_code == 201, resp.text
+
+    loyalty = client.get("/api/loyalty/me")
+    assert loyalty.status_code == 200
+    assert loyalty.json()["current_points"] == 60
+    assert loyalty.json()["pending_points"] == 40
 
     user = _user()
-    assert user.current_points == EXPECTED_POINTS
+    assert user.current_points == 60
     order_id = _order_id(user.user_id)
 
     admin = admin_client_on(app)
@@ -117,28 +167,42 @@ def test_cancel_reverses_accrued_points() -> None:
     assert resp.status_code == 204, resp.text
 
     reversed_user = _user()
-    assert reversed_user.current_points == 0
+    assert reversed_user.current_points == 100
     assert reversed_user.total_points_earned == 0
 
     with create_session_factory()() as db:
         order = db.scalar(select(Order).where(Order.order_id == order_id))
         assert order is not None
-        assert order.loyalty_points_earned == 0  # zeroed so a re-reversal is a no-op
+        assert order.loyalty_points_earned == 0
+        assert order.loyalty_points_redeemed == 0
 
 
 def test_cancel_one_of_two_orders_reverses_only_that_orders_points() -> None:
     app = build_test_app("accrual-multi")
     pid, m = _catalog(app)
     client = _register_login(app)
+    _set_user_points("0912345678", 100)
 
     _add_line(client, pid, m)
-    assert _place(client).status_code == 201
+    csrf = client.get("/api/cart").json()["csrf_token"]
+    first = client.post(
+        "/api/orders",
+        json={**RECIPIENT, "address": ADDRESS, "redeem_points": 30},
+        headers={"X-CSRF-Token": csrf},
+    )
+    assert first.status_code == 201, first.text
     _add_line(client, pid, m)
-    assert _place(client).status_code == 201
+    csrf = client.get("/api/cart").json()["csrf_token"]
+    second = client.post(
+        "/api/orders",
+        json={**RECIPIENT, "address": ADDRESS, "redeem_points": 30},
+        headers={"X-CSRF-Token": csrf},
+    )
+    assert second.status_code == 201, second.text
 
     user = _user()
-    assert user.current_points == 2 * EXPECTED_POINTS
-    assert user.total_points_earned == 2 * EXPECTED_POINTS
+    assert user.current_points == 40
+    assert user.total_points_earned == 0
 
     with create_session_factory()() as db:
         first_order_id = db.scalars(
@@ -151,8 +215,8 @@ def test_cancel_one_of_two_orders_reverses_only_that_orders_points() -> None:
 
     # Only the cancelled order's points are clawed back; the other order's stay.
     after = _user()
-    assert after.current_points == EXPECTED_POINTS
-    assert after.total_points_earned == EXPECTED_POINTS
+    assert after.current_points == 70
+    assert after.total_points_earned == 0
 
 
 def _order_id(user_id: int) -> int:

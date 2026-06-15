@@ -76,6 +76,7 @@ def test_auth_me_profile_and_loyalty_flow() -> None:
             assert loyalty_response.status_code == 200
             assert loyalty_response.json() == {
                 "current_points": 0,
+                "pending_points": 0,
                 "total_points_earned": 0,
                 "redeemable_value_vnd": 0,
             }

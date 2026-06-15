@@ -1,0 +1,31 @@
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "primaryColor": "#f8fafc", "primaryTextColor": "#111827", "primaryBorderColor": "#64748b", "lineColor": "#475569", "secondaryColor": "#ffffff", "tertiaryColor": "#ffffff", "fontFamily": "Arial"}}}%%
+flowchart LR
+    subgraph Actors["Actors"]
+        direction TB
+        Kitchen["Kitchen"]
+        Delivery["Delivery service"]
+    end
+
+    subgraph Cases["Kitchen and delivery functions"]
+        direction TB
+        Queue["K1 Queue"]
+        Prep["K2 Prep status"]
+        Ready["K3 Mark ready"]
+        Pickup["K4 Confirm pickup"]
+        Request["T1 Request delivery"]
+        Callback["T2 Status callback"]
+        Queue ~~~ Prep ~~~ Ready ~~~ Pickup ~~~ Request ~~~ Callback
+    end
+
+    Kitchen --> Queue
+    Kitchen --> Prep
+    Kitchen --> Ready
+    Kitchen --> Pickup
+    Ready -.-> Request
+    Delivery --> Request
+    Delivery --> Callback
+
+    classDef actor fill:#e2e8f0,stroke:#334155,color:#0f172a;
+    classDef case fill:#f8fafc,stroke:#334155,color:#0f172a;
+    class Kitchen,Delivery actor;
+    class Queue,Prep,Ready,Pickup,Request,Callback case;

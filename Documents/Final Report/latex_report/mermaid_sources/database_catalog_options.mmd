@@ -1,0 +1,54 @@
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "primaryColor": "#f8fafc", "primaryTextColor": "#111827", "primaryBorderColor": "#64748b", "lineColor": "#475569", "tertiaryColor": "#ffffff", "fontFamily": "Arial"}}}%%
+erDiagram
+    CATEGORIES {
+        int category_id PK
+        varchar name
+        boolean is_active
+        int sort_order
+    }
+
+    PRODUCTS {
+        int product_id PK
+        int category_id FK
+        varchar name
+        int base_price_vnd
+        varchar image_url
+        boolean is_active
+    }
+
+    PRODUCT_IMAGES {
+        int image_id PK
+        int product_id FK
+        varchar url
+        int sort_order
+        boolean is_cover
+    }
+
+    OPTION_GROUPS {
+        int group_id PK
+        int category_id FK
+        varchar name
+        varchar select_type
+        boolean required
+        int sort_order
+    }
+
+    OPTIONS {
+        int option_id PK
+        int group_id FK
+        varchar name
+        int price_delta_vnd
+        int sort_order
+    }
+
+    PRODUCT_OPTIONS {
+        int product_id PK, FK
+        int option_id PK, FK
+    }
+
+    CATEGORIES ||--o{ PRODUCTS : contains
+    CATEGORIES ||--o{ OPTION_GROUPS : scopes
+    PRODUCTS ||--o{ PRODUCT_IMAGES : has
+    OPTION_GROUPS ||--o{ OPTIONS : contains
+    PRODUCTS ||--o{ PRODUCT_OPTIONS : enables
+    OPTIONS ||--o{ PRODUCT_OPTIONS : assigned
