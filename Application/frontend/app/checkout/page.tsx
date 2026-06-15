@@ -11,6 +11,7 @@ import { checkoutQuote } from "@/lib/api/cart";
 import type { CartQuoteOut } from "@/lib/api/cart";
 import { getDeliveryConfig } from "@/lib/api/config";
 import { placeOrder } from "@/lib/api/orders";
+import { clampRedeemPoints, effectiveMaxRedeem } from "@/lib/checkout-redeem";
 import { isValidVnPhone } from "@/lib/checkout-validation";
 import { formatVnd } from "@/lib/format";
 
@@ -34,6 +35,8 @@ export default function CheckoutPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [deliveryNote, setDeliveryNote] = useState("");
+  const [redeemInput, setRedeemInput] = useState("");
+  const [redeemPoints, setRedeemPoints] = useState(0);
   const [quote, setQuote] = useState<CartQuoteOut | null>(null);
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [staleBanner, setStaleBanner] = useState(false);
@@ -55,16 +58,14 @@ export default function CheckoutPage() {
   }, [cart, loading, router]);
 
   const runQuote = useCallback(
-    async (administrativeUnit: string, streetVal: string) => {
-      if (!administrativeUnit || !streetVal.trim()) {
-        setQuote(null);
-        setQuoteError(null);
-        return;
-      }
+    async (administrativeUnit: string, streetVal: string, points: number) => {
+      const ready = Boolean(administrativeUnit) && streetVal.trim().length > 0;
       try {
         const q = await checkoutQuote({
-          address: { administrative_unit: administrativeUnit, street: streetVal.trim() },
-          redeem_points: 0,
+          address: ready
+            ? { administrative_unit: administrativeUnit, street: streetVal.trim() }
+            : null,
+          redeem_points: points,
         });
         setQuote(q);
         setQuoteError(null);
@@ -73,6 +74,8 @@ export default function CheckoutPage() {
         setQuote(null);
         if (e instanceof ApiClientError && e.code === "OUT_OF_SERVICE_AREA") {
           setQuoteError("This address is outside our delivery area.");
+        } else if (e instanceof ApiClientError && e.code === "INSUFFICIENT_LOYALTY") {
+          setQuoteError("You don't have enough points for that.");
         } else {
           setQuoteError("Could not calculate delivery total.");
         }
@@ -83,19 +86,34 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (quoteTimer.current) clearTimeout(quoteTimer.current);
-    if (!ward || !street.trim()) {
-      return;
-    }
     quoteTimer.current = setTimeout(() => {
-      void runQuote(ward, street);
+      void runQuote(ward, street, redeemPoints);
     }, 250);
     return () => {
       if (quoteTimer.current) clearTimeout(quoteTimer.current);
     };
-  }, [ward, street, runQuote]);
+  }, [ward, street, redeemPoints, runQuote]);
 
   const addressReady = ward.length > 0 && street.trim().length > 0;
   const summaryQuote = addressReady ? quote : null;
+
+  const balance = quote?.loyalty.balance ?? 0;
+  const maxRedeemable = quote?.loyalty.max_redeemable ?? 0;
+  const maxRedeem = effectiveMaxRedeem(balance, maxRedeemable);
+  const loyaltyDiscount = quote?.discount_loyalty_vnd ?? 0;
+  const comboDiscount = quote?.discount_combo_vnd ?? 0;
+  const showRedeem = Boolean(user) && balance > 0;
+
+  const applyRedeem = useCallback(() => {
+    const next = clampRedeemPoints(Number.parseInt(redeemInput, 10), balance, maxRedeemable);
+    setRedeemPoints(next);
+    setRedeemInput(next > 0 ? String(next) : "");
+  }, [redeemInput, balance, maxRedeemable]);
+
+  const useMaxRedeem = useCallback(() => {
+    setRedeemPoints(maxRedeem);
+    setRedeemInput(maxRedeem > 0 ? String(maxRedeem) : "");
+  }, [maxRedeem]);
 
   const resolvedName = name.trim() || user?.full_name.trim() || "";
   const resolvedPhone = phone.replace(/\s/g, "") || user?.phone_number || "";
@@ -106,15 +124,15 @@ export default function CheckoutPage() {
       isValidVnPhone(resolvedPhone) &&
       ward.length > 0 &&
       street.trim().length > 0 &&
-      quote !== null &&
+      summaryQuote !== null &&
       quoteError === null &&
       !submitting
     );
-  }, [resolvedName, resolvedPhone, ward, street, quote, quoteError, submitting]);
+  }, [resolvedName, resolvedPhone, ward, street, summaryQuote, quoteError, submitting]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit || !quote) return;
+    if (!canSubmit || !summaryQuote) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -123,7 +141,7 @@ export default function CheckoutPage() {
         recipient_phone: resolvedPhone,
         address: { administrative_unit: ward, street: street.trim() },
         delivery_note: deliveryNote.trim() || null,
-        redeem_points: 0,
+        redeem_points: redeemPoints,
       });
       orderPlacedRef.current = true;
       router.push(`/order-confirmed/${encodeURIComponent(out.order_code)}`);
@@ -152,8 +170,8 @@ export default function CheckoutPage() {
   }
 
   const placeLabel =
-    quote && canSubmit
-      ? `Place Order — ${formatVnd(quote.total_vnd)}`
+    summaryQuote && canSubmit
+      ? `Place Order — ${formatVnd(summaryQuote.total_vnd)}`
       : "Place Order";
 
   return (
@@ -210,13 +228,7 @@ export default function CheckoutPage() {
                 id="checkout-ward"
                 required
                 value={ward}
-                onChange={(e) => {
-                  setWard(e.target.value);
-                  if (!e.target.value) {
-                    setQuote(null);
-                    setQuoteError(null);
-                  }
-                }}
+                onChange={(e) => setWard(e.target.value)}
                 className="mt-1.5 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-fg"
               >
                 <option value="">Select ward</option>
@@ -236,13 +248,7 @@ export default function CheckoutPage() {
                 type="text"
                 required
                 value={street}
-                onChange={(e) => {
-                  setStreet(e.target.value);
-                  if (!e.target.value.trim()) {
-                    setQuote(null);
-                    setQuoteError(null);
-                  }
-                }}
+                onChange={(e) => setStreet(e.target.value)}
                 className="mt-1.5 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-fg"
               />
             </div>
@@ -307,18 +313,86 @@ export default function CheckoutPage() {
               </li>
             ))}
           </ul>
-          {summaryQuote ? (
+
+          {showRedeem ? (
+            <div className="mt-4 rounded-xl border border-line bg-surface p-4">
+              <div className="text-sm font-semibold text-fg">
+                Redeem loyalty points{" "}
+                <span className="font-normal text-muted">· {balance} available</span>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  max={maxRedeem}
+                  inputMode="numeric"
+                  value={redeemInput}
+                  onChange={(e) => setRedeemInput(e.target.value)}
+                  placeholder="0"
+                  aria-label="Points to redeem"
+                  className="h-11 min-w-0 flex-1 rounded-lg border border-line bg-card px-3 text-fg"
+                />
+                <button
+                  type="button"
+                  onClick={useMaxRedeem}
+                  className="h-11 shrink-0 rounded-lg border border-line px-3 text-sm font-semibold text-fg hover:bg-surface-active"
+                >
+                  Use max
+                </button>
+                <button
+                  type="button"
+                  onClick={applyRedeem}
+                  className="h-11 shrink-0 rounded-lg border border-brand px-4 text-sm font-semibold text-brand hover:bg-brand/10"
+                >
+                  Apply
+                </button>
+              </div>
+              <p className="mt-2 text-xs text-muted">
+                Up to {maxRedeem} pts here · max 50% of subtotal
+              </p>
+            </div>
+          ) : null}
+
+          {quote ? (
             <div className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted">Delivery</span>
-                <span className="font-medium tabular-nums">
-                  {formatVnd(summaryQuote.delivery_fee_vnd)}
-                </span>
+                <span className="text-muted">Subtotal</span>
+                <span className="font-medium tabular-nums">{formatVnd(quote.subtotal_vnd)}</span>
               </div>
-              <div className="flex justify-between border-t border-line pt-2 text-base font-bold">
-                <span>Total</span>
-                <span className="tabular-nums text-brand">{formatVnd(summaryQuote.total_vnd)}</span>
-              </div>
+              {comboDiscount > 0 ? (
+                <div className="flex justify-between">
+                  <span className="text-muted">Combo savings</span>
+                  <span className="font-medium tabular-nums text-brand">
+                    −{formatVnd(comboDiscount)}
+                  </span>
+                </div>
+              ) : null}
+              {loyaltyDiscount > 0 ? (
+                <div className="flex justify-between">
+                  <span className="text-muted">Loyalty discount</span>
+                  <span className="font-medium tabular-nums text-brand">
+                    −{formatVnd(loyaltyDiscount)}
+                  </span>
+                </div>
+              ) : null}
+              {summaryQuote ? (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted">Delivery</span>
+                    <span className="font-medium tabular-nums">
+                      {formatVnd(summaryQuote.delivery_fee_vnd)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-t border-line pt-2 text-base font-bold">
+                    <span>Total</span>
+                    <span className="tabular-nums text-brand">
+                      {formatVnd(summaryQuote.total_vnd)}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <p className="text-muted">Select ward and street for delivery total.</p>
+              )}
             </div>
           ) : (
             <p className="mt-4 text-sm text-muted">Select ward and street for delivery total.</p>
