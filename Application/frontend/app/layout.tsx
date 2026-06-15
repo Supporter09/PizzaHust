@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 
 import { AppChrome } from "@/components/app-chrome";
+import { AppToaster } from "@/components/app-toaster";
 import { AuthProvider } from "@/components/auth-provider";
 import { CartProvider } from "@/components/cart-provider";
 import { ThemeBootstrap } from "@/components/theme-bootstrap";
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <AppChrome>{children}</AppChrome>
           </CartProvider>
         </AuthProvider>
+        <AppToaster />
       </body>
     </html>
   );
