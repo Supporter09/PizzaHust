@@ -5,8 +5,12 @@ import { useEffect, useRef, useState } from "react";
 
 import { useCart } from "@/components/cart-provider";
 
+// Color lives on the glyph span, not the wrapper: the global unlayered
+// `a { color: inherit }` rule (globals.css) overrides the layered text-on-brand
+// utility on the <a> variant, which would render its "+" in the card's dark text
+// instead of white. A span carries no such global rule, so both variants match.
 const CIRCLE =
-  "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-2xl leading-none text-on-brand transition hover:bg-brand/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand";
+  "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-2xl leading-none transition hover:bg-brand/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand";
 
 type Props = {
   productId: number;
@@ -27,7 +31,9 @@ export function QuickAddButton({ productId, name, hasPriceOptions }: Props) {
         title="Choose options"
         className={CIRCLE}
       >
-        <span aria-hidden="true">+</span>
+        <span aria-hidden="true" className="text-on-brand">
+          +
+        </span>
       </Link>
     );
   }
@@ -71,7 +77,9 @@ function AddToCartButton({ productId, name }: { productId: number; name: string 
       onClick={onClick}
       className={`${CIRCLE} disabled:opacity-60`}
     >
-      <span aria-hidden="true">{added ? "✓" : "+"}</span>
+      <span aria-hidden="true" className="text-on-brand">
+        {added ? "✓" : "+"}
+      </span>
     </button>
   );
 }
