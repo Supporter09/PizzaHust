@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { useAuth } from "@/components/auth-provider";
 import { useCart } from "@/components/cart-provider";
+import { NavLinks, type NavItem } from "@/components/nav-links";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const LINKS = [
@@ -14,12 +15,6 @@ const LINKS = [
   { href: "/combos", label: "Combos", active: (p: string) => p.startsWith("/combos") },
   // Track Order omitted — U7 is unbuilt.
 ];
-
-function navClass(active: boolean): string {
-  return active
-    ? "rounded-full bg-brand-subtle px-4 py-2 font-semibold text-brand-fg"
-    : "rounded-full px-4 py-2 text-muted transition-colors hover:text-brand-fg";
-}
 
 function CartIcon() {
   return (
@@ -109,23 +104,19 @@ export function TopNav() {
   const accountHref = user ? "/account" : "/login";
   const accountLabel = loading ? "Account" : user ? `Account — ${user.full_name}` : "Sign in";
 
+  const navItems: NavItem[] = [
+    ...LINKS.map((link) => ({ href: link.href, label: link.label, active: link.active(pathname) })),
+    ...(user?.role === "admin"
+      ? [{ href: "/admin", label: "Admin", active: pathname.startsWith("/admin") }]
+      : []),
+  ];
+
   return (
     <header className="border-b border-line bg-card/95 backdrop-blur">
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+      <div className="relative mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
         <Brand />
 
-        <nav className="hidden items-center gap-1 text-sm sm:flex">
-          {LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className={navClass(link.active(pathname))}>
-              {link.label}
-            </Link>
-          ))}
-          {user?.role === "admin" ? (
-            <Link href="/admin" className={navClass(pathname.startsWith("/admin"))}>
-              Admin
-            </Link>
-          ) : null}
-        </nav>
+        <NavLinks items={navItems} />
 
         <div className="hidden items-center gap-1 sm:flex">
           <ThemeToggle />
