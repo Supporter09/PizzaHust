@@ -216,3 +216,56 @@ def test_delivery_failed_releases_reserved_points(monkeypatch: pytest.MonkeyPatc
         o = db.scalar(select(Order).where(Order.delivery_reference == "mock-fail"))
         assert o.current_status == OrderStatus.DELIVERY_FAILED
         assert o.loyalty_points_redeemed == 0
+
+
+def test_duplicate_failed_webhook_does_not_double_release_points(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.infra.auth import hash_password
+    from app.infra.db.models import User, UserRole
+
+    monkeypatch.setenv("DELIVERY_WEBHOOK_SECRET", SECRET)
+    app = build_test_app("wh-fail-dup")
+    with create_session_factory()() as db:
+        user = User(
+            full_name="R",
+            phone_number="0901230001",
+            password_hash=hash_password("x12345678"),
+            role=UserRole.CUSTOMER,
+            current_points=30,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        uid = user.user_id
+        order = Order(
+            order_code="PIZZ-REL002",
+            user_id=uid,
+            recipient_name="R",
+            recipient_phone="0901230001",
+            delivery_address="1 St",
+            total_amount_vnd=100_000,
+            promised_at=datetime(2026, 1, 1, 12, 0, 0),
+            current_status=OrderStatus.DELIVERING,
+            delivery_reference="mock-fail-dup",
+            loyalty_points_redeemed=20,
+        )
+        db.add(order)
+        db.commit()
+
+    client = TestClient(app)
+    payload = {
+        "reference": "mock-fail-dup",
+        "state": "Failed",
+        "event_id": "evt-fail-dup-1",
+    }
+    first = _post_event(client, payload)
+    second = _post_event(client, payload)
+
+    assert first.status_code == 204
+    assert second.status_code == 204
+    with create_session_factory()() as db:
+        assert db.get(User, uid).current_points == 50
+        o = db.scalar(select(Order).where(Order.delivery_reference == "mock-fail-dup"))
+        assert o.current_status == OrderStatus.DELIVERY_FAILED
+        assert o.loyalty_points_redeemed == 0

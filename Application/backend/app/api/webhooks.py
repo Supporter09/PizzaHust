@@ -80,7 +80,7 @@ async def delivery_webhook(
         return
 
     order: Order | None = db.scalar(
-        select(Order).where(Order.delivery_reference == event.reference)
+        select(Order).where(Order.delivery_reference == event.reference).with_for_update()
     )
     if order is None:
         return
