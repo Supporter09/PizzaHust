@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 
 import { ApiClientError } from "@/lib/api/client";
+import { getBusinessConfig } from "@/lib/api/config";
 import { listKitchenOrders, type KitchenTicket } from "@/lib/api/kitchen";
+import { DEFAULT_BUSINESS_TZ } from "@/lib/business-time";
 
 import { Ticket } from "./ticket";
 
@@ -14,8 +16,25 @@ export function QueueClient() {
   const [error, setError] = useState(false);
   const [stale, setStale] = useState(false);
   const [deferred, setDeferred] = useState<string | null>(null);
+  // Absolute step times render in the admin-configured business timezone, not
+  // the browser's local zone (GET /api/config/business is the authority).
+  const [timeZone, setTimeZone] = useState(DEFAULT_BUSINESS_TZ);
   const hasLoaded = useRef(false);
   const refreshRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    let active = true;
+    getBusinessConfig()
+      .then((config) => {
+        if (active) setTimeZone(config.timezone);
+      })
+      .catch(() => {
+        /* keep the default zone if config is unavailable */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -99,7 +118,13 @@ export function QueueClient() {
 
       <div className="grid grid-cols-1 items-start gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {tickets?.map((t) => (
-          <Ticket key={t.order_id} ticket={t} onChanged={() => refreshRef.current()} onDeferred={setDeferred} />
+          <Ticket
+            key={t.order_id}
+            ticket={t}
+            onChanged={() => refreshRef.current()}
+            onDeferred={setDeferred}
+            timeZone={timeZone}
+          />
         ))}
       </div>
     </div>

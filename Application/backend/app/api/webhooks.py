@@ -6,6 +6,7 @@ import hashlib
 import hmac
 from typing import Literal
 
+import structlog
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel, ValidationError
 from sqlalchemy import select
@@ -83,6 +84,11 @@ async def delivery_webhook(
         select(Order).where(Order.delivery_reference == event.reference).with_for_update()
     )
     if order is None:
+        structlog.get_logger().warning(
+            "delivery_webhook_unknown_reference",
+            reference=event.reference,
+            state=event.state,
+        )
         return
 
     if is_terminal(order.current_status.value):
@@ -94,6 +100,12 @@ async def delivery_webhook(
             return
         new_status = OrderStatus(transition(order.current_status.value, target_status_value))
     except OrderTransitionError:
+        structlog.get_logger().warning(
+            "delivery_webhook_illegal_transition",
+            reference=event.reference,
+            state=event.state,
+            current_status=order.current_status.value,
+        )
         return
 
     order.current_status = new_status

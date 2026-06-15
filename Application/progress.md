@@ -756,3 +756,18 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 **Deviations (scope):** accrual credited at **placement** (not Delivered); only Cancel / Delivery-Failed reverse earned + release reserved.
 
 **Verified:** `./verify.sh` **EXIT 0** at `c54414c`, `2026-06-15T13:47:38Z` — backend pytest + frontend tsc/eslint/vitest/build + OpenAPI↔types parity green, smoke 1/1-skip, Playwright **50 passed/4 skipped/0 failed** (incl. `checkout-redeem`).
+
+---
+
+## 2026-06-15 — T1 Request Delivery + T2 Sync Delivery Status (verify + formalize, `feat/t1-t2-verify`)
+
+**Scope:** the delivery loop was already built/tested via infra-005/K3/A5/K4/U7 — this **verifies + formalizes** it, no rebuild. Isolated in a worktree from the parallel U14/catalog work.
+
+**Done** (commits `3e608d7..769a754`, 5 files)
+- **T2 (`app/api/webhooks.py`):** the two silent no-op branches now log structured warnings — `delivery_webhook_unknown_reference` (callback for an order we don't hold) and `delivery_webhook_illegal_transition` (a transition the state machine forbids) — both still return 200 so the provider doesn't retry. Unit test via `structlog.testing.capture_logs`. U14's row-locked reserved-points release on Delivery-Failed left intact.
+- **Smoke (`tests/smoke/test_end_to_end.py`):** unparked — place COD → kitchen accept + mark-ready (T1 books the real mock) → poll the public tracking projection at the FE's 15s cadence (stays under the 5/min/IP track limit) until the mock's HMAC-signed webhooks (T2) land **Delivered**; asserts the timeline carries Delivering + Delivered.
+- **e2e (`tests/e2e/track.spec.ts` + `status-badge.tsx`):** added `data-testid="order-status-badge"` so the spec asserts the **live** status (the prior pass was a false-positive matching always-rendered timeline labels), then drives a real checkout + kitchen dispatch and waits for the badge to read Delivered.
+
+**No contract change** — `openapi.json` / `types.ts` / `CONTRACTS.md` identical to `main`. Loyalty-on-Delivered stays out of scope (U14 credits at placement).
+
+**Verified:** `./verify.sh` **EXIT 0** at `769a754`, `2026-06-15T15:11:50Z` (containers rebuilt from this worktree first) — backend **456 passed**, vitest **136 passed**, smoke **2 passed** (incl. the unparked `test_place_cod_order_through_to_delivered`), Playwright **51 passed/4 skipped/0 failed** (incl. `track.spec.ts:40` auto-advance to Delivered — 17.1s genuine wait, no flake).

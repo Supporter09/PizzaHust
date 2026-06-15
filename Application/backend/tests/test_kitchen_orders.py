@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from app.infra.db.models import Order, OrderStatus, TrackingNoteSource, UserRole
 from tests.admin_test_utils import admin_client
 from tests.kitchen_test_utils import (
@@ -144,3 +146,27 @@ def test_empty_queue_returns_empty_list():
     res = client.get("/api/kitchen/orders")
     assert res.status_code == 200
     assert res.json() == []
+
+
+def test_queue_timestamps_are_utc_aware():
+    """Regression (GMT vs GMT+7): the queue must emit UTC-aware timestamps.
+
+    Timestamps are stored naive UTC; serialized without an offset, JS `new Date()`
+    reads them as browser-local and skews the kitchen 'placed X min ago' / step
+    times by the local offset. Every timestamp the client parses must carry an
+    explicit UTC offset so the instant is unambiguous.
+    """
+    client = kitchen_client("kitchen-tz")
+    order_id = make_order(status=OrderStatus.PREPARING, code="PIZZ-TZ0001")
+    client.post(f"/api/kitchen/orders/{order_id}/notes", json={"note": "prep started"})
+
+    ticket = client.get("/api/kitchen/orders").json()[0]
+    stamps = [ticket["created_at"], ticket["promised_at"]]
+    stamps += [event["created_at"] for event in ticket["tracking"]]
+    assert len(stamps) >= 3  # both ticket stamps + at least the note event
+
+    for stamp in stamps:
+        parsed = datetime.fromisoformat(stamp)
+        assert parsed.tzinfo is not None and parsed.utcoffset() == timedelta(0), (
+            f"timestamp must be UTC-aware, got {stamp!r}"
+        )

@@ -11,6 +11,7 @@ import {
   type KitchenItem,
   type KitchenTicket,
 } from "@/lib/api/kitchen";
+import { formatInBusinessTz } from "@/lib/business-time";
 import { ageMinutes, isUrgent, statusLabel } from "@/lib/kitchen-queue";
 
 // Repo theme tokens (see globals.css @theme). The mockup maps Received=blue,
@@ -112,10 +113,12 @@ function TrackingNote({
   source,
   note,
   createdAt,
+  timeZone,
 }: {
   source: string;
   note: string;
   createdAt: string;
+  timeZone: string;
 }) {
   return (
     <div className="rounded-lg border border-line bg-card px-3 py-2">
@@ -124,7 +127,7 @@ function TrackingNote({
           {TRACKING_SOURCE_LABEL[source] ?? source}
         </span>
         <span className="text-muted">
-          {new Date(createdAt).toLocaleString("vi-VN", {
+          {formatInBusinessTz(createdAt, timeZone, {
             hour: "2-digit",
             minute: "2-digit",
             day: "2-digit",
@@ -141,10 +144,12 @@ export function Ticket({
   ticket,
   onChanged,
   onDeferred,
+  timeZone,
 }: {
   ticket: KitchenTicket;
   onChanged: () => void;
   onDeferred: (message: string) => void;
+  timeZone: string;
 }) {
   const urgent = isUrgent(ticket.status, ticket.created_at);
   const noteId = `kitchen-note-${ticket.order_id}`;
@@ -272,6 +277,7 @@ export function Ticket({
                   source={event.note_source}
                   note={event.note as string}
                   createdAt={event.created_at}
+                  timeZone={timeZone}
                 />
               ))}
           </div>

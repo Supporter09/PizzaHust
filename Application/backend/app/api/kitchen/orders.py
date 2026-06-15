@@ -8,14 +8,13 @@ items. No mutations — those are K2/K3/K4.
 
 from __future__ import annotations
 
-from datetime import datetime
-
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.kitchen.queue_logic import cancel_stale_kitchen_orders
+from app.api.serialization import UtcDateTime
 from app.infra.auth import require_role
 from app.infra.db.deps import get_db
 from app.infra.db.models import Order, OrderItem, User, UserRole
@@ -43,7 +42,7 @@ class KitchenTrackingOut(BaseModel):
     tracking_id: int
     status: str
     note_source: str
-    created_at: datetime
+    created_at: UtcDateTime
     note: str | None
     updated_by: int | None
 
@@ -52,8 +51,8 @@ class KitchenTicketOut(BaseModel):
     order_id: int
     order_code: str
     status: str
-    created_at: datetime
-    promised_at: datetime
+    created_at: UtcDateTime
+    promised_at: UtcDateTime
     priority_score: int
     delivery_note: str | None
     tracking: list[KitchenTrackingOut]

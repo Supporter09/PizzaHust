@@ -28,6 +28,10 @@ vi.mock("@/lib/api/kitchen", async (orig) => ({
   confirmKitchenPickup,
 }));
 
+vi.mock("@/lib/api/config", () => ({
+  getBusinessConfig: vi.fn().mockResolvedValue({ timezone: "Asia/Ho_Chi_Minh" }),
+}));
+
 function ticket(over: Partial<KitchenTicket> = {}): KitchenTicket {
   return {
     order_id: 1,
@@ -180,6 +184,28 @@ describe("QueueClient — K3 mark ready", () => {
 
     expect(await screen.findByText("Need extra sauce")).toBeTruthy();
     expect(screen.getByText("Kitchen steps")).toBeTruthy();
+  });
+
+  it("renders kitchen-step times in the business timezone, not UTC/browser-local", async () => {
+    listKitchenOrders.mockResolvedValue([
+      ticket({
+        status: "Preparing",
+        tracking: [
+          {
+            tracking_id: 11,
+            status: "Preparing",
+            note_source: "kitchen",
+            created_at: "2026-06-15T15:26:00Z",
+            note: "Accepted by kitchen",
+            updated_by: 2,
+          },
+        ],
+      }),
+    ]);
+    render(<QueueClient />);
+    // 15:26 UTC must show as 22:26 in Asia/Ho_Chi_Minh (the configured business
+    // zone), independent of the test runner's local zone.
+    expect(await screen.findByText(/22:26/)).toBeTruthy();
   });
 });
 

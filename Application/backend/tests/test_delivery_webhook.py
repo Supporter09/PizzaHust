@@ -218,6 +218,21 @@ def test_delivery_failed_releases_reserved_points(monkeypatch: pytest.MonkeyPatc
         assert o.loyalty_points_redeemed == 0
 
 
+def test_unknown_reference_logs_warning(monkeypatch: pytest.MonkeyPatch) -> None:
+    from structlog.testing import capture_logs
+
+    monkeypatch.setenv("DELIVERY_WEBHOOK_SECRET", SECRET)
+    app = build_test_app("wh-unknown-log")
+    _new_order("mock-known-log", OrderStatus.DELIVERING)
+    client = TestClient(app)
+
+    with capture_logs() as logs:
+        resp = _post_event(client, {"reference": "mock-NOPE", "state": "Delivered"})
+
+    assert resp.status_code == 204
+    assert any(e.get("event") == "delivery_webhook_unknown_reference" for e in logs)
+
+
 def test_duplicate_failed_webhook_does_not_double_release_points(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
