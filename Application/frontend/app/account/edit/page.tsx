@@ -137,10 +137,10 @@ export default function EditProfilePage() {
           {profileErr ? <p className="text-sm font-medium text-danger">{profileErr}</p> : null}
           {profileMsg ? <p className="text-sm font-medium text-success">{profileMsg}</p> : null}
           <div className="flex justify-end gap-3">
-            <Link href="/account" className="btn-outline">
+            <Link href="/account" className="btn-outline h-11 px-5">
               Cancel
             </Link>
-            <button type="submit" className="btn-primary">
+            <button type="submit" className="btn-primary inline-flex h-11 items-center px-5">
               Save Changes
             </button>
           </div>
@@ -167,7 +167,7 @@ export default function EditProfilePage() {
           {pwdErr ? <p className="text-sm font-medium text-danger">{pwdErr}</p> : null}
           {pwdMsg ? <p className="text-sm font-medium text-success">{pwdMsg}</p> : null}
           <div className="flex justify-end">
-            <button type="submit" className="btn-primary">
+            <button type="submit" className="btn-primary inline-flex h-11 items-center px-5">
               Update password
             </button>
           </div>
