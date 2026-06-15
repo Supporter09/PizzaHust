@@ -182,6 +182,29 @@ def test_list_paginates() -> None:
     assert len(page2) == 1
 
 
+def test_count_my_orders() -> None:
+    app = build_test_app("u11-count")
+    from app.seeds.run import main as run_seeds
+
+    run_seeds()
+    uid = _make_customer()
+    other = _make_customer("0988333444")
+    _seed_order(uid, "PIZZ-MINE001")
+    _seed_order(uid, "PIZZ-MINE002")
+    _seed_order(other, "PIZZ-OTHER01")
+
+    client = _login(app)
+    resp = client.get("/api/orders/me/count")
+    assert resp.status_code == 200, resp.text
+    assert resp.json() == {"count": 2}
+
+
+def test_count_requires_login() -> None:
+    app = build_test_app("u11-count-anon")
+    resp = TestClient(app).get("/api/orders/me/count")
+    assert resp.status_code == 401
+
+
 def test_detail_owner_only_and_full_breakdown() -> None:
     app = build_test_app("u11-detail")
     from app.seeds.run import main as run_seeds

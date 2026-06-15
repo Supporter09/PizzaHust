@@ -140,6 +140,78 @@ def test_avatar_upload_replace_and_bad_type(tmp_path, monkeypatch) -> None:
     asyncio.run(scenario())
 
 
+def test_avatar_upload_rate_limited(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("IMAGE_UPLOAD_DIR", str(tmp_path))
+    app_instance = build_test_app("auth-avatar-rate-up", auth_rate_limit_per_minute=2)
+
+    async def scenario() -> None:
+        transport = httpx.ASGITransport(app=app_instance)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            await client.post(
+                "/api/auth/register",
+                json={
+                    "full_name": "Rate Up",
+                    "phone_number": "0902222222",
+                    "password": "strongpass123",
+                },
+            )
+            await client.post(
+                "/api/auth/login",
+                json={"phone_number": "0902222222", "password": "strongpass123"},
+            )
+            csrf = (await client.get("/api/auth/me")).json()["csrf_token"]
+            headers = {"X-CSRF-Token": csrf}
+            file = {"image": ("a.png", b"\x89PNGfake", "image/png")}
+
+            up1 = await client.post("/api/auth/me/avatar", files=file, headers=headers)
+            assert up1.status_code == 200
+            up2 = await client.post("/api/auth/me/avatar", files=file, headers=headers)
+            assert up2.status_code == 200
+            limited = await client.post("/api/auth/me/avatar", files=file, headers=headers)
+            assert limited.status_code == 429
+            assert limited.json()["error"]["code"] == "RATE_LIMITED"
+
+    asyncio.run(scenario())
+
+
+def test_avatar_delete_rate_limited(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("IMAGE_UPLOAD_DIR", str(tmp_path))
+    app_instance = build_test_app("auth-avatar-rate-del", auth_rate_limit_per_minute=3)
+
+    async def scenario() -> None:
+        transport = httpx.ASGITransport(app=app_instance)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            await client.post(
+                "/api/auth/register",
+                json={
+                    "full_name": "Rate Del",
+                    "phone_number": "0903333333",
+                    "password": "strongpass123",
+                },
+            )
+            await client.post(
+                "/api/auth/login",
+                json={"phone_number": "0903333333", "password": "strongpass123"},
+            )
+            csrf = (await client.get("/api/auth/me")).json()["csrf_token"]
+            headers = {"X-CSRF-Token": csrf}
+            await client.post(
+                "/api/auth/me/avatar",
+                files={"image": ("a.png", b"\x89PNGfake", "image/png")},
+                headers=headers,
+            )
+
+            d1 = await client.request("DELETE", "/api/auth/me/avatar", headers=headers)
+            assert d1.status_code == 200
+            d2 = await client.request("DELETE", "/api/auth/me/avatar", headers=headers)
+            assert d2.status_code == 200
+            limited = await client.request("DELETE", "/api/auth/me/avatar", headers=headers)
+            assert limited.status_code == 429
+            assert limited.json()["error"]["code"] == "RATE_LIMITED"
+
+    asyncio.run(scenario())
+
+
 def test_avatar_delete_is_idempotent(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("IMAGE_UPLOAD_DIR", str(tmp_path))
     app_instance = build_test_app("auth-avatar-del")

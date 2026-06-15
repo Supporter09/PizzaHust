@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 import { Avatar } from "@/components/avatar";
 import { useAuth } from "@/components/auth-provider";
 import { ApiClientError } from "@/lib/api/client";
 
 export default function EditProfilePage() {
+  const router = useRouter();
   const { user, loading, updateProfile, uploadAvatar, removeAvatar, changePassword } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -16,7 +18,14 @@ export default function EditProfilePage() {
   const [pwdMsg, setPwdMsg] = useState<string | null>(null);
   const [pwdErr, setPwdErr] = useState<string | null>(null);
 
-  if (loading || !user) return <p className="text-sm text-muted">Loading…</p>;
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [loading, user, router]);
+
+  if (loading) return <p className="text-sm text-muted">Loading…</p>;
+  if (!user) return null;
 
   const onSaveProfile = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,6 +59,10 @@ export default function EditProfilePage() {
     const fd = new FormData(e.currentTarget);
     const current_password = String(fd.get("current_password") ?? "");
     const new_password = String(fd.get("new_password") ?? "");
+    if (new_password.length === 0) {
+      setPwdMsg("No change requested.");
+      return;
+    }
     if (new_password.length < 8) {
       setPwdErr("New password must be at least 8 characters.");
       return;
@@ -82,7 +95,13 @@ export default function EditProfilePage() {
                 <button
                   type="button"
                   className="rounded-lg px-3 py-1.5 text-sm font-medium text-brand-fg hover:bg-surface-hover"
-                  onClick={() => void removeAvatar()}
+                  onClick={async () => {
+                    try {
+                      await removeAvatar();
+                    } catch (err) {
+                      setProfileErr(err instanceof ApiClientError ? err.message : "Unable to remove photo.");
+                    }
+                  }}
                 >
                   Remove
                 </button>

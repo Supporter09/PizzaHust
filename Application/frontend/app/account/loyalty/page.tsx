@@ -16,6 +16,7 @@ export default function LoyaltyPage() {
   const [balance, setBalance] = useState<LoyaltyMeResponse | null>(null);
   const [config, setConfig] = useState<LoyaltyConfigOut | null>(null);
   const [history, setHistory] = useState<LoyaltyHistoryRow[] | null>(null);
+  const [historyErr, setHistoryErr] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -25,7 +26,15 @@ export default function LoyaltyPage() {
     if (!user) return;
     void getLoyaltyMe().then(setBalance).catch(() => setBalance(null));
     void getLoyaltyConfig().then(setConfig).catch(() => setConfig(null));
-    void getLoyaltyHistory().then(setHistory).catch(() => setHistory([]));
+    void getLoyaltyHistory()
+      .then((h) => {
+        setHistory(h);
+        setHistoryErr(null);
+      })
+      .catch(() => {
+        setHistory([]);
+        setHistoryErr("Unable to load points history.");
+      });
   }, [loading, user, router]);
 
   if (loading || !user) return <p className="text-sm text-muted">Loading…</p>;
@@ -68,6 +77,8 @@ export default function LoyaltyPage() {
         <h2 className="text-lg font-bold text-fg">Points History</h2>
         {history === null ? (
           <p className="mt-3 text-sm text-muted">Loading…</p>
+        ) : historyErr ? (
+          <p className="mt-3 text-sm font-medium text-danger">{historyErr}</p>
         ) : history.length === 0 ? (
           <p className="mt-3 text-sm text-muted">No points activity yet.</p>
         ) : (
@@ -76,7 +87,9 @@ export default function LoyaltyPage() {
               <li key={i} className="flex items-center justify-between py-4">
                 <div>
                   <p className="font-semibold text-fg">{row.label}</p>
-                  <p className="text-xs text-muted">{new Date(row.date).toLocaleDateString()}</p>
+                  <p className="text-xs text-muted">
+                    {new Date(row.date).toLocaleDateString("en-US", { timeZone: "UTC" })}
+                  </p>
                 </div>
                 <span className="font-bold text-success">+{row.points_delta} pts</span>
               </li>

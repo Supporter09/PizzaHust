@@ -1085,6 +1085,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders/me/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Count My Orders */
+        get: operations["count_my_orders_api_orders_me_count_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders/me/{order_code}": {
         parameters: {
             query?: never;
@@ -2143,6 +2160,11 @@ export interface components {
         MessageResponse: {
             /** Message */
             message: string;
+        };
+        /** MyOrderCountOut */
+        MyOrderCountOut: {
+            /** Count */
+            count: number;
         };
         /** MyOrderDetailOut */
         MyOrderDetailOut: {
@@ -5118,6 +5140,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    count_my_orders_api_orders_me_count_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyOrderCountOut"];
                 };
             };
         };

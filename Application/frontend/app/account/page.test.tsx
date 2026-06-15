@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AccountPage from "@/app/account/page";
 
-const { listMyOrders, getLoyaltyMe, authUser } = vi.hoisted(() => ({
-  listMyOrders: vi.fn(),
+const { countMyOrders, getLoyaltyMe, authUser } = vi.hoisted(() => ({
+  countMyOrders: vi.fn(),
   getLoyaltyMe: vi.fn(),
   authUser: {
     user_id: 1,
@@ -19,7 +19,7 @@ const { listMyOrders, getLoyaltyMe, authUser } = vi.hoisted(() => ({
 
 vi.mock("@/lib/api/orders", async (orig) => ({
   ...(await orig<typeof import("@/lib/api/orders")>()),
-  listMyOrders,
+  countMyOrders,
 }));
 vi.mock("@/lib/api/loyalty", async (orig) => ({
   ...(await orig<typeof import("@/lib/api/loyalty")>()),
@@ -31,7 +31,7 @@ vi.mock("@/components/auth-provider", () => ({ useAuth: () => ({ user: authUser,
 describe("AccountPage dashboard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    listMyOrders.mockResolvedValue([{ order_code: "PIZZ-A" }, { order_code: "PIZZ-B" }]);
+    countMyOrders.mockResolvedValue({ count: 2 });
     getLoyaltyMe.mockResolvedValue({ current_points: 150, total_points_earned: 200, redeemable_value_vnd: 150000 });
   });
   afterEach(cleanup);

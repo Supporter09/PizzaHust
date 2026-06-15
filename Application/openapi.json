@@ -2893,6 +2893,19 @@
         "title": "MessageResponse",
         "type": "object"
       },
+      "MyOrderCountOut": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "title": "MyOrderCountOut",
+        "type": "object"
+      },
       "MyOrderDetailOut": {
         "properties": {
           "created_at": {
@@ -7938,6 +7951,27 @@
           }
         },
         "summary": "List My Orders",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/api/orders/me/count": {
+      "get": {
+        "operationId": "count_my_orders_api_orders_me_count_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyOrderCountOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Count My Orders",
         "tags": [
           "orders"
         ]

@@ -253,6 +253,7 @@ async def update_me(
 async def upload_avatar(
     image: Annotated[UploadFile, File()],
     _: Annotated[None, Depends(enforce_csrf)],
+    __: Annotated[None, Depends(enforce_auth_rate_limit)],
     user: Annotated[User, Depends(get_current_user)],
     db: DBSession,
 ) -> AuthUserDTO:
@@ -268,6 +269,7 @@ async def upload_avatar(
 @router.delete("/me/avatar", response_model=AuthUserDTO)
 async def delete_avatar(
     _: Annotated[None, Depends(enforce_csrf)],
+    __: Annotated[None, Depends(enforce_auth_rate_limit)],
     user: Annotated[User, Depends(get_current_user)],
     db: DBSession,
 ) -> AuthUserDTO:

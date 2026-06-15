@@ -7,7 +7,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Request, Response, status
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.cart import ComboPickIn, ComboSelectionIn
@@ -47,6 +47,10 @@ class MyOrderSummaryOut(BaseModel):
     status: str
     total_vnd: int
     item_summary: list[str]
+
+
+class MyOrderCountOut(BaseModel):
+    count: int
 
 
 class MyOrderLineOut(BaseModel):
@@ -223,6 +227,15 @@ def list_my_orders(
         )
         for o in orders
     ]
+
+
+@router.get("/me/count", response_model=MyOrderCountOut)
+def count_my_orders(
+    user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db, scope="function"),
+) -> MyOrderCountOut:
+    count = db.scalar(select(func.count(Order.order_id)).where(Order.user_id == user.user_id)) or 0
+    return MyOrderCountOut(count=int(count))
 
 
 @router.get("/me/{order_code}", response_model=MyOrderDetailOut)

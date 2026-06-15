@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 import { Avatar } from "@/components/avatar";
 import { useAuth } from "@/components/auth-provider";
-import { listMyOrders } from "@/lib/api/orders";
+import { countMyOrders } from "@/lib/api/orders";
 import { getLoyaltyMe } from "@/lib/api/loyalty";
 
 export default function AccountPage() {
@@ -21,8 +21,8 @@ export default function AccountPage() {
       return;
     }
     if (!user) return;
-    void listMyOrders({ page: 1, page_size: 50 })
-      .then((o) => setOrderCount(o.length))
+    void countMyOrders()
+      .then((c) => setOrderCount(c.count))
       .catch(() => setOrderCount(null));
     void getLoyaltyMe()
       .then((l) => setPoints(l.current_points))

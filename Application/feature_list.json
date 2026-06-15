@@ -206,7 +206,7 @@
       ],
       "status": "done",
       "owner": "Hoang",
-      "evidence": "verify.sh green at 578d43d, 2026-06-15T01:39:29Z — U12 avatar+password (POST/DELETE /api/auth/me/avatar, POST /api/auth/me/password, users.avatar_url migration 0021) + U13 loyalty (GET /api/loyalty/me +redeemable_value_vnd, GET /api/loyalty/me/history). /account dashboard + /account/edit + /account/loyalty. Fidelity: docs/superpowers/design-fidelity/U12-U13-FIDELITY.md."
+      "evidence": "verify.sh green at 578d43d, 2026-06-15T01:39:29Z"
     },
     {
       "id": "U13",
@@ -217,7 +217,7 @@
       ],
       "status": "done",
       "owner": "Hoang",
-      "evidence": "verify.sh green at 578d43d, 2026-06-15T01:39:29Z — U12 avatar+password (POST/DELETE /api/auth/me/avatar, POST /api/auth/me/password, users.avatar_url migration 0021) + U13 loyalty (GET /api/loyalty/me +redeemable_value_vnd, GET /api/loyalty/me/history). /account dashboard + /account/edit + /account/loyalty. Fidelity: docs/superpowers/design-fidelity/U12-U13-FIDELITY.md."
+      "evidence": "verify.sh green at 578d43d, 2026-06-15T01:39:29Z"
     },
     {
       "id": "U14",

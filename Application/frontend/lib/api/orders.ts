@@ -7,6 +7,7 @@ export type TrackOut = components["schemas"]["TrackOut"];
 export type MyOrderSummaryOut = components["schemas"]["MyOrderSummaryOut"];
 export type MyOrderDetailOut = components["schemas"]["MyOrderDetailOut"];
 export type MyOrderLineOut = components["schemas"]["MyOrderLineOut"];
+export type MyOrderCountOut = components["schemas"]["MyOrderCountOut"];
 export type ReorderResultOut = components["schemas"]["ReorderResultOut"];
 export type UnavailableLineOut = components["schemas"]["UnavailableLineOut"];
 
@@ -50,6 +51,10 @@ export function listMyOrders(
 export function getMyOrder(orderCode: string): Promise<MyOrderDetailOut> {
   const encoded = encodeURIComponent(orderCode.trim().toUpperCase());
   return apiFetch<MyOrderDetailOut>(`/orders/me/${encoded}`);
+}
+
+export function countMyOrders(): Promise<MyOrderCountOut> {
+  return apiFetch<MyOrderCountOut>("/orders/me/count");
 }
 
 export function reorder(orderCode: string): Promise<ReorderResultOut> {

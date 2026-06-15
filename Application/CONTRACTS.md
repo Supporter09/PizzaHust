@@ -6,6 +6,7 @@ REST API contract for PizzaHUST. Backend exports OpenAPI at `/api/openapi.json`;
 
 - Base URL: `/api`
 - All bodies are JSON. `Content-Type: application/json`.
+  Exception: file-upload endpoints (`POST /api/auth/me/avatar`, admin image imports, CSV uploads) use `multipart/form-data`.
 - Authentication: httpOnly cookie set by `/api/auth/login`. CSRF token in `X-CSRF-Token` header on state-changing routes.
 - Money values: integer VND (e.g., `22000`). No floats anywhere.
 - Timestamps: ISO 8601 UTC (`2026-04-28T10:00:00Z`).
@@ -115,6 +116,7 @@ Error codes (closed set, extend in this doc only):
 |---|---|---|
 | GET | `/api/orders/track/{code}` | Public, rate-limited. Returns minimal projection |
 | GET | `/api/orders/me` | Customer order history (auth). Query `page` (default 1), `page_size` (default 20, max 50). `200` → `MyOrderSummaryOut[]` (newest first) |
+| GET | `/api/orders/me/count` | Customer total order count (auth). `200` → `{ count: int }` |
 | GET | `/api/orders/me/{order_code}` | Owner order detail (auth). `200` → `MyOrderDetailOut`; `404 NOT_FOUND` if missing or not owned by caller |
 | POST | `/api/orders/me/{order_code}/reorder` | Best-effort append resolvable lines into session cart (CSRF). `200` → `ReorderResultOut` `{ cart, added_count, unavailable[] }`; `404` if not owned |
 
