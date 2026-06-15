@@ -12,9 +12,15 @@ def release_reserved_points(db: Session, order: Order) -> None:
     (Cancelled or Delivery-Failed). Idempotent: zeroes the stored amount so a
     second call - or a later re-trigger - is a no-op. Guest orders hold nothing.
     """
-    if order.user_id is None or not order.loyalty_points_redeemed:
+    locked = db.get(Order, order.order_id, with_for_update=True)
+    if locked is None:
         return
-    user = db.get(User, order.user_id)
+    db.refresh(locked)
+    if locked.user_id is None or not locked.loyalty_points_redeemed:
+        return
+    amount = locked.loyalty_points_redeemed
+    user = db.get(User, locked.user_id)
     if user is not None:
-        user.current_points += order.loyalty_points_redeemed
-    order.loyalty_points_redeemed = 0
+        user.current_points += amount
+    locked.loyalty_points_redeemed = 0
+    db.flush()

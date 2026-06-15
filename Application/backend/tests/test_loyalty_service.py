@@ -73,3 +73,19 @@ def test_release_noop_for_guest_order():
         release_reserved_points(db, order)  # must not raise
         db.commit()
         assert db.get(Order, oid).loyalty_points_redeemed == 20  # unchanged
+
+
+def test_release_does_not_credit_from_stale_order_object():
+    build_test_app("rel-stale")
+    uid, oid = _seed_user_and_order(20)
+    with create_session_factory()() as stale_db:
+        stale_order = stale_db.get(Order, oid)
+        with create_session_factory()() as other_db:
+            other_order = other_db.get(Order, oid)
+            other_order.loyalty_points_redeemed = 0
+            other_db.commit()
+        release_reserved_points(stale_db, stale_order)
+        stale_db.commit()
+    with create_session_factory()() as db:
+        assert db.get(User, uid).current_points == 30
+        assert db.get(Order, oid).loyalty_points_redeemed == 0
