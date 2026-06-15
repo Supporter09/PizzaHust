@@ -179,16 +179,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         <div className="space-y-3 px-3 pb-5">
-          {/* Staff views — kitchen UI is a later use case (K-series), shown as not-yet-available. */}
+          {/* Staff views — admins share the kitchen crew's queue to oversee operations. */}
           <div className="rounded-lg border border-line p-3">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">
               Staff Views
             </p>
-            <div className="mt-2 flex items-center gap-2.5 text-sm text-muted">
+            <Link
+              href="/kitchen"
+              className="-mx-1 mt-1 flex items-center gap-2.5 rounded-md px-1 py-2 text-sm font-medium text-fg hover:bg-surface-hover hover:text-brand-fg"
+            >
               <Icon name="flame" className="h-[18px] w-[18px] text-brand-fg" />
-              <span className="font-medium text-fg">Kitchen Queue</span>
-              <span className="ml-auto text-[10px] uppercase tracking-wide text-muted">Soon</span>
-            </div>
+              Kitchen Queue
+            </Link>
           </div>
 
           <div className="rounded-lg border border-line p-3">

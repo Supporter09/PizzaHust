@@ -1,6 +1,12 @@
-from app.infra.db.models import Order, OrderStatus, TrackingNoteSource
+from app.infra.db.models import Order, OrderStatus, TrackingNoteSource, UserRole
 from tests.admin_test_utils import admin_client
-from tests.kitchen_test_utils import anon_client, kitchen_client, make_combo_order, make_order
+from tests.kitchen_test_utils import (
+    anon_client,
+    kitchen_client,
+    logged_in_client,
+    make_combo_order,
+    make_order,
+)
 
 
 def test_anonymous_gets_401():
@@ -8,9 +14,15 @@ def test_anonymous_gets_401():
     assert client.get("/api/kitchen/orders").status_code == 401
 
 
-def test_non_kitchen_role_gets_403():
-    client = admin_client("kitchen-forbidden")
+def test_customer_role_gets_403():
+    client = logged_in_client("kitchen-forbidden", UserRole.CUSTOMER)
     assert client.get("/api/kitchen/orders").status_code == 403
+
+
+def test_admin_role_allowed():
+    # Admins share kitchen access for operational oversight.
+    client = admin_client("kitchen-admin-ok")
+    assert client.get("/api/kitchen/orders").status_code == 200
 
 
 def test_lists_only_incoming_states():
