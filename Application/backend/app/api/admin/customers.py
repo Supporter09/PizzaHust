@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.infra import settings_service
 from app.infra.auth import require_role
 from app.infra.db.deps import get_db
-from app.infra.db.models import MembershipTier, Order, OrderStatus, User, UserRole
+from app.infra.db.models import Cart, MembershipTier, Order, OrderStatus, User, UserRole
 
 router = APIRouter(prefix="/api/admin/customers", tags=["admin-customers"])
 
@@ -332,3 +332,31 @@ def unlock_customer(
     if user is None or user.role != UserRole.CUSTOMER:
         raise HTTPException(status_code=404, detail="NOT_FOUND")
     user.is_locked = False
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_customer(
+    user_id: int,
+    db: Session = Depends(get_db, scope="function"),
+    _admin: User = Depends(require_admin),
+) -> None:
+    """Permanently delete a customer with no order history.
+
+    Orders/carts reference users with no DB cascade, so a customer who has
+    ordered cannot be hard-deleted (history must survive); the admin should
+    Lock instead. A transient cart is deleted along with the user.
+    """
+    user: User | None = db.get(User, user_id)
+    if user is None or user.role != UserRole.CUSTOMER:
+        raise HTTPException(status_code=404, detail="NOT_FOUND")
+
+    order_count = db.scalar(select(func.count(Order.order_id)).where(Order.user_id == user_id))
+    if order_count:
+        raise HTTPException(status_code=409, detail="HAS_ORDERS")
+
+    cart = db.scalar(select(Cart).where(Cart.user_id == user_id))
+    if cart is not None:
+        _ = cart.lines  # trigger lazy-load so ORM cascade deletes lines before cart
+        db.delete(cart)  # cart_lines cascade (ORM all,delete-orphan + DB ON DELETE CASCADE)
+        db.flush()  # materialise cart+lines DELETE before user DELETE (no ORM User→Cart rel)
+    db.delete(user)

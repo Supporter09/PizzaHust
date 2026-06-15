@@ -3,9 +3,25 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from types import SimpleNamespace
 
-from app.api.admin.customers import get_customer, list_customers, lock_customer, unlock_customer
+from sqlalchemy import func, select
+
+from app.api.admin.customers import (
+    delete_customer,
+    get_customer,
+    list_customers,
+    lock_customer,
+    unlock_customer,
+)
 from app.infra.auth import hash_password
-from app.infra.db.models import MembershipTier, Order, OrderStatus, User, UserRole
+from app.infra.db.models import (
+    Cart,
+    CartLine,
+    MembershipTier,
+    Order,
+    OrderStatus,
+    User,
+    UserRole,
+)
 from app.infra.db.session import create_session_factory
 from tests.auth_test_utils import build_test_app
 
@@ -261,3 +277,78 @@ def test_list_customers_includes_delivered_spend_and_join_date() -> None:
     assert len(rows) == 1
     assert rows[0].total_spend_vnd == 420_000
     assert rows[0].created_at is not None
+
+
+def test_delete_customer_without_orders_removes_row() -> None:
+    _bootstrap("customers-delete-ok")
+    user_id = _new_customer()
+    admin = SimpleNamespace(user_id=1, role=UserRole.ADMIN)
+
+    with create_session_factory()() as db:
+        delete_customer(user_id, db=db, _admin=admin)
+        db.commit()
+
+    with create_session_factory()() as db:
+        assert db.get(User, user_id) is None
+
+
+def test_delete_customer_with_orders_returns_409() -> None:
+    _bootstrap("customers-delete-blocked")
+    user_id = _new_customer()
+    _add_order(user_id, "PIZZ-DEL001")
+    admin = SimpleNamespace(user_id=1, role=UserRole.ADMIN)
+
+    with create_session_factory()() as db:
+        try:
+            delete_customer(user_id, db=db, _admin=admin)
+        except Exception as exc:  # noqa: BLE001
+            assert getattr(exc, "status_code", None) == 409
+        else:  # pragma: no cover - defensive
+            raise AssertionError("expected HAS_ORDERS conflict")
+
+    with create_session_factory()() as db:
+        assert db.get(User, user_id) is not None
+
+
+def test_delete_customer_with_cart_but_no_orders_succeeds() -> None:
+    _bootstrap("customers-delete-cart")
+    user_id = _new_customer()
+    with create_session_factory()() as db:
+        cart = Cart(user_id=user_id, touched_at=datetime(2026, 1, 1, 0, 0, 0))
+        db.add(cart)
+        db.flush()
+        db.add(CartLine(cart_id=cart.cart_id, payload={"kind": "item"}, quantity=1))
+        db.commit()
+    admin = SimpleNamespace(user_id=1, role=UserRole.ADMIN)
+
+    with create_session_factory()() as db:
+        delete_customer(user_id, db=db, _admin=admin)
+        db.commit()
+
+    with create_session_factory()() as db:
+        assert db.get(User, user_id) is None
+        assert db.scalar(select(func.count()).select_from(Cart).where(Cart.user_id == user_id)) == 0
+
+
+def test_delete_customer_rejects_non_customer() -> None:
+    _bootstrap("customers-delete-role")
+    admin = SimpleNamespace(user_id=1, role=UserRole.ADMIN)
+    with create_session_factory()() as db:
+        staff = User(
+            full_name="Kitchen Bob",
+            phone_number="0907777777",
+            password_hash=hash_password("kitchenpass123"),
+            role=UserRole.KITCHEN,
+        )
+        db.add(staff)
+        db.commit()
+        db.refresh(staff)
+        staff_id = staff.user_id
+
+    with create_session_factory()() as db:
+        try:
+            delete_customer(staff_id, db=db, _admin=admin)
+        except Exception as exc:  # noqa: BLE001
+            assert getattr(exc, "status_code", None) == 404
+        else:  # pragma: no cover - defensive
+            raise AssertionError("expected NOT_FOUND for non-customer")
