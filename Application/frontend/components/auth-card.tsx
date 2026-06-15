@@ -152,7 +152,9 @@ export function AuthCard({ tab }: AuthCardProps) {
             aria-selected={isLogin}
             disabled={loading}
             className={`rounded-full px-3 py-2.5 text-sm font-semibold transition disabled:opacity-60 ${
-              isLogin ? "bg-card text-brand shadow-sm" : "text-muted"
+              isLogin
+                ? "bg-brand text-on-brand shadow-sm"
+                : "text-fg hover:text-brand-fg"
             }`}
             onClick={() => switchTab("login")}
           >
@@ -164,7 +166,9 @@ export function AuthCard({ tab }: AuthCardProps) {
             aria-selected={!isLogin}
             disabled={loading}
             className={`rounded-full px-3 py-2.5 text-sm font-semibold transition disabled:opacity-60 ${
-              !isLogin ? "bg-card text-brand shadow-sm" : "text-muted"
+              !isLogin
+                ? "bg-brand text-on-brand shadow-sm"
+                : "text-fg hover:text-brand-fg"
             }`}
             onClick={() => switchTab("register")}
           >
