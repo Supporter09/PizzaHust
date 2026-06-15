@@ -129,3 +129,38 @@ def test_checkout_quote_over_balance_422():
     r = _checkout_quote(client, 50)
     assert r.status_code == 422, r.text
     assert r.json()["error"]["code"] == "INSUFFICIENT_LOYALTY"
+
+
+def test_placement_reserves_points_and_nets_balance():
+    app = build_test_app("u14-place")
+    pid, m = _catalog(app)
+    client = _register_login(app)
+    _set_points(50)
+    _add_line(client, pid, m)
+
+    r = _place(client, 20)
+    assert r.status_code == 201, r.text
+
+    # accrual base = 310_000 - 0 combo - 20_000 loyalty = 290_000 -> 29 earned
+    user = _user()
+    assert user.current_points == 50 - 20 + 29  # 59
+    assert user.total_points_earned == 29
+
+    order = _order(user.user_id)
+    assert order.loyalty_points_redeemed == 20
+    assert order.loyalty_points_earned == 29
+
+
+def test_placement_over_balance_422_creates_no_order():
+    app = build_test_app("u14-place-over")
+    pid, m = _catalog(app)
+    client = _register_login(app)
+    _set_points(5)
+    _add_line(client, pid, m)
+
+    r = _place(client, 50)
+    assert r.status_code == 422, r.text
+    assert r.json()["error"]["code"] == "INSUFFICIENT_LOYALTY"
+    assert _user().current_points == 5  # unchanged
+    with create_session_factory()() as db:
+        assert db.scalar(select(Order)) is None

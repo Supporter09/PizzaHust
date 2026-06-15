@@ -315,17 +315,24 @@ def place_order(
         administrative_unit=body.address.administrative_unit,
         street=body.address.street,
     )
-    quote, _, _ = quote_cart_for_placement(db, cart.lines, address, body.redeem_points)
+    session = read_session(request)
+    current_points = 0
+    user: User | None = None
+    if session.user_id is not None:
+        user = db.get(User, session.user_id)
+        if user is not None:
+            current_points = user.current_points
+
+    quote, _, _ = quote_cart_for_placement(
+        db, cart.lines, address, body.redeem_points, current_points
+    )
+    redeemed_points = quote.loyalty.redeemed
 
     ward = body.address.administrative_unit
     street = body.address.street.strip()
     delivery_address = f"{street}, {ward}"
     promised_at = now_naive_utc() + timedelta(minutes=settings.order_promised_time_default_min)
-    session = read_session(request)
 
-    # Loyalty accrual: credit a logged-in customer for what they spent on goods
-    # after discounts (subtotal minus combo and loyalty discounts, excluding the
-    # delivery fee), at the admin-configured rate. Guests earn nothing.
     earned_points = 0
     if session.user_id is not None:
         accrual_base = quote.subtotal_vnd - quote.discount_combo_vnd - quote.discount_loyalty_vnd
@@ -345,15 +352,14 @@ def place_order(
         promised_at=promised_at,
         current_status=OrderStatus.RECEIVED,
         loyalty_points_earned=earned_points,
+        loyalty_points_redeemed=redeemed_points,
     )
     db.add(order)
     db.flush()
 
-    if earned_points:  # implies session.user_id is not None (set only in that branch)
-        user = db.get(User, session.user_id)
-        if user is not None:
-            user.current_points += earned_points
-            user.total_points_earned += earned_points
+    if user is not None and (earned_points or redeemed_points):
+        user.current_points += earned_points - redeemed_points
+        user.total_points_earned += earned_points
 
     for row in cart.lines:
         quote_line = _quote_line_from_row(db, row)
