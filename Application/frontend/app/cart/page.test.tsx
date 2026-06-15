@@ -75,3 +75,20 @@ describe("CartPage reorder notice", () => {
     expect(screen.queryByTestId("cart-reorder-notice")).toBeNull();
   });
 });
+
+describe("CartPage option descriptor", () => {
+  afterEach(cleanup);
+
+  it("renders each option group on its own line", () => {
+    const cart = nonEmptyCart();
+    cart.lines[0].descriptor = "Size: S · Crust: cheese-stuffed · Toppings: Chicken";
+    state.cart = cart;
+    render(<CartPage />);
+
+    // Each "Group: value" must be a separate node, not one " · "-joined line.
+    expect(screen.getByText("Size: S")).toBeTruthy();
+    expect(screen.getByText("Crust: cheese-stuffed")).toBeTruthy();
+    expect(screen.getByText("Toppings: Chicken")).toBeTruthy();
+    expect(screen.queryByText(/Size: S · Crust/)).toBeNull();
+  });
+});
