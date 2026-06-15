@@ -1,19 +1,19 @@
 # session-handoff.md
 
-**Current state:** `U11` View Order History & Reorder is **done and verify-green** on `feat/u11-order-history`. Customer `/account/orders` lists owned orders, expands detail/timeline, and Reorder appends resolvable lines into the session cart.
+**Current state:** `U12` Manage Profile and `U13` View Loyalty Points are **done and verify-green** on `feat/u12-u13-profile-loyalty`. Customer `/account` is now a dashboard, `/account/edit` manages profile/avatar/password, and `/account/loyalty` shows balance + earn history.
 
-**Next feature:** `U12` Manage Profile.
+**Next feature:** `U14` Redeem Points for Discount.
 
-**What shipped (U11):**
-- `GET /api/orders/me`, `GET /api/orders/me/{order_code}`, `POST /api/orders/me/{order_code}/reorder` in `backend/app/api/order_history.py` (separate from place/track in `orders.py`).
-- Cart reuse: reorder calls **`append_line_to_cart`** (`carts.py`) so validation/persist matches `POST /api/cart/lines` — always append, never merge duplicate payloads.
-- Reorder matching is **best-effort**: inactive/changed menu, lapsed combos/options, or validation errors surface in `unavailable[]`; `added_count` reflects only successful appends.
-- Frontend `lib/api/orders.ts` + `app/account/orders/*`; partial reorder banner via `orders-reorder-banner` on the list page.
+**What shipped (U12/U13):**
+- Backend: `users.avatar_url` migration `0021`; `POST/DELETE /api/auth/me/avatar`; `POST /api/auth/me/password`; `GET /api/loyalty/me` includes `redeemable_value_vnd`; `GET /api/loyalty/me/history` returns order-derived earn rows.
+- Frontend: `auth-provider` avatar/password actions, `lib/api/loyalty.ts`, `Avatar`, `/account`, `/account/edit`, `/account/loyalty`, and Playwright `account-profile-loyalty.spec.ts`.
+- Contract parity: `openapi.json`, `frontend/lib/api/types.ts`, and `CONTRACTS.md` regenerated/updated.
+- Compatibility fix: `auth-register.spec.ts` now asserts the dashboard name after register instead of the old profile form input.
 
-**Fidelity:** Documented at `docs/superpowers/design-fidelity/U11-FIDELITY.md` (no screenshot commit).
+**Fidelity:** Documented at `docs/superpowers/design-fidelity/U12-U13-FIDELITY.md` (screenshots local-only, not committed).
 
-**Verification:** `./verify.sh` green at `d3b3797`, `2026-06-14T18:42:25Z` — see U11 `evidence` in `feature_list.json`.
+**Verification:** `./verify.sh` green at `578d43d`, `2026-06-15T01:39:29Z` — backend 437 passed/1 skipped, frontend 128 vitest + build, smoke, e2e 49 passed/4 skipped.
 
-**Resume:** `git checkout feat/u11-order-history && cd Application && ./init.sh && ./verify.sh`
+**Resume:** `git checkout feat/u12-u13-profile-loyalty && cd Application && ./init.sh && ./verify.sh`
 
-**Blockers:** None.
+**Top blocker for U14:** None known; implement redemption against backend-configured loyalty values and extend history with redeem rows.

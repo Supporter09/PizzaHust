@@ -54,7 +54,7 @@ test.describe("U12/U13 — profile + loyalty", () => {
     await expect(page.getByRole("heading", { name: "My Account" })).toBeVisible();
 
     await page.goto(`${BASE}/account/loyalty`);
-    await expect(page.getByRole("heading", { name: "Loyalty Points" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Loyalty Points", exact: true })).toBeVisible();
     await expect(page.getByText("Points History")).toBeVisible();
   });
 });
