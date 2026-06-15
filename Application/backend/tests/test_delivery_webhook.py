@@ -260,7 +260,14 @@ def test_duplicate_failed_webhook_does_not_double_release_points(
         "event_id": "evt-fail-dup-1",
     }
     first = _post_event(client, payload)
-    second = _post_event(client, payload)
+    second = _post_event(
+        client,
+        {
+            "reference": "mock-fail-dup",
+            "state": "Failed",
+            "event_id": "evt-fail-dup-2",
+        },
+    )
 
     assert first.status_code == 204
     assert second.status_code == 204
