@@ -122,6 +122,7 @@ def quote_cart_for_placement(
     cart_lines: list[CartLine],
     address: QuoteAddressIn,
     redeem_points: int,
+    current_points: int = 0,
 ) -> tuple[CartQuoteOut, list[PricingLine], int]:
     pricing_lines: list[PricingLine] = []
     combo_discount = 0
@@ -145,7 +146,7 @@ def quote_cart_for_placement(
             address_district=district,
             combo_discount_vnd=combo_discount,
             redeem_points=redeem_points,
-            current_points=0,
+            current_points=current_points,
             ward_fees=ward_fees,
             redeem_value_vnd=s.loyalty_redeem_value_vnd,
             max_redeem_pct=s.loyalty_max_redeem_pct,
