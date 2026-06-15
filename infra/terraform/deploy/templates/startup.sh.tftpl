@@ -84,7 +84,11 @@ MYSQL_APP_PASSWORD=$${MYSQL_APP_PASSWORD}
 
 # Browser bundle calls the API same-origin through nginx -> backend.
 # Read by BOTH the frontend build arg and runtime env (compose interpolates .env).
+# IMAGE_BASE must be set explicitly: the base compose defaults it to
+# http://localhost:8000, and compose's :- treats an empty value as unset, so
+# without this the bundle bakes localhost into every <img> src and they 404.
 NEXT_PUBLIC_API_BASE_URL=/api
+NEXT_PUBLIC_IMAGE_BASE_URL=https://${domain}
 EOF
 
 # --- [5] nginx reverse proxy ---
