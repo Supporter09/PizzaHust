@@ -133,7 +133,7 @@ Error codes (closed set, extend in this doc only):
 | DELETE | `/api/auth/me/avatar` | U12 — clear avatar, returns `AuthUserDTO` (idempotent) |
 | POST | `/api/auth/me/password` | U12 — body `{current_password, new_password}`; wrong current → 400 `VALIDATION_FAILED`; rate-limited; session kept |
 | GET | `/api/loyalty/me` | Loyalty balance summary + `redeemable_value_vnd` |
-| GET | `/api/loyalty/me/history` | U13 — `[{label, date, points_delta, kind}]` (earn rows only; redeem rows arrive with U14) |
+| GET | `/api/loyalty/me/history` | U13/U14 — `[{label, date, points_delta, kind}]`. `kind`: `"earn"` (points credited by an order) or `"redeem"` (points spent at checkout; `points_delta` is negative). |
 
 > **`AuthUserDTO`** (login, `/me`, avatar routes) includes `avatar_url: string | null`.
 >

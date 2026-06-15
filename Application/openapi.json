@@ -2596,7 +2596,10 @@
             "type": "string"
           },
           "kind": {
-            "const": "earn",
+            "enum": [
+              "earn",
+              "redeem"
+            ],
             "title": "Kind",
             "type": "string"
           },
