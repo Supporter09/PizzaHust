@@ -109,6 +109,14 @@ server {
         proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
     }
 
+    # Catalog images: backend StaticFiles mount serves /images/* from the volume.
+    location /images/ {
+        proxy_pass http://backend:8000;
+        proxy_set_header Host $host;
+        expires 30d;
+        add_header Cache-Control "public";
+    }
+
     # Everything else: Next.js standalone server.
     location / {
         proxy_pass http://frontend:3000;
