@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 
-import { apiFetch } from "@/lib/api/client";
+import { toast } from "sonner";
+import { apiFetch, ApiClientError } from "@/lib/api/client";
 import { formatVnd } from "@/lib/format";
 
 interface Customer {
@@ -69,6 +70,8 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toggling, setToggling] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState<number | null>(null);
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
@@ -106,10 +109,29 @@ export default function CustomersPage() {
         body: JSON.stringify({ reason: null }),
       });
       await fetchCustomers();
+      toast.success(customer.is_locked ? "Account unlocked" : "Account locked");
     } catch (e) {
-      alert(String(e));
+      toast.error(e instanceof ApiClientError ? e.message : "Couldn't update the account");
     } finally {
       setToggling(null);
+    }
+  }
+
+  async function deleteCustomer(customer: Customer) {
+    setDeleting(customer.user_id);
+    try {
+      await apiFetch(`/admin/customers/${customer.user_id}`, { method: "DELETE" });
+      setConfirmDeleteId(null);
+      await fetchCustomers();
+      toast.success("Customer deleted");
+    } catch (e) {
+      if (e instanceof ApiClientError && e.status === 409) {
+        toast.error("Can't delete — this customer has order history. Lock the account instead.");
+      } else {
+        toast.error(e instanceof ApiClientError ? e.message : "Couldn't delete the customer");
+      }
+    } finally {
+      setDeleting(null);
     }
   }
 
@@ -270,6 +292,30 @@ export default function CustomersPage() {
                     >
                       {toggling === c.user_id ? "…" : c.is_locked ? "Unlock" : "Lock"}
                     </button>
+                    {confirmDeleteId === c.user_id ? (
+                      <>
+                        <button
+                          onClick={() => void deleteCustomer(c)}
+                          disabled={deleting === c.user_id}
+                          className="rounded bg-danger-solid px-2.5 py-1 text-xs font-medium text-on-brand hover:opacity-90 disabled:opacity-50"
+                        >
+                          {deleting === c.user_id ? "…" : "Confirm"}
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="rounded px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-hover"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDeleteId(c.user_id)}
+                        className="rounded border border-line px-2.5 py-1 text-xs font-medium text-danger hover:bg-danger-subtle"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
