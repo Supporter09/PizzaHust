@@ -172,3 +172,47 @@ def test_webhook_illegal_transition_is_noop(monkeypatch: pytest.MonkeyPatch) -> 
     assert resp.status_code == 204
     assert _order_status(order_id) == OrderStatus.READY_FOR_DISPATCH
     assert _tracking_count(order_id) == 0
+
+
+def test_delivery_failed_releases_reserved_points(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.infra.auth import hash_password
+    from app.infra.db.models import User, UserRole
+
+    monkeypatch.setenv("DELIVERY_WEBHOOK_SECRET", SECRET)
+    app = build_test_app("wh-release")
+    with create_session_factory()() as db:
+        user = User(
+            full_name="R",
+            phone_number="0901230000",
+            password_hash=hash_password("x12345678"),
+            role=UserRole.CUSTOMER,
+            current_points=30,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        uid = user.user_id
+        order = Order(
+            order_code="PIZZ-REL001",
+            user_id=uid,
+            recipient_name="R",
+            recipient_phone="0901230000",
+            delivery_address="1 St",
+            total_amount_vnd=100_000,
+            promised_at=datetime(2026, 1, 1, 12, 0, 0),
+            current_status=OrderStatus.DELIVERING,
+            delivery_reference="mock-fail",
+            loyalty_points_redeemed=20,
+        )
+        db.add(order)
+        db.commit()
+
+    client = TestClient(app)
+    resp = _post_event(client, {"reference": "mock-fail", "state": "Failed"})
+
+    assert resp.status_code == 204
+    with create_session_factory()() as db:
+        assert db.get(User, uid).current_points == 50  # 30 + 20 released
+        o = db.scalar(select(Order).where(Order.delivery_reference == "mock-fail"))
+        assert o.current_status == OrderStatus.DELIVERY_FAILED
+        assert o.loyalty_points_redeemed == 0

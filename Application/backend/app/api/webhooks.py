@@ -27,6 +27,7 @@ from app.infra.db.models import (
     TrackingNoteSource,
     WebhookEvent,
 )
+from app.infra.loyalty_service import release_reserved_points
 
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
 
@@ -96,6 +97,9 @@ async def delivery_webhook(
         return
 
     order.current_status = new_status
+    if new_status == OrderStatus.DELIVERY_FAILED:
+        db.flush()
+        release_reserved_points(db, order)
     db.add(
         OrderTracking(
             order_id=order.order_id,
