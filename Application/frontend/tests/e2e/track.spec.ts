@@ -10,7 +10,7 @@ test.describe("U7 — Track Order", () => {
     await page.goto("/menu");
     await page.getByRole("link", { name: /Margherita Classic/ }).first().click();
     await page.getByRole("button", { name: "Add to cart" }).click();
-    await expect(page.getByRole("status").first()).toContainText("Added to cart", {
+    await expect(page.getByText("Added to cart").first()).toBeVisible({
       timeout: 15_000,
     });
 
@@ -49,7 +49,7 @@ test.describe("U7 — Track Order", () => {
     await page.goto("/menu");
     await page.getByRole("link", { name: /Margherita Classic/ }).first().click();
     await page.getByRole("button", { name: "Add to cart" }).click();
-    await expect(page.getByRole("status").first()).toContainText("Added to cart", {
+    await expect(page.getByText("Added to cart").first()).toBeVisible({
       timeout: 15_000,
     });
     await page.goto("/cart");
