@@ -141,7 +141,14 @@ function CartLineCard({
       <div className="min-w-0">
         <div className="text-lg font-bold text-fg">{line.name}</div>
         {line.descriptor ? (
-          <p className="mt-0.5 text-sm leading-snug text-muted">{line.descriptor}</p>
+          // The descriptor packs each option group as "Group: value", joined by
+          // " · " (within-group values use ", "). Break the groups onto their own
+          // lines so a multi-option item stays readable.
+          <ul className="mt-0.5 space-y-0.5 text-sm leading-snug text-muted">
+            {line.descriptor.split(" · ").map((group, i) => (
+              <li key={i}>{group}</li>
+            ))}
+          </ul>
         ) : null}
         {line.picks?.length ? (
           <ul className="mt-1 space-y-0.5 text-sm text-muted">
