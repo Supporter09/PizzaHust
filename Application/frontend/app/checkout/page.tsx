@@ -343,6 +343,7 @@ export default function CheckoutPage() {
                   placeholder="0"
                   aria-label="Points to redeem"
                   aria-invalid={redeemError ? true : undefined}
+                  aria-describedby={redeemError ? "redeem-error" : undefined}
                   className="h-11 min-w-0 flex-1 rounded-lg border border-line bg-card px-3 text-fg"
                 />
                 <button
@@ -361,10 +362,10 @@ export default function CheckoutPage() {
                 Apply
               </button>
               {redeemError ? (
-                <p role="alert" className="mt-2 text-xs text-danger">
+                <p id="redeem-error" role="alert" className="mt-2 text-xs text-danger">
                   {redeemError}
                 </p>
-              ) : redeemPoints > 0 ? (
+              ) : redeemPoints > 0 && !quoteError ? (
                 <p className="mt-2 text-xs text-muted tabular-nums">{redeemPoints} pts applied</p>
               ) : null}
             </div>

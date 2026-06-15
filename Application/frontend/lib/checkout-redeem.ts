@@ -24,11 +24,11 @@ export function parseRedeemEntry(
   maxRedeemable: number,
 ): RedeemEntry {
   const max = effectiveMaxRedeem(balance, maxRedeemable);
-  const value = Number.parseInt(raw, 10);
-  if (!Number.isFinite(value) || value <= 0) {
+  // Number.parseInt already truncates any fractional part ("12.9" -> 12).
+  const points = Number.parseInt(raw, 10);
+  if (!Number.isFinite(points) || points <= 0) {
     return { points: 0, error: null };
   }
-  const points = Math.floor(value);
   if (points > max) {
     return {
       points: 0,
