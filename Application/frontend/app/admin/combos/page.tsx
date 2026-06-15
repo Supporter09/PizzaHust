@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
+import { toast } from "sonner";
+
 import Breadcrumb from "@/components/admin/Breadcrumb";
 import { ComboCardMedia } from "@/components/admin/combo-card-media";
 import { ApiClientError } from "@/lib/api/client";
@@ -43,8 +45,11 @@ export default function AdminCombosPage() {
       await deleteCombo(id);
       setConfirmId(null);
       load();
+      toast.success("Combo deleted");
     } catch (e) {
-      setError(e instanceof ApiClientError ? e.message : String(e));
+      const m = e instanceof ApiClientError ? e.message : String(e);
+      setError(m);
+      toast.error(m);
     } finally {
       setBusy(false);
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { ApiClientError } from "@/lib/api/client";
 import {
@@ -91,8 +92,10 @@ export default function SettingsPage() {
       });
       applySettings(updated);
       setSaved(true);
+      toast.success("Settings saved");
     } catch (e) {
       setError(msg(e));
+      toast.error(msg(e));
     } finally {
       setBusy(false);
     }
