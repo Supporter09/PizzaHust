@@ -26,6 +26,7 @@ from app.infra.db.models import (
 )
 from app.infra.delivery import get_delivery_port
 from app.infra.delivery.port import DeliveryError, DeliveryPort, OrderForDispatch
+from app.infra.loyalty_service import release_reserved_points
 
 router = APIRouter(prefix="/api/admin/orders", tags=["admin-orders"])
 
@@ -266,6 +267,9 @@ def cancel_order(
                 0, user.total_points_earned - order.loyalty_points_earned
             )
         order.loyalty_points_earned = 0
+
+    db.flush()
+    release_reserved_points(db, order)
 
     db.add(
         OrderTracking(

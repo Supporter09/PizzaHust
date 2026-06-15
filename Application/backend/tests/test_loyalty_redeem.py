@@ -164,3 +164,30 @@ def test_placement_over_balance_422_creates_no_order():
     assert _user().current_points == 5  # unchanged
     with create_session_factory()() as db:
         assert db.scalar(select(Order)) is None
+
+
+def test_cancel_releases_reserved_points():
+    from tests.test_loyalty_accrual import admin_client_on
+
+    app = build_test_app("u14-cancel")
+    pid, m = _catalog(app)
+    client = _register_login(app)
+    _set_points(50)
+    _add_line(client, pid, m)
+    assert _place(client, 20).status_code == 201
+
+    user = _user()
+    assert user.current_points == 59  # 50 - 20 + 29
+    order_id = _order(user.user_id).order_id
+
+    admin = admin_client_on(app)
+    resp = admin.post(f"/api/admin/orders/{order_id}/cancel", json={"reason": "test"})
+    assert resp.status_code == 204, resp.text
+
+    after = _user()
+    assert after.current_points == 50  # 59 + 20 released - 29 earned reversed
+    assert after.total_points_earned == 0
+    with create_session_factory()() as db:
+        order = db.get(Order, order_id)
+        assert order.loyalty_points_redeemed == 0
+        assert order.loyalty_points_earned == 0
