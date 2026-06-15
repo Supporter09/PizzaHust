@@ -4,6 +4,25 @@ Append-only session journal. Each session ends with a dated block. Keep blocks �
 
 ---
 
+## 2026-06-15 — U12 Manage Profile + U13 View Loyalty Points
+
+**Done**
+- Backend: `users.avatar_url` migration/DTO, `POST`/`DELETE /api/auth/me/avatar`, `POST /api/auth/me/password`, `GET /api/loyalty/me` + `redeemable_value_vnd`, and order-derived `GET /api/loyalty/me/history`.
+- Frontend: `/account` dashboard, `/account/edit` avatar/profile/password page, `/account/loyalty` balance/history page, `Avatar` component, loyalty fetchers, and `account-profile-loyalty.spec.ts`.
+- Decisions: avatar/password use dedicated endpoints (no multipart on `PATCH /api/auth/me`); password change keeps the current session; loyalty renders VND/config values; history derives earn rows from delivered, positive-point orders.
+
+**Fidelity / follow-ups**
+- `docs/superpowers/design-fidelity/U12-U13-FIDELITY.md`; accepted deviations: VND not `$`, no birthday bonus card, email row only when present.
+- U14 redemption will add negative/redeem history rows; cancel reconciliation is safe because history filters cancelled orders even if stored earned points remain.
+
+**Verified**
+- `./verify.sh` exit 0 at `578d43d`, `2026-06-15T01:39:29Z` — backend 437 passed/1 skipped, frontend 128 vitest + build, smoke, e2e 49 passed/4 skipped.
+
+**Next**
+- `U14` Redeem Points for Discount.
+
+---
+
 ## 2026-06-15 — U11 View Order History & Reorder
 
 **Done**

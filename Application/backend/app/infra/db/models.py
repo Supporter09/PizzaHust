@@ -93,6 +93,7 @@ class User(Base):
     phone_number: Mapped[str] = mapped_column(String(15), nullable=False, unique=True)
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     address: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    avatar_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_locked: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="0"
     )

@@ -31,7 +31,7 @@ test.describe("Auth register (U8)", () => {
     ]);
 
     await expect(page).toHaveURL(/\/account$/);
-    await expect(page.getByLabel(/full name/i)).toHaveValue(fullName);
+    await expect(page.getByRole("heading", { name: fullName })).toBeVisible();
   });
 
   test("tab switch navigates between /login and /register", async ({ page }) => {

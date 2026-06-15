@@ -652,6 +652,41 @@ export interface paths {
         patch: operations["update_me_api_auth_me_patch"];
         trace?: never;
     };
+    "/api/auth/me/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload Avatar */
+        post: operations["upload_avatar_api_auth_me_avatar_post"];
+        /** Delete Avatar */
+        delete: operations["delete_avatar_api_auth_me_avatar_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change Password */
+        post: operations["change_password_api_auth_me_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/register": {
         parameters: {
             query?: never;
@@ -999,6 +1034,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/loyalty/me/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Loyalty History */
+        get: operations["loyalty_history_api_loyalty_me_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders": {
         parameters: {
             query?: never;
@@ -1025,6 +1077,23 @@ export interface paths {
         };
         /** List My Orders */
         get: operations["list_my_orders_api_orders_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/me/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Count My Orders */
+        get: operations["count_my_orders_api_orders_me_count_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1156,6 +1225,8 @@ export interface components {
         AuthUserDTO: {
             /** Address */
             address: string | null;
+            /** Avatar Url */
+            avatar_url: string | null;
             /** Full Name */
             full_name: string;
             /** Phone Number */
@@ -1178,6 +1249,11 @@ export interface components {
         Body_import_pizzas_api_admin_import_pizzas_post: {
             /** File */
             file: string;
+        };
+        /** Body_upload_avatar_api_auth_me_avatar_post */
+        Body_upload_avatar_api_auth_me_avatar_post: {
+            /** Image */
+            image: string;
         };
         /** Body_upload_combo_image_api_admin_combos__combo_id__image_post */
         Body_upload_combo_image_api_admin_combos__combo_id__image_post: {
@@ -1347,6 +1423,13 @@ export interface components {
             name?: string | null;
             /** Sort Order */
             sort_order?: number | null;
+        };
+        /** ChangePasswordRequest */
+        ChangePasswordRequest: {
+            /** Current Password */
+            current_password: string;
+            /** New Password */
+            new_password: string;
         };
         /** CheckoutQuoteIn */
         CheckoutQuoteIn: {
@@ -1954,10 +2037,29 @@ export interface components {
             /** Redeem Value Vnd */
             redeem_value_vnd: number;
         };
+        /** LoyaltyHistoryRow */
+        LoyaltyHistoryRow: {
+            /**
+             * Date
+             * Format: date-time
+             */
+            date: string;
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "earn";
+            /** Label */
+            label: string;
+            /** Points Delta */
+            points_delta: number;
+        };
         /** LoyaltyMeResponse */
         LoyaltyMeResponse: {
             /** Current Points */
             current_points: number;
+            /** Redeemable Value Vnd */
+            redeemable_value_vnd: number;
             /** Total Points Earned */
             total_points_earned: number;
         };
@@ -2058,6 +2160,11 @@ export interface components {
         MessageResponse: {
             /** Message */
             message: string;
+        };
+        /** MyOrderCountOut */
+        MyOrderCountOut: {
+            /** Count */
+            count: number;
         };
         /** MyOrderDetailOut */
         MyOrderDetailOut: {
@@ -4273,6 +4380,92 @@ export interface operations {
             };
         };
     };
+    upload_avatar_api_auth_me_avatar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_avatar_api_auth_me_avatar_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthUserDTO"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_avatar_api_auth_me_avatar_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthUserDTO"];
+                };
+            };
+        };
+    };
+    change_password_api_auth_me_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     register_api_auth_register_post: {
         parameters: {
             query?: never;
@@ -4866,6 +5059,26 @@ export interface operations {
             };
         };
     };
+    loyalty_history_api_loyalty_me_history_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyHistoryRow"][];
+                };
+            };
+        };
+    };
     place_order_api_orders_post: {
         parameters: {
             query?: never;
@@ -4927,6 +5140,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    count_my_orders_api_orders_me_count_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyOrderCountOut"];
                 };
             };
         };

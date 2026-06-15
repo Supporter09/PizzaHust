@@ -95,6 +95,17 @@
             ],
             "title": "Address"
           },
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Url"
+          },
           "full_name": {
             "title": "Full Name",
             "type": "string"
@@ -116,6 +127,7 @@
           "full_name",
           "phone_number",
           "address",
+          "avatar_url",
           "role"
         ],
         "title": "AuthUserDTO",
@@ -161,6 +173,20 @@
           "file"
         ],
         "title": "Body_import_pizzas_api_admin_import_pizzas_post",
+        "type": "object"
+      },
+      "Body_upload_avatar_api_auth_me_avatar_post": {
+        "properties": {
+          "image": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Image",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image"
+        ],
+        "title": "Body_upload_avatar_api_auth_me_avatar_post",
         "type": "object"
       },
       "Body_upload_combo_image_api_admin_combos__combo_id__image_post": {
@@ -666,6 +692,28 @@
           }
         },
         "title": "CategoryPatch",
+        "type": "object"
+      },
+      "ChangePasswordRequest": {
+        "properties": {
+          "current_password": {
+            "maxLength": 72,
+            "minLength": 8,
+            "title": "Current Password",
+            "type": "string"
+          },
+          "new_password": {
+            "maxLength": 72,
+            "minLength": 8,
+            "title": "New Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "title": "ChangePasswordRequest",
         "type": "object"
       },
       "CheckoutQuoteIn": {
@@ -2540,10 +2588,44 @@
         "title": "LoyaltyConfigOut",
         "type": "object"
       },
+      "LoyaltyHistoryRow": {
+        "properties": {
+          "date": {
+            "format": "date-time",
+            "title": "Date",
+            "type": "string"
+          },
+          "kind": {
+            "const": "earn",
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "points_delta": {
+            "title": "Points Delta",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "label",
+          "date",
+          "points_delta",
+          "kind"
+        ],
+        "title": "LoyaltyHistoryRow",
+        "type": "object"
+      },
       "LoyaltyMeResponse": {
         "properties": {
           "current_points": {
             "title": "Current Points",
+            "type": "integer"
+          },
+          "redeemable_value_vnd": {
+            "title": "Redeemable Value Vnd",
             "type": "integer"
           },
           "total_points_earned": {
@@ -2553,7 +2635,8 @@
         },
         "required": [
           "current_points",
-          "total_points_earned"
+          "total_points_earned",
+          "redeemable_value_vnd"
         ],
         "title": "LoyaltyMeResponse",
         "type": "object"
@@ -2808,6 +2891,19 @@
           "message"
         ],
         "title": "MessageResponse",
+        "type": "object"
+      },
+      "MyOrderCountOut": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "title": "MyOrderCountOut",
         "type": "object"
       },
       "MyOrderDetailOut": {
@@ -6868,6 +6964,107 @@
         ]
       }
     },
+    "/api/auth/me/avatar": {
+      "delete": {
+        "operationId": "delete_avatar_api_auth_me_avatar_delete",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthUserDTO"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Delete Avatar",
+        "tags": [
+          "auth"
+        ]
+      },
+      "post": {
+        "operationId": "upload_avatar_api_auth_me_avatar_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_avatar_api_auth_me_avatar_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthUserDTO"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload Avatar",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/me/password": {
+      "post": {
+        "operationId": "change_password_api_auth_me_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Change Password",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/auth/register": {
       "post": {
         "operationId": "register_api_auth_register_post",
@@ -7633,6 +7830,31 @@
         ]
       }
     },
+    "/api/loyalty/me/history": {
+      "get": {
+        "operationId": "loyalty_history_api_loyalty_me_history_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LoyaltyHistoryRow"
+                  },
+                  "title": "Response Loyalty History Api Loyalty Me History Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Loyalty History",
+        "tags": [
+          "loyalty"
+        ]
+      }
+    },
     "/api/orders": {
       "post": {
         "operationId": "place_order_api_orders_post",
@@ -7729,6 +7951,27 @@
           }
         },
         "summary": "List My Orders",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/api/orders/me/count": {
+      "get": {
+        "operationId": "count_my_orders_api_orders_me_count_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyOrderCountOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Count My Orders",
         "tags": [
           "orders"
         ]

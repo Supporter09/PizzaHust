@@ -2,139 +2,89 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
+import { Avatar } from "@/components/avatar";
 import { useAuth } from "@/components/auth-provider";
-import { ApiClientError } from "@/lib/api/client";
-
-type LoyaltyState = {
-  current_points: number;
-  total_points_earned: number;
-};
+import { countMyOrders } from "@/lib/api/orders";
+import { getLoyaltyMe } from "@/lib/api/loyalty";
 
 export default function AccountPage() {
   const router = useRouter();
-  const { user, loading, updateProfile, getLoyalty } = useAuth();
-
-  const [formMessage, setFormMessage] = useState<string | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  const [loyalty, setLoyalty] = useState<LoyaltyState | null>(null);
-  const [loyaltyError, setLoyaltyError] = useState<string | null>(null);
+  const { user, loading } = useAuth();
+  const [orderCount, setOrderCount] = useState<number | null>(null);
+  const [points, setPoints] = useState<number | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
       router.push("/login");
       return;
     }
-
-    if (!user) {
-      return;
-    }
-
-    void getLoyalty()
-      .then((data) => {
-        setLoyalty(data);
-        setLoyaltyError(null);
-      })
-      .catch((error) => {
-        if (error instanceof ApiClientError) {
-          setLoyaltyError(error.message);
-        } else {
-          setLoyaltyError("Unable to load loyalty info.");
-        }
-      });
-  }, [loading, user, router, getLoyalty]);
+    if (!user) return;
+    void countMyOrders()
+      .then((c) => setOrderCount(c.count))
+      .catch(() => setOrderCount(null));
+    void getLoyaltyMe()
+      .then((l) => setPoints(l.current_points))
+      .catch(() => setPoints(null));
+  }, [loading, user, router]);
 
   if (loading || !user) {
-    return <p className="text-sm text-muted">Loading account...</p>;
+    return <p className="text-sm text-muted">Loading account…</p>;
   }
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSaving(true);
-    setFormMessage(null);
-    setFormError(null);
-
-    const formData = new FormData(event.currentTarget);
-    const fullName = String(formData.get("full_name") ?? "").trim();
-    const address = String(formData.get("address") ?? "").trim();
-
-    try {
-      await updateProfile({ full_name: fullName, address });
-      setFormMessage("Profile updated.");
-    } catch (error) {
-      if (error instanceof ApiClientError) {
-        setFormError(error.message);
-      } else {
-        setFormError("Unable to update profile.");
-      }
-    } finally {
-      setSaving(false);
-    }
-  };
+  const email = (user as { email?: string | null }).email ?? null;
 
   return (
-    <section className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-      <div className="auth-card p-6 sm:p-8">
-        <h1 className="text-2xl font-semibold text-fg">My Profile</h1>
-        <p className="mt-1 text-sm text-muted">Update your profile details below.</p>
-        <Link
-          href="/account/orders"
-          className="mt-3 inline-block text-sm font-semibold text-brand-fg hover:underline"
-        >
-          View order history →
-        </Link>
-
-        <form
-          key={`${user.full_name}-${user.address ?? ""}`}
-          onSubmit={onSubmit}
-          className="mt-6 space-y-4"
-        >
-          <label className="block text-sm font-medium text-fg">
-            Full name
-            <input className="input-field mt-1" name="full_name" defaultValue={user.full_name} />
-          </label>
-
-          <label className="block text-sm font-medium text-fg">
-            Phone number
-            <input className="input-field mt-1 bg-surface-hover" value={user.phone_number} disabled />
-          </label>
-
-          <label className="block text-sm font-medium text-fg">
-            Address
-            <input className="input-field mt-1" name="address" defaultValue={user.address ?? ""} />
-          </label>
-
-          {formError ? <p className="text-sm font-medium text-danger">{formError}</p> : null}
-          {formMessage ? <p className="text-sm font-medium text-success">{formMessage}</p> : null}
-
-          <button type="submit" disabled={saving} className="btn-primary w-full py-2.5 disabled:opacity-60">
-            {saving ? "Saving..." : "Save profile"}
-          </button>
-        </form>
-      </div>
-
-      <aside className="auth-card p-6 sm:p-8">
-        <h2 className="text-xl font-semibold text-fg">Loyalty</h2>
-        {loyaltyError ? (
-          <p className="mt-3 text-sm text-danger">{loyaltyError}</p>
-        ) : loyalty ? (
-          <div className="mt-4 space-y-3 text-sm text-fg">
-            <div className="rounded-xl border border-line bg-surface p-3">
-              <p className="text-xs uppercase tracking-wide text-muted">Current points</p>
-              <p className="mt-1 text-2xl font-semibold text-fg">{loyalty.current_points}</p>
+    <section className="mx-auto max-w-5xl py-10">
+      <h1 className="text-3xl font-semibold text-fg">My Account</h1>
+      <div className="mt-7 grid gap-7 lg:grid-cols-[1fr_360px]">
+        <div className="space-y-7">
+          <div className="auth-card p-7">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <Avatar url={user.avatar_url} name={user.full_name} />
+                <div>
+                  <h2 className="text-2xl font-semibold text-fg">{user.full_name}</h2>
+                  <p className="text-sm text-muted">Pizza Lover</p>
+                </div>
+              </div>
+              <Link href="/account/edit" className="btn-outline px-4 py-2 text-sm">
+                Edit Profile
+              </Link>
             </div>
-            <div className="rounded-xl border border-line bg-surface p-3">
-              <p className="text-xs uppercase tracking-wide text-muted">Total earned</p>
-              <p className="mt-1 text-2xl font-semibold text-fg">{loyalty.total_points_earned}</p>
+            <div className="mt-6 grid gap-3 border-t border-line pt-6 text-sm text-fg">
+              {email ? <div>{email}</div> : null}
+              <div>{user.phone_number}</div>
+              {user.address ? <div>{user.address}</div> : null}
             </div>
           </div>
-        ) : (
-          <p className="mt-3 text-sm text-muted">Loading loyalty...</p>
-        )}
-      </aside>
+          <div className="grid grid-cols-2 gap-5">
+            <div className="auth-card p-5">
+              <p className="text-sm text-muted">Total Orders</p>
+              <p className="mt-1 text-3xl font-bold text-fg">{orderCount ?? "—"}</p>
+            </div>
+            <div className="auth-card p-5">
+              <p className="text-sm text-muted">Loyalty Points</p>
+              <p className="mt-1 text-3xl font-bold text-brand-fg">{points ?? "—"}</p>
+            </div>
+          </div>
+        </div>
+        <aside className="auth-card p-6">
+          <h3 className="text-lg font-semibold text-fg">Quick Actions</h3>
+          <div className="mt-4 space-y-3">
+            <Link href="/account/orders" className="quick-link">
+              Order History
+            </Link>
+            <Link href="/account/loyalty" className="quick-link">
+              Loyalty Points
+            </Link>
+            <Link href="/menu" className="btn-primary btn-block mt-1 flex h-12 w-full items-center justify-center text-base font-semibold">
+              Order Now
+            </Link>
+          </div>
+        </aside>
+      </div>
     </section>
   );
 }

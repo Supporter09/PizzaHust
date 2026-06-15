@@ -12,6 +12,23 @@ from app.seeds.run import main as run_seeds
 from tests.auth_test_utils import build_test_app
 
 
+def _order(user_id, code, points, status_, created):
+    from app.infra.db.models import Order
+
+    return Order(
+        user_id=user_id,
+        order_code=code,
+        recipient_name="Loy Alty",
+        recipient_phone="0908888888",
+        delivery_address="1 Test St",
+        total_amount_vnd=100_000,
+        promised_at=created,
+        current_status=status_,
+        loyalty_points_earned=points,
+        created_at=created,
+    )
+
+
 def test_auth_me_profile_and_loyalty_flow() -> None:
     app_instance = build_test_app("auth-profile")
 
@@ -37,6 +54,7 @@ def test_auth_me_profile_and_loyalty_flow() -> None:
             assert me_response.status_code == 200
             me_body = me_response.json()
             assert me_body["user"]["full_name"] == "Profile User"
+            assert me_body["user"]["avatar_url"] is None
             csrf_token = me_body["csrf_token"]
 
             patch_forbidden = await client.patch(
@@ -59,7 +77,234 @@ def test_auth_me_profile_and_loyalty_flow() -> None:
             assert loyalty_response.json() == {
                 "current_points": 0,
                 "total_points_earned": 0,
+                "redeemable_value_vnd": 0,
             }
+
+    asyncio.run(scenario())
+
+
+def test_avatar_upload_replace_and_bad_type(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("IMAGE_UPLOAD_DIR", str(tmp_path))
+    app_instance = build_test_app("auth-avatar")
+
+    async def scenario() -> None:
+        transport = httpx.ASGITransport(app=app_instance)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            await client.post(
+                "/api/auth/register",
+                json={
+                    "full_name": "Ava Tar",
+                    "phone_number": "0905555555",
+                    "password": "strongpass123",
+                },
+            )
+            await client.post(
+                "/api/auth/login",
+                json={"phone_number": "0905555555", "password": "strongpass123"},
+            )
+            csrf = (await client.get("/api/auth/me")).json()["csrf_token"]
+
+            bad = await client.post(
+                "/api/auth/me/avatar",
+                files={"image": ("note.txt", b"hello", "text/plain")},
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert bad.status_code == 400
+            assert bad.json()["error"]["code"] == "VALIDATION_FAILED"
+
+            up1 = await client.post(
+                "/api/auth/me/avatar",
+                files={"image": ("a.png", b"\x89PNG\r\n\x1a\nfake", "image/png")},
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert up1.status_code == 200
+            url1 = up1.json()["avatar_url"]
+            assert url1 and url1.endswith(".png")
+
+            up2 = await client.post(
+                "/api/auth/me/avatar",
+                files={"image": ("b.webp", b"RIFFfake", "image/webp")},
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert up2.status_code == 200
+            url2 = up2.json()["avatar_url"]
+            assert url2 != url1
+            assert (await client.get("/api/auth/me")).json()["user"]["avatar_url"] == url2
+
+            no_csrf = await client.post(
+                "/api/auth/me/avatar",
+                files={"image": ("c.png", b"\x89PNGfake", "image/png")},
+            )
+            assert no_csrf.status_code == 403
+
+    asyncio.run(scenario())
+
+
+def test_avatar_upload_rate_limited(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("IMAGE_UPLOAD_DIR", str(tmp_path))
+    app_instance = build_test_app("auth-avatar-rate-up", auth_rate_limit_per_minute=2)
+
+    async def scenario() -> None:
+        transport = httpx.ASGITransport(app=app_instance)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            await client.post(
+                "/api/auth/register",
+                json={
+                    "full_name": "Rate Up",
+                    "phone_number": "0902222222",
+                    "password": "strongpass123",
+                },
+            )
+            await client.post(
+                "/api/auth/login",
+                json={"phone_number": "0902222222", "password": "strongpass123"},
+            )
+            csrf = (await client.get("/api/auth/me")).json()["csrf_token"]
+            headers = {"X-CSRF-Token": csrf}
+            file = {"image": ("a.png", b"\x89PNGfake", "image/png")}
+
+            up1 = await client.post("/api/auth/me/avatar", files=file, headers=headers)
+            assert up1.status_code == 200
+            up2 = await client.post("/api/auth/me/avatar", files=file, headers=headers)
+            assert up2.status_code == 200
+            limited = await client.post("/api/auth/me/avatar", files=file, headers=headers)
+            assert limited.status_code == 429
+            assert limited.json()["error"]["code"] == "RATE_LIMITED"
+
+    asyncio.run(scenario())
+
+
+def test_avatar_delete_rate_limited(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("IMAGE_UPLOAD_DIR", str(tmp_path))
+    app_instance = build_test_app("auth-avatar-rate-del", auth_rate_limit_per_minute=3)
+
+    async def scenario() -> None:
+        transport = httpx.ASGITransport(app=app_instance)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            await client.post(
+                "/api/auth/register",
+                json={
+                    "full_name": "Rate Del",
+                    "phone_number": "0903333333",
+                    "password": "strongpass123",
+                },
+            )
+            await client.post(
+                "/api/auth/login",
+                json={"phone_number": "0903333333", "password": "strongpass123"},
+            )
+            csrf = (await client.get("/api/auth/me")).json()["csrf_token"]
+            headers = {"X-CSRF-Token": csrf}
+            await client.post(
+                "/api/auth/me/avatar",
+                files={"image": ("a.png", b"\x89PNGfake", "image/png")},
+                headers=headers,
+            )
+
+            d1 = await client.request("DELETE", "/api/auth/me/avatar", headers=headers)
+            assert d1.status_code == 200
+            d2 = await client.request("DELETE", "/api/auth/me/avatar", headers=headers)
+            assert d2.status_code == 200
+            limited = await client.request("DELETE", "/api/auth/me/avatar", headers=headers)
+            assert limited.status_code == 429
+            assert limited.json()["error"]["code"] == "RATE_LIMITED"
+
+    asyncio.run(scenario())
+
+
+def test_avatar_delete_is_idempotent(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("IMAGE_UPLOAD_DIR", str(tmp_path))
+    app_instance = build_test_app("auth-avatar-del")
+
+    async def scenario() -> None:
+        transport = httpx.ASGITransport(app=app_instance)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            await client.post(
+                "/api/auth/register",
+                json={
+                    "full_name": "Del Ete",
+                    "phone_number": "0906666666",
+                    "password": "strongpass123",
+                },
+            )
+            await client.post(
+                "/api/auth/login",
+                json={"phone_number": "0906666666", "password": "strongpass123"},
+            )
+            csrf = (await client.get("/api/auth/me")).json()["csrf_token"]
+
+            await client.post(
+                "/api/auth/me/avatar",
+                files={"image": ("a.png", b"\x89PNGfake", "image/png")},
+                headers={"X-CSRF-Token": csrf},
+            )
+            d1 = await client.request(
+                "DELETE",
+                "/api/auth/me/avatar",
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert d1.status_code == 200
+            assert d1.json()["avatar_url"] is None
+
+            d2 = await client.request(
+                "DELETE",
+                "/api/auth/me/avatar",
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert d2.status_code == 200
+            assert d2.json()["avatar_url"] is None
+
+    asyncio.run(scenario())
+
+
+def test_change_password_keeps_session_and_validates() -> None:
+    app_instance = build_test_app("auth-pwd")
+
+    async def scenario() -> None:
+        transport = httpx.ASGITransport(app=app_instance)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            await client.post(
+                "/api/auth/register",
+                json={
+                    "full_name": "Pass Word",
+                    "phone_number": "0907777777",
+                    "password": "oldpass123",
+                },
+            )
+            await client.post(
+                "/api/auth/login",
+                json={"phone_number": "0907777777", "password": "oldpass123"},
+            )
+            csrf = (await client.get("/api/auth/me")).json()["csrf_token"]
+
+            wrong = await client.post(
+                "/api/auth/me/password",
+                json={"current_password": "notmypass", "new_password": "newpass123"},
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert wrong.status_code == 400
+            assert wrong.json()["error"]["code"] == "VALIDATION_FAILED"
+
+            short = await client.post(
+                "/api/auth/me/password",
+                json={"current_password": "oldpass123", "new_password": "short"},
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert short.status_code == 400
+
+            ok = await client.post(
+                "/api/auth/me/password",
+                json={"current_password": "oldpass123", "new_password": "newpass123"},
+                headers={"X-CSRF-Token": csrf},
+            )
+            assert ok.status_code == 200
+            assert (await client.get("/api/auth/me")).status_code == 200
+
+            relogin = await client.post(
+                "/api/auth/login",
+                json={"phone_number": "0907777777", "password": "newpass123"},
+            )
+            assert relogin.status_code == 200
 
     asyncio.run(scenario())
 
@@ -79,3 +324,70 @@ def test_seed_creates_admin_and_kitchen_users() -> None:
         assert admin.role == UserRole.ADMIN
         assert kitchen is not None
         assert kitchen.role == UserRole.KITCHEN
+
+
+def test_loyalty_history_lists_earns_excludes_cancelled() -> None:
+    from datetime import datetime, timedelta
+
+    from app.infra.db.models import OrderStatus, User
+    from app.infra.db.session import create_session_factory
+
+    app_instance = build_test_app("loyalty-history")
+
+    async def scenario() -> None:
+        transport = httpx.ASGITransport(app=app_instance)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            await client.post(
+                "/api/auth/register",
+                json={
+                    "full_name": "Loy Alty",
+                    "phone_number": "0908888888",
+                    "password": "strongpass123",
+                },
+            )
+            await client.post(
+                "/api/auth/login",
+                json={"phone_number": "0908888888", "password": "strongpass123"},
+            )
+
+            empty = await client.get("/api/loyalty/me/history")
+            assert empty.status_code == 200
+            assert empty.json() == []
+
+            with create_session_factory()() as s:
+                uid = s.scalar(select(User.user_id).where(User.phone_number == "0908888888"))
+                base = datetime(2026, 4, 1)
+                s.add_all(
+                    [
+                        _order(
+                            uid,
+                            "PIZZ-AAAAAA",
+                            51,
+                            OrderStatus.DELIVERED,
+                            base + timedelta(days=2),
+                        ),
+                        _order(
+                            uid,
+                            "PIZZ-BBBBBB",
+                            25,
+                            OrderStatus.DELIVERED,
+                            base + timedelta(days=1),
+                        ),
+                        _order(
+                            uid,
+                            "PIZZ-CCCCCC",
+                            30,
+                            OrderStatus.CANCELLED,
+                            base + timedelta(days=3),
+                        ),
+                        _order(uid, "PIZZ-DDDDDD", 0, OrderStatus.DELIVERED, base),
+                    ]
+                )
+                s.commit()
+
+            hist = (await client.get("/api/loyalty/me/history")).json()
+            assert [r["label"] for r in hist] == ["Order PIZZ-AAAAAA", "Order PIZZ-BBBBBB"]
+            assert hist[0]["points_delta"] == 51
+            assert hist[0]["kind"] == "earn"
+
+    asyncio.run(scenario())

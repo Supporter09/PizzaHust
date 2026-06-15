@@ -6,6 +6,7 @@ REST API contract for PizzaHUST. Backend exports OpenAPI at `/api/openapi.json`;
 
 - Base URL: `/api`
 - All bodies are JSON. `Content-Type: application/json`.
+  Exception: file-upload endpoints (`POST /api/auth/me/avatar`, admin image imports, CSV uploads) use `multipart/form-data`.
 - Authentication: httpOnly cookie set by `/api/auth/login`. CSRF token in `X-CSRF-Token` header on state-changing routes.
 - Money values: integer VND (e.g., `22000`). No floats anywhere.
 - Timestamps: ISO 8601 UTC (`2026-04-28T10:00:00Z`).
@@ -115,6 +116,7 @@ Error codes (closed set, extend in this doc only):
 |---|---|---|
 | GET | `/api/orders/track/{code}` | Public, rate-limited. Returns minimal projection |
 | GET | `/api/orders/me` | Customer order history (auth). Query `page` (default 1), `page_size` (default 20, max 50). `200` → `MyOrderSummaryOut[]` (newest first) |
+| GET | `/api/orders/me/count` | Customer total order count (auth). `200` → `{ count: int }` |
 | GET | `/api/orders/me/{order_code}` | Owner order detail (auth). `200` → `MyOrderDetailOut`; `404 NOT_FOUND` if missing or not owned by caller |
 | POST | `/api/orders/me/{order_code}/reorder` | Best-effort append resolvable lines into session cart (CSRF). `200` → `ReorderResultOut` `{ cart, added_count, unavailable[] }`; `404` if not owned |
 
@@ -127,8 +129,14 @@ Error codes (closed set, extend in this doc only):
 | POST | `/api/auth/logout` | Clear session |
 | GET | `/api/auth/me` | Current session profile + CSRF token |
 | PATCH | `/api/auth/me` | Update profile (`full_name`, `address`) |
-| GET | `/api/loyalty/me` | Loyalty balance summary |
+| POST | `/api/auth/me/avatar` | U12 — multipart field `image` (png/jpg/jpeg/webp, size-capped); replaces avatar, returns `AuthUserDTO` |
+| DELETE | `/api/auth/me/avatar` | U12 — clear avatar, returns `AuthUserDTO` (idempotent) |
+| POST | `/api/auth/me/password` | U12 — body `{current_password, new_password}`; wrong current → 400 `VALIDATION_FAILED`; rate-limited; session kept |
+| GET | `/api/loyalty/me` | Loyalty balance summary + `redeemable_value_vnd` |
+| GET | `/api/loyalty/me/history` | U13 — `[{label, date, points_delta, kind}]` (earn rows only; redeem rows arrive with U14) |
 
+> **`AuthUserDTO`** (login, `/me`, avatar routes) includes `avatar_url: string | null`.
+>
 > **`email` field.** `User.email` exists (nullable, unique) and is returned by
 > admin endpoints (A6). It is **not** collected at registration and **not**
 > editable via `PATCH /api/auth/me` in this sprint — registration takes only
@@ -422,6 +430,7 @@ delivery fee. No combo discount and (in this sprint) no loyalty redemption.
     "full_name": "Minh Nguyen",
     "phone_number": "0901234567",
     "address": "Hanoi",
+    "avatar_url": null,
     "role": "customer"
   },
   "csrf_token": "<token>"
@@ -433,7 +442,8 @@ delivery fee. No combo discount and (in this sprint) no loyalty redemption.
 ```json
 {
   "current_points": 0,
-  "total_points_earned": 0
+  "total_points_earned": 0,
+  "redeemable_value_vnd": 0
 }
 ```
 
@@ -540,8 +550,9 @@ detailed payloads are designed per feature as each is built and land with their 
 - **Order notes (U16).** Per-line `note` on cart/order lines (reuses `OrderItem.notes`); per-order
   `delivery_note` on `POST /api/orders`, surfaced to kitchen at Ready-for-Dispatch and to the
   customer's tracking view.
-- **Profile (U12+).** `PATCH /api/auth/me` gains avatar (multipart, the documented exception) +
-  password-change paths.
+- **Profile (U12).** Avatar via dedicated `POST`/`DELETE /api/auth/me/avatar` (multipart field
+  `image` on POST — same allowlist/size rules as admin images); password change via
+  `POST /api/auth/me/password`. `PATCH /api/auth/me` remains JSON-only (`full_name`, `address`).
 - **Confirm pickup (K4).** `POST /api/kitchen/orders/{id}/pickup` — kitchen fallback driving the
   existing `ReadyForDispatch → Delivering` transition when the courier scan (T2) is unavailable.
 
