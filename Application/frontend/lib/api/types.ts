@@ -202,7 +202,15 @@ export interface paths {
         get: operations["get_customer_api_admin_customers__user_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete Customer
+         * @description Permanently delete a customer with no order history.
+         *
+         *     Orders/carts reference users with no DB cascade, so a customer who has
+         *     ordered cannot be hard-deleted (history must survive); the admin should
+         *     Lock instead. A transient cart is deleted along with the user.
+         */
+        delete: operations["delete_customer_api_admin_customers__user_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3278,6 +3286,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CustomerDetailOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_customer_api_admin_customers__user_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
