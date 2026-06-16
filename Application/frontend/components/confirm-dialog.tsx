@@ -94,35 +94,37 @@ export function ConfirmDialog({
         initial={reduce ? false : { opacity: 0, scale: 0.96, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-md rounded-2xl border border-line bg-card p-6 shadow-2xl"
+        className="w-full max-w-md overflow-hidden rounded-2xl border border-line bg-card shadow-2xl"
       >
-        <div className="flex gap-4">
+        <div className="flex gap-4 p-6">
           <span
-            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
-              tone === "danger" ? "bg-danger-subtle text-danger" : "bg-brand-subtle text-brand-fg"
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ring-4 ${
+              tone === "danger"
+                ? "bg-danger-subtle text-danger ring-danger/10"
+                : "bg-brand-subtle text-brand-fg ring-brand/10"
             }`}
           >
             {tone === "danger" ? <TrashIcon /> : <QuestionIcon />}
           </span>
-          <div className="min-w-0 pt-0.5">
-            <h2 id="confirm-dialog-title" className="text-lg font-semibold text-fg">
+          <div className="min-w-0 pt-1">
+            <h2 id="confirm-dialog-title" className="text-lg font-semibold leading-6 text-fg">
               {title}
             </h2>
             {description ? (
-              <div id="confirm-dialog-desc" className="mt-1.5 text-sm leading-relaxed text-muted">
+              <div id="confirm-dialog-desc" className="mt-2 text-sm leading-relaxed text-muted">
                 {description}
               </div>
             ) : null}
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end gap-3">
+        <div className="flex flex-col-reverse gap-2.5 border-t border-line bg-surface px-6 py-4 sm:flex-row sm:justify-end sm:gap-3">
           <button
             ref={cancelRef}
             type="button"
             onClick={onCancel}
             disabled={busy}
-            className="rounded-lg border border-line bg-card px-4 py-2 text-sm font-medium text-fg transition-transform hover:bg-surface-hover active:scale-[0.98] disabled:opacity-50"
+            className="w-full rounded-lg border border-line bg-card px-4 py-3 text-sm font-medium text-fg transition-transform hover:bg-surface-hover active:scale-[0.98] disabled:opacity-50 sm:w-auto sm:py-2"
           >
             {cancelLabel}
           </button>
@@ -130,7 +132,7 @@ export function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={busy}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold text-on-brand transition-transform active:scale-[0.98] disabled:opacity-50 ${
+            className={`w-full rounded-lg px-4 py-3 text-sm font-semibold text-on-brand shadow-sm transition-transform active:scale-[0.98] disabled:opacity-50 sm:w-auto sm:py-2 ${
               tone === "danger" ? "bg-danger-solid hover:opacity-90" : "bg-brand hover:bg-brand-hover"
             }`}
           >
@@ -152,7 +154,7 @@ function TrashIcon() {
       strokeWidth="1.75"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-5 w-5"
+      className="h-6 w-6"
     >
       <path d="M3 6h18" />
       <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -172,7 +174,7 @@ function QuestionIcon() {
       strokeWidth="1.75"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-5 w-5"
+      className="h-6 w-6"
     >
       <circle cx="12" cy="12" r="10" />
       <path d="M9.5 9a2.5 2.5 0 0 1 4.5 1.5c0 1.5-2 2-2 3" />
