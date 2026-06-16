@@ -30,7 +30,14 @@ function pickedProductName(c: ComboComponent, unit: PickUnit): string {
   );
 }
 
-export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
+export function ComboCustomizer({
+  combo,
+  onEstimate,
+}: {
+  combo: ComboDetail;
+  /** Surfaces the live quote so the sticky summary card can mirror the running total. */
+  onEstimate?: (estimate: { total: number; savings: number } | null) => void;
+}) {
   const [selections, setSelections] = useState<ComboSelections>(() =>
     initComboSelections(combo),
   );
@@ -44,6 +51,11 @@ export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
   const ready = isQuoteReady(selections);
   const canQuote = ready && !expired;
   const shownEstimate = canQuote ? estimate : null;
+
+  // Mirror the displayed estimate up so the summary card stays in sync.
+  useEffect(() => {
+    onEstimate?.(shownEstimate);
+  }, [shownEstimate, onEstimate]);
 
   useEffect(() => {
     if (!canQuote) {
