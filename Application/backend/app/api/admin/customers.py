@@ -7,7 +7,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
-from sqlalchemy import asc, case, desc, func, or_, select
+from sqlalchemy import asc, case, desc, func, or_, select, update
 from sqlalchemy.orm import Session
 
 from app.infra import settings_service
@@ -21,6 +21,17 @@ require_admin = require_role(UserRole.ADMIN)
 
 SortBy = Literal["tier", "points", "orders", "name"]
 SortDir = Literal["asc", "desc"]
+
+# Non-terminal order statuses. A customer with any of these has work in flight
+# (an active delivery in the broad sense) and cannot be deleted — the admin
+# should wait for it to finish or lock the account instead.
+_OPEN_ORDER_STATUSES = (
+    OrderStatus.RECEIVED,
+    OrderStatus.PREPARING,
+    OrderStatus.DISPATCH_PENDING,
+    OrderStatus.READY_FOR_DISPATCH,
+    OrderStatus.DELIVERING,
+)
 
 
 class CustomerOut(BaseModel):
@@ -340,23 +351,38 @@ def delete_customer(
     db: Session = Depends(get_db, scope="function"),
     _admin: User = Depends(require_admin),
 ) -> None:
-    """Permanently delete a customer with no order history.
+    """Permanently delete a customer that has no order in flight.
 
-    Orders/carts reference users with no DB cascade, so a customer who has
-    ordered cannot be hard-deleted (history must survive); the admin should
-    Lock instead. A transient cart is deleted along with the user.
+    An account with an open (non-terminal) order is blocked with 409 — the admin
+    should wait for it to finish or lock the account. Past (terminal) orders are
+    kept for sales history but detached (``user_id`` set NULL, the column is
+    nullable) so the FK no longer references the user. The transient cart is
+    deleted along with the user.
     """
     user: User | None = db.get(User, user_id)
     if user is None or user.role != UserRole.CUSTOMER:
         raise HTTPException(status_code=404, detail="NOT_FOUND")
 
-    order_count = db.scalar(select(func.count(Order.order_id)).where(Order.user_id == user_id))
-    if order_count:
-        raise HTTPException(status_code=409, detail="HAS_ORDERS")
+    open_orders = db.scalar(
+        select(func.count(Order.order_id)).where(
+            Order.user_id == user_id,
+            Order.current_status.in_(_OPEN_ORDER_STATUSES),
+        )
+    )
+    if open_orders:
+        raise HTTPException(status_code=409, detail="ACTIVE_DELIVERY")
+
+    # Detach past orders so history survives without the FK blocking the delete.
+    db.execute(
+        update(Order)
+        .where(Order.user_id == user_id)
+        .values(user_id=None)
+        .execution_options(synchronize_session=False)
+    )
 
     cart = db.scalar(select(Cart).where(Cart.user_id == user_id))
     if cart is not None:
         _ = cart.lines  # trigger lazy-load so ORM cascade deletes lines before cart
         db.delete(cart)  # cart_lines cascade (ORM all,delete-orphan + DB ON DELETE CASCADE)
-        db.flush()  # materialise cart+lines DELETE before user DELETE (no ORM User→Cart rel)
+    db.flush()  # materialise the order detach + cart DELETE before the user DELETE
     db.delete(user)

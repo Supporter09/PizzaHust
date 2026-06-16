@@ -127,7 +127,9 @@ export default function CustomersPage() {
       toast.success("Customer deleted");
     } catch (e) {
       if (e instanceof ApiClientError && e.status === 409) {
-        toast.error("Can't delete — this customer has order history. Lock the account instead.");
+        toast.error(
+          "Can't delete — this customer has an active delivery. Try again once it's completed, or lock the account.",
+        );
       } else {
         toast.error(e instanceof ApiClientError ? e.message : "Couldn't delete the customer");
       }
@@ -316,8 +318,8 @@ export default function CustomersPage() {
             <>
               This permanently deletes{" "}
               <span className="font-medium text-fg">{confirmTarget.full_name}</span> (#
-              {confirmTarget.user_id}). Customers with order history can&apos;t be deleted — lock the
-              account instead.
+              {confirmTarget.user_id}). Past orders are kept for records but unlinked. Accounts with
+              an active delivery can&apos;t be deleted.
             </>
           ) : null
         }

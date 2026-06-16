@@ -292,22 +292,60 @@ def test_delete_customer_without_orders_removes_row() -> None:
         assert db.get(User, user_id) is None
 
 
-def test_delete_customer_with_orders_returns_409() -> None:
+def test_delete_customer_with_open_order_returns_409() -> None:
     _bootstrap("customers-delete-blocked")
+    admin = SimpleNamespace(user_id=1, role=UserRole.ADMIN)
+
+    # Any non-terminal status blocks — not just Delivering. Prove a "preparing"
+    # (not-yet-out-for-delivery) order and a "delivering" order both 409.
+    for idx, open_status in enumerate((OrderStatus.PREPARING, OrderStatus.DELIVERING)):
+        user_id = _new_customer(phone_number=f"09010100{idx:02d}", email=f"open{idx}@example.test")
+        _add_order_with_status(
+            user_id,
+            f"PIZZ-OPEN{idx}",
+            total_amount_vnd=120_000,
+            created_at=datetime(2026, 1, 1, 12, 0, 0),
+            status=open_status,
+        )
+        with create_session_factory()() as db:
+            try:
+                delete_customer(user_id, db=db, _admin=admin)
+            except Exception as exc:  # noqa: BLE001
+                assert getattr(exc, "status_code", None) == 409
+            else:  # pragma: no cover - defensive
+                raise AssertionError(f"expected 409 for open status {open_status}")
+
+        with create_session_factory()() as db:
+            assert db.get(User, user_id) is not None
+
+
+def test_delete_customer_with_only_terminal_orders_detaches_and_succeeds() -> None:
+    _bootstrap("customers-delete-terminal")
     user_id = _new_customer()
-    _add_order(user_id, "PIZZ-DEL001")
+    _add_order(user_id, "PIZZ-TERM01")  # DELIVERED
+    _add_order_with_status(
+        user_id,
+        "PIZZ-TERM02",
+        total_amount_vnd=90_000,
+        created_at=datetime(2026, 1, 2, 12, 0, 0),
+        status=OrderStatus.CANCELLED,
+    )
     admin = SimpleNamespace(user_id=1, role=UserRole.ADMIN)
 
     with create_session_factory()() as db:
-        try:
-            delete_customer(user_id, db=db, _admin=admin)
-        except Exception as exc:  # noqa: BLE001
-            assert getattr(exc, "status_code", None) == 409
-        else:  # pragma: no cover - defensive
-            raise AssertionError("expected HAS_ORDERS conflict")
+        delete_customer(user_id, db=db, _admin=admin)
+        db.commit()
 
     with create_session_factory()() as db:
-        assert db.get(User, user_id) is not None
+        assert db.get(User, user_id) is None
+        # Past orders survive for history, detached from the deleted account.
+        rows = list(
+            db.scalars(
+                select(Order).where(Order.order_code.in_(["PIZZ-TERM01", "PIZZ-TERM02"]))
+            ).all()
+        )
+        assert len(rows) == 2
+        assert all(order.user_id is None for order in rows)
 
 
 def test_delete_customer_with_cart_but_no_orders_succeeds() -> None:
