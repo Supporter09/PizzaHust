@@ -5315,7 +5315,7 @@
     },
     "/api/admin/customers/{user_id}": {
       "delete": {
-        "description": "Permanently delete a customer with no order history.\n\nOrders/carts reference users with no DB cascade, so a customer who has\nordered cannot be hard-deleted (history must survive); the admin should\nLock instead. A transient cart is deleted along with the user.",
+        "description": "Permanently delete a customer that has no order in flight.\n\nAn account with an open (non-terminal) order is blocked with 409 \u2014 the admin\nshould wait for it to finish or lock the account. Past (terminal) orders are\nkept for sales history but detached (``user_id`` set NULL, the column is\nnullable) so the FK no longer references the user. The transient cart is\ndeleted along with the user.",
         "operationId": "delete_customer_api_admin_customers__user_id__delete",
         "parameters": [
           {

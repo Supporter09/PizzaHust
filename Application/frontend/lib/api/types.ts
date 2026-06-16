@@ -204,11 +204,13 @@ export interface paths {
         post?: never;
         /**
          * Delete Customer
-         * @description Permanently delete a customer with no order history.
+         * @description Permanently delete a customer that has no order in flight.
          *
-         *     Orders/carts reference users with no DB cascade, so a customer who has
-         *     ordered cannot be hard-deleted (history must survive); the admin should
-         *     Lock instead. A transient cart is deleted along with the user.
+         *     An account with an open (non-terminal) order is blocked with 409 — the admin
+         *     should wait for it to finish or lock the account. Past (terminal) orders are
+         *     kept for sales history but detached (``user_id`` set NULL, the column is
+         *     nullable) so the FK no longer references the user. The transient cart is
+         *     deleted along with the user.
          */
         delete: operations["delete_customer_api_admin_customers__user_id__delete"];
         options?: never;
