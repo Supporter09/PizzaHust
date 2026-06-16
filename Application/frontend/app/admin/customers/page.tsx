@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { apiFetch, ApiClientError } from "@/lib/api/client";
 import { formatVnd } from "@/lib/format";
 
@@ -70,7 +71,7 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toggling, setToggling] = useState<number | null>(null);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<Customer | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
 
   const fetchCustomers = useCallback(async () => {
@@ -121,7 +122,7 @@ export default function CustomersPage() {
     setDeleting(customer.user_id);
     try {
       await apiFetch(`/admin/customers/${customer.user_id}`, { method: "DELETE" });
-      setConfirmDeleteId(null);
+      setConfirmTarget(null);
       await fetchCustomers();
       toast.success("Customer deleted");
     } catch (e) {
@@ -292,30 +293,12 @@ export default function CustomersPage() {
                     >
                       {toggling === c.user_id ? "…" : c.is_locked ? "Unlock" : "Lock"}
                     </button>
-                    {confirmDeleteId === c.user_id ? (
-                      <>
-                        <button
-                          onClick={() => void deleteCustomer(c)}
-                          disabled={deleting === c.user_id}
-                          className="rounded bg-danger-solid px-2.5 py-1 text-xs font-medium text-on-brand hover:opacity-90 disabled:opacity-50"
-                        >
-                          {deleting === c.user_id ? "…" : "Confirm"}
-                        </button>
-                        <button
-                          onClick={() => setConfirmDeleteId(null)}
-                          className="rounded px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-hover"
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => setConfirmDeleteId(c.user_id)}
-                        className="rounded border border-line px-2.5 py-1 text-xs font-medium text-danger hover:bg-danger-subtle"
-                      >
-                        Delete
-                      </button>
-                    )}
+                    <button
+                      onClick={() => setConfirmTarget(c)}
+                      className="rounded border border-line px-2.5 py-1 text-xs font-medium text-danger hover:bg-danger-subtle"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -323,6 +306,28 @@ export default function CustomersPage() {
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={confirmTarget !== null}
+        tone="danger"
+        title="Delete customer?"
+        description={
+          confirmTarget ? (
+            <>
+              This permanently deletes{" "}
+              <span className="font-medium text-fg">{confirmTarget.full_name}</span> (#
+              {confirmTarget.user_id}). Customers with order history can&apos;t be deleted — lock the
+              account instead.
+            </>
+          ) : null
+        }
+        confirmLabel="Delete customer"
+        busy={deleting !== null}
+        onConfirm={() => {
+          if (confirmTarget) void deleteCustomer(confirmTarget);
+        }}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </div>
   );
 }
