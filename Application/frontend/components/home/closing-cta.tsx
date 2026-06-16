@@ -11,7 +11,7 @@ export function ClosingCta() {
     <section className="relative overflow-hidden rounded-3xl">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/images/shared-table.jpg"
+        src="/photos/shared-table.jpg"
         alt="Friends sharing a pizza around a table"
         width={1500}
         height={1200}

@@ -11,7 +11,7 @@ export function CraftBento() {
       <div className="md:col-span-2 md:row-span-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/pepperoni-overhead.jpg"
+          src="/photos/pepperoni-overhead.jpg"
           alt="Overhead view of a pepperoni pizza on a wooden board"
           width={900}
           height={900}
@@ -44,7 +44,7 @@ export function CraftBento() {
       <div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/bbq-chicken.jpg"
+          src="/photos/bbq-chicken.jpg"
           alt="BBQ chicken pizza topped with red onion and coriander"
           width={900}
           height={1087}

@@ -65,7 +65,7 @@ export function HomeHero() {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/hero-margherita.jpg"
+            src="/photos/hero-margherita.jpg"
             alt="Margherita pizza fresh from the oven, topped with basil"
             width={1200}
             height={801}
