@@ -14,6 +14,8 @@ const { updateProfile, uploadAvatar, removeAvatar, changePassword, authUser } = 
   } as Record<string, unknown>,
 }));
 
+const toastMock = vi.hoisted(() => Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() }));
+vi.mock("sonner", () => ({ toast: toastMock }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/components/auth-provider", () => ({
   useAuth: () => ({ user: authUser, loading: false, updateProfile, uploadAvatar, removeAvatar, changePassword }),
@@ -41,7 +43,7 @@ describe("EditProfilePage", () => {
     fireEvent.change(screen.getByLabelText(/current password/i), { target: { value: "oldpass123" } });
     fireEvent.change(screen.getByLabelText(/new password/i), { target: { value: "short" } });
     fireEvent.click(screen.getByRole("button", { name: /update password/i }));
-    await waitFor(() => expect(screen.getByText(/at least 8/i)).toBeInTheDocument());
+    await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith(expect.stringMatching(/at least 8/i)));
     expect(changePassword).not.toHaveBeenCalled();
   });
 });

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useState } from "react";
+import { toast } from "sonner";
 
 import { useCart } from "@/components/cart-provider";
 import { CoverFallback } from "@/components/cover-fallback";
@@ -206,21 +207,23 @@ export default function CartPage() {
 
   const handleQuantity = useCallback(
     (lineId: number, quantity: number) => {
-      void updateLine(lineId, { quantity });
+      updateLine(lineId, { quantity }).catch(() => toast.error("Couldn't update quantity"));
     },
     [updateLine],
   );
 
   const handleNote = useCallback(
     (lineId: number, note: string | null) => {
-      void updateLine(lineId, { note });
+      updateLine(lineId, { note }).catch(() => toast.error("Couldn't save the note"));
     },
     [updateLine],
   );
 
   const handleRemove = useCallback(
     (lineId: number) => {
-      void removeLine(lineId);
+      removeLine(lineId)
+        .then(() => toast.success("Item removed"))
+        .catch(() => toast.error("Couldn't remove the item"));
     },
     [removeLine],
   );

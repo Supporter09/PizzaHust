@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 import { Avatar } from "@/components/avatar";
 import { useAuth } from "@/components/auth-provider";
@@ -12,11 +13,6 @@ export default function EditProfilePage() {
   const router = useRouter();
   const { user, loading, updateProfile, uploadAvatar, removeAvatar, changePassword } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const [profileMsg, setProfileMsg] = useState<string | null>(null);
-  const [profileErr, setProfileErr] = useState<string | null>(null);
-  const [pwdMsg, setPwdMsg] = useState<string | null>(null);
-  const [pwdErr, setPwdErr] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -29,17 +25,15 @@ export default function EditProfilePage() {
 
   const onSaveProfile = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setProfileMsg(null);
-    setProfileErr(null);
     const fd = new FormData(e.currentTarget);
     try {
       await updateProfile({
         full_name: String(fd.get("full_name") ?? "").trim(),
         address: String(fd.get("address") ?? "").trim(),
       });
-      setProfileMsg("Profile updated.");
+      toast.success("Profile updated.");
     } catch (err) {
-      setProfileErr(err instanceof ApiClientError ? err.message : "Unable to update profile.");
+      toast.error(err instanceof ApiClientError ? err.message : "Unable to update profile.");
     }
   };
 
@@ -48,31 +42,29 @@ export default function EditProfilePage() {
     try {
       await uploadAvatar(file);
     } catch (err) {
-      setProfileErr(err instanceof ApiClientError ? err.message : "Unable to upload photo.");
+      toast.error(err instanceof ApiClientError ? err.message : "Unable to upload photo.");
     }
   };
 
   const onChangePassword = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setPwdMsg(null);
-    setPwdErr(null);
     const fd = new FormData(e.currentTarget);
     const current_password = String(fd.get("current_password") ?? "");
     const new_password = String(fd.get("new_password") ?? "");
     if (new_password.length === 0) {
-      setPwdMsg("No change requested.");
+      toast("No change requested.");
       return;
     }
     if (new_password.length < 8) {
-      setPwdErr("New password must be at least 8 characters.");
+      toast.error("New password must be at least 8 characters.");
       return;
     }
     try {
       await changePassword({ current_password, new_password });
-      setPwdMsg("Password updated.");
+      toast.success("Password updated.");
       e.currentTarget.reset();
     } catch (err) {
-      setPwdErr(err instanceof ApiClientError ? err.message : "Unable to change password.");
+      toast.error(err instanceof ApiClientError ? err.message : "Unable to change password.");
     }
   };
 
@@ -99,7 +91,7 @@ export default function EditProfilePage() {
                     try {
                       await removeAvatar();
                     } catch (err) {
-                      setProfileErr(err instanceof ApiClientError ? err.message : "Unable to remove photo.");
+                      toast.error(err instanceof ApiClientError ? err.message : "Unable to remove photo.");
                     }
                   }}
                 >
@@ -134,8 +126,6 @@ export default function EditProfilePage() {
             Address
             <input className="input-field mt-1" name="address" defaultValue={user.address ?? ""} />
           </label>
-          {profileErr ? <p className="text-sm font-medium text-danger">{profileErr}</p> : null}
-          {profileMsg ? <p className="text-sm font-medium text-success">{profileMsg}</p> : null}
           <div className="flex justify-end gap-3">
             <Link href="/account" className="btn-outline h-11 px-5">
               Cancel
@@ -164,8 +154,6 @@ export default function EditProfilePage() {
               placeholder="At least 8 characters"
             />
           </label>
-          {pwdErr ? <p className="text-sm font-medium text-danger">{pwdErr}</p> : null}
-          {pwdMsg ? <p className="text-sm font-medium text-success">{pwdMsg}</p> : null}
           <div className="flex justify-end">
             <button type="submit" className="btn-primary inline-flex h-11 items-center px-5">
               Update password

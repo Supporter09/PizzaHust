@@ -13,6 +13,8 @@ import ComboComponentsPanel, {
   type EditorRow,
 } from "@/components/admin/combo-components-panel";
 import ComboPricingColumn from "@/components/admin/combo-pricing-column";
+import { toast } from "sonner";
+
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import {
   createCombo,
@@ -134,13 +136,16 @@ export default function ComboEditor({ comboId }: { comboId: number | null }) {
     try {
       if (isCreate) {
         const created = await createCombo(buildPayload());
+        toast.success("Combo created");
         router.replace(`/admin/combos/${created.combo_id}`);
       } else {
         await patchCombo(comboId!, buildPayload());
         await load();
+        toast.success("Combo saved");
       }
     } catch (e) {
       setError(msg(e));
+      toast.error(msg(e));
     } finally {
       setBusy(false);
     }

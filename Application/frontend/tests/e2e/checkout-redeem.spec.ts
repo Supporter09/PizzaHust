@@ -26,7 +26,7 @@ async function addMargheritaToCart(page: import("@playwright/test").Page) {
   await page.goto(`${BASE}/menu`);
   await page.getByRole("link", { name: /Margherita Classic/ }).first().click();
   await page.getByRole("button", { name: "Add to cart" }).click();
-  await expect(page.getByRole("status").first()).toContainText("Added to cart", {
+  await expect(page.getByText("Added to cart").first()).toBeVisible({
     timeout: 15_000,
   });
 }

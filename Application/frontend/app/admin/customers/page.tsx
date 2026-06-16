@@ -3,7 +3,9 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 
-import { apiFetch } from "@/lib/api/client";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { apiFetch, ApiClientError } from "@/lib/api/client";
 import { formatVnd } from "@/lib/format";
 
 interface Customer {
@@ -69,6 +71,8 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toggling, setToggling] = useState<number | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<Customer | null>(null);
+  const [deleting, setDeleting] = useState<number | null>(null);
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
@@ -106,10 +110,31 @@ export default function CustomersPage() {
         body: JSON.stringify({ reason: null }),
       });
       await fetchCustomers();
+      toast.success(customer.is_locked ? "Account unlocked" : "Account locked");
     } catch (e) {
-      alert(String(e));
+      toast.error(e instanceof ApiClientError ? e.message : "Couldn't update the account");
     } finally {
       setToggling(null);
+    }
+  }
+
+  async function deleteCustomer(customer: Customer) {
+    setDeleting(customer.user_id);
+    try {
+      await apiFetch(`/admin/customers/${customer.user_id}`, { method: "DELETE" });
+      setConfirmTarget(null);
+      await fetchCustomers();
+      toast.success("Customer deleted");
+    } catch (e) {
+      if (e instanceof ApiClientError && e.status === 409) {
+        toast.error(
+          "Can't delete — this customer has an active delivery. Try again once it's completed, or lock the account.",
+        );
+      } else {
+        toast.error(e instanceof ApiClientError ? e.message : "Couldn't delete the customer");
+      }
+    } finally {
+      setDeleting(null);
     }
   }
 
@@ -270,6 +295,12 @@ export default function CustomersPage() {
                     >
                       {toggling === c.user_id ? "…" : c.is_locked ? "Unlock" : "Lock"}
                     </button>
+                    <button
+                      onClick={() => setConfirmTarget(c)}
+                      className="rounded border border-line px-2.5 py-1 text-xs font-medium text-danger hover:bg-danger-subtle"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -277,6 +308,28 @@ export default function CustomersPage() {
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={confirmTarget !== null}
+        tone="danger"
+        title="Delete customer?"
+        description={
+          confirmTarget ? (
+            <>
+              This permanently deletes{" "}
+              <span className="font-medium text-fg">{confirmTarget.full_name}</span> (#
+              {confirmTarget.user_id}). Past orders are kept for records but unlinked. Accounts with
+              an active delivery can&apos;t be deleted.
+            </>
+          ) : null
+        }
+        confirmLabel="Delete customer"
+        busy={deleting !== null}
+        onConfirm={() => {
+          if (confirmTarget) void deleteCustomer(confirmTarget);
+        }}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </div>
   );
 }

@@ -16,6 +16,7 @@ export default function ComboCustomizePage({ params }: { params: Promise<{ id: s
 
   const [combo, setCombo] = useState<ComboDetail | null>(null);
   const [status, setStatus] = useState<Status>("loading");
+  const [liveEstimate, setLiveEstimate] = useState<{ total: number; savings: number } | null>(null);
   // Guards async continuations (incl. Try-again clicks) after unmount.
   const alive = useRef(true);
 
@@ -77,8 +78,8 @@ export default function ComboCustomizePage({ params }: { params: Promise<{ id: s
 
       {status === "ready" && combo ? (
         <div className="grid gap-8 lg:grid-cols-[380px_1fr] lg:items-start">
-          <ComboSummaryCard combo={combo} />
-          <ComboCustomizer combo={combo} />
+          <ComboSummaryCard combo={combo} live={liveEstimate} />
+          <ComboCustomizer combo={combo} onEstimate={setLiveEstimate} />
         </div>
       ) : null}
     </section>

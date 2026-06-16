@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import type { components } from "@/lib/api/types";
@@ -50,8 +51,11 @@ export function BasicsEditor({ item, categories, onSaved }: Props) {
         { method: "PATCH", body: JSON.stringify(patch) },
       );
       onSaved({ ...item, ...updated });
+      toast.success("Changes saved.");
     } catch (e) {
-      setError(msg(e));
+      const m = msg(e);
+      setError(m);
+      toast.error(m);
     } finally {
       setBusy(false);
     }

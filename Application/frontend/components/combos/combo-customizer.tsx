@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { useCart } from "@/components/cart-provider";
 import { PickOptions } from "@/components/combos/pick-options";
@@ -29,7 +30,14 @@ function pickedProductName(c: ComboComponent, unit: PickUnit): string {
   );
 }
 
-export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
+export function ComboCustomizer({
+  combo,
+  onEstimate,
+}: {
+  combo: ComboDetail;
+  /** Surfaces the live quote so the sticky summary card can mirror the running total. */
+  onEstimate?: (estimate: { total: number; savings: number } | null) => void;
+}) {
   const [selections, setSelections] = useState<ComboSelections>(() =>
     initComboSelections(combo),
   );
@@ -38,22 +46,16 @@ export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
   const [expired, setExpired] = useState(false);
   const [selectionIssue, setSelectionIssue] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [addMessage, setAddMessage] = useState<string | null>(null);
   const { addLine } = useCart();
-
-  // One toast timer at a time — a stale success timer must not erase a newer message.
-  const addMessageTimer = useRef<number | null>(null);
-  useEffect(() => {
-    return () => {
-      if (addMessageTimer.current !== null) {
-        window.clearTimeout(addMessageTimer.current);
-      }
-    };
-  }, []);
 
   const ready = isQuoteReady(selections);
   const canQuote = ready && !expired;
   const shownEstimate = canQuote ? estimate : null;
+
+  // Mirror the displayed estimate up so the summary card stays in sync.
+  useEffect(() => {
+    onEstimate?.(shownEstimate);
+  }, [shownEstimate, onEstimate]);
 
   useEffect(() => {
     if (!canQuote) {
@@ -180,28 +182,17 @@ export function ComboCustomizer({ combo }: { combo: ComboDetail }) {
           ) : null}
         </p>
         <div className="text-right">
-          {addMessage ? (
-            <p role="status" className="mb-1 text-xs font-medium text-success">
-              {addMessage}
-            </p>
-          ) : null}
           <button
             type="button"
             disabled={!ready || adding || selectionIssue}
             className="btn-primary inline-flex h-12 items-center px-6 disabled:cursor-not-allowed disabled:opacity-55"
             onClick={async () => {
               setAdding(true);
-              setAddMessage(null);
-              if (addMessageTimer.current !== null) {
-                window.clearTimeout(addMessageTimer.current);
-                addMessageTimer.current = null;
-              }
               try {
                 await addLine(buildComboLine(combo.combo_id, selections, 1));
-                setAddMessage("Added to cart");
-                addMessageTimer.current = window.setTimeout(() => setAddMessage(null), 3000);
+                toast.success("Added to cart");
               } catch {
-                setAddMessage("Could not add to cart");
+                toast.error("Could not add to cart");
               } finally {
                 setAdding(false);
               }

@@ -2,6 +2,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { apiFetch } from "@/lib/api/client";
 import { resolveImageUrl } from "@/lib/image-url";
@@ -49,14 +50,16 @@ export function ImageGallery({
     setImages(detail.images ?? []);
   }
 
-  async function run(fn: () => Promise<unknown>) {
+  async function run(fn: () => Promise<unknown>, successMsg: string) {
     setBusy(true);
     setError("");
     try {
       await fn();
       await reload();
+      toast.success(successMsg);
     } catch (e) {
       setError(String(e));
+      toast.error(String(e));
     } finally {
       setBusy(false);
     }
@@ -66,7 +69,7 @@ export function ImageGallery({
     if (!file) return;
     const fd = new FormData();
     fd.append("image", file);
-    void run(() => apiFetch(base, { method: "POST", body: fd }));
+    void run(() => apiFetch(base, { method: "POST", body: fd }), "Image added");
   }
 
   return (
@@ -107,7 +110,7 @@ export function ImageGallery({
                   title="Set as cover"
                   disabled={busy}
                   onClick={() =>
-                    void run(() => apiFetch(`${base}/${img.image_id}/cover`, { method: "POST" }))
+                    void run(() => apiFetch(`${base}/${img.image_id}/cover`, { method: "POST" }), "Cover updated")
                   }
                   className="grid h-11 w-11 place-items-center rounded-full bg-card/90 text-fg shadow hover:bg-card focus:outline-none focus:ring-2 focus:ring-brand"
                 >
@@ -120,7 +123,7 @@ export function ImageGallery({
                 title="Remove"
                 disabled={busy}
                 onClick={() =>
-                  void run(() => apiFetch(`${base}/${img.image_id}`, { method: "DELETE" }))
+                  void run(() => apiFetch(`${base}/${img.image_id}`, { method: "DELETE" }), "Image removed")
                 }
                 className="grid h-11 w-11 place-items-center rounded-full bg-card/90 text-danger shadow hover:bg-card focus:outline-none focus:ring-2 focus:ring-danger"
               >

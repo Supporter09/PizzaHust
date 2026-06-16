@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { useCart } from "@/components/cart-provider";
 
@@ -59,10 +60,13 @@ function AddToCartButton({ productId, name }: { productId: number; name: string 
     try {
       await addLine({ kind: "item", item_id: productId, quantity: 1 });
       setAdded(true);
+      toast.success("Added to cart");
       if (resetTimer.current) clearTimeout(resetTimer.current);
       resetTimer.current = setTimeout(() => setAdded(false), 1500);
     } catch {
-      // The cart provider owns error surfacing; leave the button ready to retry.
+      // addLine re-throws on failure (the provider does not surface it), so
+      // give the customer feedback and leave the button ready to retry.
+      toast.error("Could not add to cart");
     } finally {
       setPending(false);
     }

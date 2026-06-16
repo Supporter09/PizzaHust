@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useCallback, useState } from "react";
 
+import { AuthTabs } from "@/components/auth-tabs";
 import { useAuth, type SessionUser } from "@/components/auth-provider";
 import { ApiClientError } from "@/lib/api/client";
 import { sanitizeReturnTo } from "@/lib/sanitize-return-to";
@@ -142,35 +143,7 @@ export function AuthCard({ tab }: AuthCardProps) {
           </p>
         </div>
 
-        <div
-          className="mb-6 grid grid-cols-2 gap-1 rounded-full bg-surface-hover p-1"
-          role="tablist"
-        >
-          <button
-            type="button"
-            role="tab"
-            aria-selected={isLogin}
-            disabled={loading}
-            className={`rounded-full px-3 py-2.5 text-sm font-semibold transition disabled:opacity-60 ${
-              isLogin ? "bg-card text-brand shadow-sm" : "text-muted"
-            }`}
-            onClick={() => switchTab("login")}
-          >
-            Sign In
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={!isLogin}
-            disabled={loading}
-            className={`rounded-full px-3 py-2.5 text-sm font-semibold transition disabled:opacity-60 ${
-              !isLogin ? "bg-card text-brand shadow-sm" : "text-muted"
-            }`}
-            onClick={() => switchTab("register")}
-          >
-            Create Account
-          </button>
-        </div>
+        <AuthTabs active={tab} disabled={loading} onSelect={switchTab} />
 
         {isLogin ? (
           <form onSubmit={onLoginSubmit} className="space-y-4" role="tabpanel">
