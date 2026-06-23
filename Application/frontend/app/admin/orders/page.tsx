@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ApiClientError, apiFetch } from "@/lib/api/client";
 import { getBusinessConfig } from "@/lib/api/config";
+import { DEFAULT_BUSINESS_TZ, formatInBusinessTz } from "@/lib/business-time";
 import { formatOrderStatus, ORDER_STATUS_FILTERS } from "@/lib/order-status";
 
 interface OrderRow {
@@ -75,8 +76,8 @@ function formatVND(n: number) {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n);
 }
 
-function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString("vi-VN", {
+function formatDateTime(iso: string, timeZone: string) {
+  return formatInBusinessTz(iso, timeZone, {
     day: "2-digit", month: "2-digit", year: "numeric",
     hour: "2-digit", minute: "2-digit",
   });
@@ -84,7 +85,7 @@ function formatDateTime(iso: string) {
 
 // "Today" must be the business-timezone calendar day, not the browser's, so the
 // initial window matches the server's tz-aware filter (en-CA yields YYYY-MM-DD).
-const DEFAULT_TZ = "Asia/Ho_Chi_Minh";
+const DEFAULT_TZ = DEFAULT_BUSINESS_TZ;
 
 function isoDateInTz(tz: string, d = new Date()) {
   return new Intl.DateTimeFormat("en-CA", {
@@ -120,7 +121,7 @@ export default function MonitorOrdersPage() {
   const [detailError, setDetailError] = useState("");
   const [detailBusy, setDetailBusy] = useState(false);
   const [openedQueryOrderId, setOpenedQueryOrderId] = useState<string | null>(null);
-  const businessTz = useRef(DEFAULT_TZ);
+  const [businessTz, setBusinessTz] = useState(DEFAULT_TZ);
   const rangeEdited = useRef(false);
   const { from, to } = dateRange;
   const dispatchPendingCount = dispatchPending.length;
@@ -132,7 +133,7 @@ export default function MonitorOrdersPage() {
     let active = true;
     void getBusinessConfig().then((config) => {
       if (!active) return;
-      businessTz.current = config.timezone;
+      setBusinessTz(config.timezone);
       if (config.timezone !== DEFAULT_TZ && !rangeEdited.current) {
         setDateRange(defaultRange(config.timezone));
       }
@@ -327,7 +328,7 @@ export default function MonitorOrdersPage() {
 
   const resetToToday = () => {
     rangeEdited.current = false;
-    setDateRange(defaultRange(businessTz.current));
+    setDateRange(defaultRange(businessTz));
   };
 
   return (
@@ -467,7 +468,7 @@ export default function MonitorOrdersPage() {
                   {o.item_count} item{o.item_count === 1 ? "" : "s"}
                 </td>
                 <td className="px-4 py-3 font-medium">{formatVND(o.total_amount_vnd)}</td>
-                <td className="px-4 py-3 text-muted text-xs whitespace-nowrap">{formatDateTime(o.created_at)}</td>
+                <td className="px-4 py-3 text-muted text-xs whitespace-nowrap">{formatDateTime(o.created_at, businessTz)}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap justify-end gap-2">
                     <button
@@ -541,7 +542,7 @@ export default function MonitorOrdersPage() {
                     ["Customer", selectedOrder.recipient_name],
                     ["Phone", selectedOrder.recipient_phone],
                     ["Delivery", selectedOrder.delivery_address],
-                    ["Promised At", formatDateTime(selectedOrder.promised_at)],
+                    ["Promised At", formatDateTime(selectedOrder.promised_at, businessTz)],
                   ].map(([label, value]) => (
                     <div key={label} className="rounded-xl border border-line bg-card p-4">
                       <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
@@ -625,7 +626,7 @@ export default function MonitorOrdersPage() {
                             >
                               {NOTE_SOURCE_LABEL[event.note_source] ?? event.note_source}
                             </span>
-                            <span className="text-xs text-muted">{formatDateTime(event.created_at)}</span>
+                            <span className="text-xs text-muted">{formatDateTime(event.created_at, businessTz)}</span>
                           </div>
                           <p className="mt-3 text-sm text-fg">
                             {event.note ?? "No note attached for this phase."}
