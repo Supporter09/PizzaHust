@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
+from app.api.serialization import UtcDateTime
 from app.domain.order_state import OrderTransitionError, transition
 from app.infra import settings_service
 from app.infra import timezone as tzmod
@@ -41,7 +42,7 @@ class OrderSummaryOut(BaseModel):
     recipient_phone: str
     delivery_address: str
     total_amount_vnd: int
-    created_at: datetime
+    created_at: UtcDateTime
     user_id: int | None
     item_count: int
 
@@ -70,13 +71,13 @@ class OrderTrackingOut(BaseModel):
     tracking_id: int
     status: str
     note_source: str
-    created_at: datetime
+    created_at: UtcDateTime
     note: str | None
     updated_by: int | None
 
 
 class OrderDetailOut(OrderSummaryOut):
-    promised_at: datetime
+    promised_at: UtcDateTime
     payment_method: str
     delivery_fee_vnd: int
     delivery_reference: str | None

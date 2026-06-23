@@ -206,6 +206,24 @@ def test_get_order_returns_items_and_phase_notes() -> None:
     assert payload["tracking"][2]["note"].startswith("Driver delayed")
 
 
+def test_get_order_serializes_timestamps_as_utc_instants() -> None:
+    client = admin_client("orders-detail-utc")
+    created_at = datetime(2026, 6, 15, 15, 26, 0)
+    order_id = _seed_order_with_detail(
+        order_code="PIZZ-UTC001",
+        created_at=created_at,
+        status=OrderStatus.RECEIVED,
+    )
+
+    resp = client.get(f"/api/admin/orders/{order_id}")
+
+    assert resp.status_code == 200, resp.text
+    payload = resp.json()
+    assert payload["created_at"] == "2026-06-15T15:26:00Z"
+    assert payload["promised_at"] == "2026-06-15T17:26:00Z"
+    assert payload["tracking"][0]["created_at"] == "2026-06-15T15:26:00Z"
+
+
 def test_list_orders_searches_code_and_recipient_with_item_count() -> None:
     client = admin_client("orders-search")
     today = datetime.now().replace(hour=10, minute=0, second=0, microsecond=0)
