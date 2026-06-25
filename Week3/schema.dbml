@@ -1,0 +1,192 @@
+// PizzaHUST – Final Database Schema (Week 3)
+// Generated: 2026-06-03
+// Tool: https://dbdiagram.io
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum user_role {
+  customer
+  admin
+  kitchen
+}
+
+enum membership_tier {
+  standard
+  silver
+  gold
+}
+
+enum order_status {
+  Received
+  Preparing
+  ReadyForDispatch
+  DispatchPending
+  Delivering
+  Delivered
+  DeliveryFailed
+  Cancelled
+}
+
+// ─── Tables ───────────────────────────────────────────────────────────────────
+
+Table users {
+  user_id       int          [pk, increment]
+  full_name     varchar(100) [not null]
+  email         varchar(255) [unique, null]
+  phone_number  varchar(15)  [not null, unique]
+  password_hash varchar(255) [null]
+  address       varchar(255) [null]
+  is_locked     boolean      [not null, default: false]
+  role          user_role    [not null, default: "customer"]
+  current_points       int  [not null, default: 0]
+  total_points_earned  int  [not null, default: 0]
+  membership_tier membership_tier [not null, default: "standard"]
+
+  indexes {
+    phone_number [unique]
+    email        [unique]
+  }
+}
+
+Table categories {
+  category_id int          [pk, increment]
+  name        varchar(50)  [not null]
+  description text         [null]
+  sort_order  int          [not null, default: 0]  // display order in menu
+  is_active   boolean      [not null, default: true]
+}
+
+Table products {
+  product_id      int          [pk, increment]
+  category_id     int          [not null, ref: > categories.category_id]
+  name            varchar(100) [not null]
+  base_price_vnd  int          [not null]
+  is_pizza        boolean      [not null, default: false]
+  image_url       varchar(255) [null]
+  is_active       boolean      [not null, default: true]
+
+  indexes {
+    category_id
+  }
+}
+
+Table pizza_sizes {
+  size_id             int         [pk, increment]
+  name                varchar(10) [not null]       // S / M / L
+  price_modifier_vnd  int         [not null, default: 0]
+}
+
+Table pizza_crusts {
+  crust_id int         [pk, increment]
+  name     varchar(50) [not null]                  // thin / cheese-stuffed
+}
+
+Table toppings {
+  topping_id int          [pk, increment]
+  name       varchar(100) [not null]
+  price_vnd  int          [not null]
+}
+
+Table combos {
+  combo_id        int          [pk, increment]
+  name            varchar(100) [not null]
+  description     text         [null]
+  combo_price_vnd int          [not null]
+  target_group    int          [null]               // number of people
+  validity_start  datetime     [null]
+  validity_end    datetime     [null]
+  is_active       boolean      [not null, default: true]  // auto-flipped by scheduler
+}
+
+Table combo_items {
+  combo_item_id int [pk, increment]
+  combo_id      int [not null, ref: > combos.combo_id]
+  product_id    int [not null, ref: > products.product_id]
+  quantity      int [not null, default: 1]
+}
+
+Table orders {
+  order_id          int          [pk, increment]
+  order_code        varchar(26)  [not null, unique]   // ULID
+  user_id           int          [null, ref: > users.user_id]
+  recipient_name    varchar(100) [not null]
+  recipient_phone   varchar(15)  [not null]
+  delivery_address  varchar(255) [not null]
+  total_amount_vnd  int          [not null]
+  delivery_fee_vnd  int          [not null, default: 22000]
+  payment_method    varchar(20)  [not null, default: "COD"]
+  current_status    order_status [not null, default: "Received"]
+  promised_at       datetime     [not null]
+  delivery_reference varchar(64) [null]
+  created_at        datetime     [not null, default: `now()`]
+
+  indexes {
+    current_status
+    user_id
+    order_code [unique]
+  }
+}
+
+Table order_items {
+  order_item_id  int [pk, increment]
+  order_id       int [not null, ref: > orders.order_id]
+  product_id     int [null, ref: > products.product_id]   // XOR with combo_id
+  combo_id       int [null, ref: > combos.combo_id]        // XOR with product_id
+  size_id        int [null, ref: > pizza_sizes.size_id]
+  crust_id       int [null, ref: > pizza_crusts.crust_id]
+  quantity       int [not null, default: 1]
+  unit_price_vnd int [not null]
+  notes          varchar(255) [null]
+
+  indexes {
+    order_id
+  }
+
+  Note: "product_id XOR combo_id enforced via CHECK constraint"
+}
+
+Table order_item_toppings {
+  id               int [pk, increment]
+  order_item_id    int [not null, ref: > order_items.order_item_id]
+  topping_id       int [not null, ref: > toppings.topping_id]
+  quantity         int [not null, default: 1]
+  price_at_time_vnd int [not null]
+
+  indexes {
+    order_item_id
+  }
+}
+
+Table order_tracking {
+  tracking_id int          [pk, increment]
+  order_id    int          [not null, ref: > orders.order_id]
+  updated_by  int          [null, ref: > users.user_id]
+  status      order_status [not null]
+  created_at  datetime     [not null, default: `now()`]
+  note        varchar(255) [null]
+
+  indexes {
+    order_id
+  }
+}
+
+Table webhook_events {
+  id          int         [pk, increment]
+  event_id    varchar(128) [not null, unique]   // idempotency key from delivery partner
+  received_at datetime    [not null, default: `now()`]
+}
+
+// ─── Relationships summary (also expressed inline above via ref:) ─────────────
+// users          1──< orders              (user places many orders)
+// users          1──< order_tracking      (staff updates status)
+// categories     1──< products
+// products       1──< combo_items
+// combos         1──< combo_items
+// combos         1──< order_items
+// products       1──< order_items
+// orders         1──< order_items
+// order_items    1──< order_item_toppings
+// toppings       1──< order_item_toppings
+// pizza_sizes    1──< order_items
+// pizza_crusts   1──< order_items
+// orders         1──< order_tracking
